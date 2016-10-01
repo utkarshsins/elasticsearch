@@ -39,6 +39,7 @@ import org.elasticsearch.common.collect.MapBuilder;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.common.util.UriBuilder;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.common.xcontent.XContentHelper;
@@ -644,9 +645,10 @@ public class SearchRequest extends ActionRequest<SearchRequest> implements Indic
 
     @Override
     public String getEndPoint() {
-        String indicesCsv = Joiner.on(',').join(this.indices);
-        String typesCsv = Joiner.on(',').join(this.types);
-        return Joiner.on('/').join(indicesCsv, typesCsv, "_search");
+        return UriBuilder.newBuilder()
+                .csv(this.indices())
+                .csv(this.types())
+                .slash("_search").build();
     }
 
     @Override
@@ -680,7 +682,12 @@ public class SearchRequest extends ActionRequest<SearchRequest> implements Indic
     @Override
     public Map<String, String> getParams() {
         MapBuilder<String, String> builder = MapBuilder.<String, String>newMapBuilder()
-                .putIfNotNull("routing", this.routing);
+                .putIfNotNull("routing", this.routing)
+                .putIfNotNull("preference", preference);
+        if (queryCache != null) {
+            builder.put("query_cache", Boolean.TRUE.toString());
+        }
+
 
         if (scroll != null) {
             builder.put("scroll", scroll.keepAlive().toString());

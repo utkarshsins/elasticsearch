@@ -22,11 +22,12 @@ package org.elasticsearch.client.rest.support;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
-import org.apache.http.nio.conn.SchemeIOSessionStrategy;
+import org.elasticsearch.client.rest.FailureListener;
+import org.elasticsearch.client.rest.HttpClientConfigCallback;
+import org.elasticsearch.client.rest.RequestConfigCallback;
+import org.elasticsearch.common.unit.ByteSizeValue;
 
 import java.util.Objects;
 
@@ -35,7 +36,7 @@ import java.util.Objects;
  * creating the underlying {@link org.apache.http.nio.client.HttpAsyncClient}. Also allows to provide an externally created
  * {@link org.apache.http.nio.client.HttpAsyncClient} in case additional customization is needed.
  */
-public final class InternalRestClientBuilder {
+public class InternalRestClientBuilder {
     public static final int DEFAULT_CONNECT_TIMEOUT_MILLIS = 1000;
     public static final int DEFAULT_SOCKET_TIMEOUT_MILLIS = 10000;
     public static final int DEFAULT_MAX_RETRY_TIMEOUT_MILLIS = DEFAULT_SOCKET_TIMEOUT_MILLIS;
@@ -46,12 +47,13 @@ public final class InternalRestClientBuilder {
     private static final Header[] EMPTY_HEADERS = new Header[0];
 
     private final HttpHost[] hosts;
-    private int maxRetryTimeout = DEFAULT_MAX_RETRY_TIMEOUT_MILLIS;
+    private long maxRetryTimeout = DEFAULT_MAX_RETRY_TIMEOUT_MILLIS;
     private Header[] defaultHeaders = EMPTY_HEADERS;
-    private InternalRestClient.FailureListener failureListener;
+    private FailureListener failureListener;
     private HttpClientConfigCallback httpClientConfigCallback;
     private RequestConfigCallback requestConfigCallback;
     private String pathPrefix;
+    private ByteSizeValue maxResponseSize;
 
     /**
      * Creates a new builder instance and sets the hosts that the client will send requests to.
@@ -87,11 +89,11 @@ public final class InternalRestClientBuilder {
     }
 
     /**
-     * Sets the {@link InternalRestClient.FailureListener} to be notified for each request failure
+     * Sets the {@link FailureListener} to be notified for each request failure
      *
      * @throws NullPointerException if {@code failureListener} is {@code null}.
      */
-    public InternalRestClientBuilder setFailureListener(InternalRestClient.FailureListener failureListener) {
+    public InternalRestClientBuilder setFailureListener(FailureListener failureListener) {
         Objects.requireNonNull(failureListener, "failureListener must not be null");
         this.failureListener = failureListener;
         return this;
@@ -103,7 +105,7 @@ public final class InternalRestClientBuilder {
      *
      * @throws IllegalArgumentException if {@code maxRetryTimeoutMillis} is not greater than 0
      */
-    public InternalRestClientBuilder setMaxRetryTimeoutMillis(int maxRetryTimeoutMillis) {
+    public InternalRestClientBuilder setMaxRetryTimeoutMillis(long maxRetryTimeoutMillis) {
         if (maxRetryTimeoutMillis <= 0) {
             throw new IllegalArgumentException("maxRetryTimeoutMillis must be greater than 0");
         }
@@ -175,10 +177,10 @@ public final class InternalRestClientBuilder {
      */
     public InternalRestClient build() {
         if (failureListener == null) {
-            failureListener = new InternalRestClient.FailureListener();
+            failureListener = new FailureListener();
         }
         CloseableHttpAsyncClient httpClient = createHttpClient();
-        InternalRestClient restClient = new InternalRestClient(httpClient, maxRetryTimeout, defaultHeaders, hosts, pathPrefix, failureListener);
+        InternalRestClient restClient = new InternalRestClient(httpClient, maxRetryTimeout, defaultHeaders, hosts, pathPrefix, failureListener, maxResponseSize);
         httpClient.start();
         return restClient;
     }
@@ -201,31 +203,8 @@ public final class InternalRestClientBuilder {
         return httpClientBuilder.build();
     }
 
-    /**
-     * Callback used the default {@link RequestConfig} being set to the {@link CloseableHttpClient}
-     * @see HttpClientBuilder#setDefaultRequestConfig
-     */
-    public interface RequestConfigCallback {
-        /**
-         * Allows to customize the {@link RequestConfig} that will be used with each request.
-         * It is common to customize the different timeout values through this method without losing any other useful default
-         * value that the {@link InternalRestClientBuilder} internally sets.
-         */
-        RequestConfig.Builder customizeRequestConfig(RequestConfig.Builder requestConfigBuilder);
-    }
-
-    /**
-     * Callback used to customize the {@link CloseableHttpClient} instance used by a {@link InternalRestClient} instance.
-     * Allows to customize default {@link RequestConfig} being set to the client and any parameter that
-     * can be set through {@link HttpClientBuilder}
-     */
-    public interface HttpClientConfigCallback {
-        /**
-         * Allows to customize the {@link CloseableHttpAsyncClient} being created and used by the {@link InternalRestClient}.
-         * Commonly used to customize the default {@link org.apache.http.client.CredentialsProvider} for authentication
-         * or the {@link SchemeIOSessionStrategy} for communication through ssl without losing any other useful default
-         * value that the {@link InternalRestClientBuilder} internally sets, like connection pooling.
-         */
-        HttpAsyncClientBuilder customizeHttpClient(HttpAsyncClientBuilder httpClientBuilder);
+    public InternalRestClientBuilder setMaxResponseSize(ByteSizeValue maxResponseSize) {
+        this.maxResponseSize = maxResponseSize;
+        return this;
     }
 }

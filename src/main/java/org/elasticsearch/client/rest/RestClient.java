@@ -19,17 +19,19 @@
 
 package org.elasticsearch.client.rest;
 
+import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.*;
 import org.elasticsearch.action.support.PlainActionFuture;
 import org.elasticsearch.client.AdminClient;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.client.rest.support.InternalRestClient;
-import org.elasticsearch.client.rest.support.RestExecuteUtil;
+import org.elasticsearch.client.rest.support.*;
 import org.elasticsearch.client.support.AbstractClient;
 import org.elasticsearch.common.inject.ModulesBuilder;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.unit.ByteSizeValue;
+import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.search.TransportSearchModule;
 import org.elasticsearch.threadpool.ThreadPool;
 
@@ -44,17 +46,21 @@ public class RestClient extends AbstractClient implements Client {
     private InternalRestClient internalRestClient;
     private RestAdminClient restAdminClient;
 
-    public RestClient(String hostname) {
-        this(new HttpHost(hostname, DEFAULT_PORT));
-    }
-
-    public RestClient(HttpHost... hosts) {
-        internalRestClient = InternalRestClient.builder(hosts).build();
-        restAdminClient = new RestAdminClient(internalRestClient);
+    private RestClient(InternalRestClient internalRestClient) {
+        this.internalRestClient = internalRestClient;
+        restAdminClient = new RestAdminClient(this.internalRestClient);
 
         ModulesBuilder modules = new ModulesBuilder();
         modules.add(new TransportSearchModule());
         modules.createInjector();
+    }
+
+    public static Builder builder(HttpHost... hosts) {
+        return new RestClient.Builder(hosts);
+    }
+
+    public static Builder builder(String hostname) {
+        return new RestClient.Builder(new HttpHost(hostname, DEFAULT_PORT));
     }
 
     public String getClusterName() {
@@ -101,5 +107,60 @@ public class RestClient extends AbstractClient implements Client {
     @Override
     public Settings settings() {
         return null;
+    }
+    
+    
+    public static class Builder {
+        public Builder(HttpHost... hosts) {
+            internalRestClientBuilder = InternalRestClient.builder(hosts);
+        }
+
+        public Builder setDefaultHeaders(Header[] defaultHeaders) {
+            internalRestClientBuilder.setDefaultHeaders(defaultHeaders);
+            return this;
+        }
+
+        public Builder setFailureListener(FailureListener failureListener) {
+            internalRestClientBuilder.setFailureListener(failureListener);
+            return this;
+        }
+
+        public Builder setMaxRetryTimeoutMillis(int maxRetryTimeoutMillis) {
+            internalRestClientBuilder.setMaxRetryTimeoutMillis(maxRetryTimeoutMillis);
+            return this;
+        }
+
+        public Builder setHttpClientConfigCallback(HttpClientConfigCallback httpClientConfigCallback) {
+            internalRestClientBuilder.setHttpClientConfigCallback(httpClientConfigCallback);
+            return this;
+        }
+
+        public Builder setRequestConfigCallback(RequestConfigCallback requestConfigCallback) {
+            internalRestClientBuilder.setRequestConfigCallback(requestConfigCallback);
+            return this;
+        }
+
+        public Builder setPathPrefix(String pathPrefix) {
+            internalRestClientBuilder.setPathPrefix(pathPrefix);
+            return this;
+        }
+
+        public RestClient build() {
+            InternalRestClient internalRestClient = internalRestClientBuilder.build();
+            return new RestClient(internalRestClient);
+        }
+
+        private InternalRestClientBuilder internalRestClientBuilder;
+
+
+        public Builder setMaxRetryTimeout(TimeValue maxRetryTimeout) {
+            internalRestClientBuilder.setMaxRetryTimeoutMillis(maxRetryTimeout.millis());
+            return this;
+        }
+
+        public Builder setMaxResponseSize(ByteSizeValue size) {
+            internalRestClientBuilder.setMaxResponseSize(size);
+            return this;
+        }
     }
 }

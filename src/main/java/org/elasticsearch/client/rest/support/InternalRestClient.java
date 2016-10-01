@@ -42,7 +42,9 @@ import org.apache.http.nio.protocol.HttpAsyncRequestProducer;
 import org.apache.http.nio.protocol.HttpAsyncResponseConsumer;
 import org.apache.lucene.util.CollectionUtil;
 import org.elasticsearch.Version;
+import org.elasticsearch.client.rest.FailureListener;
 import org.elasticsearch.common.bytes.BytesArray;
+import org.elasticsearch.common.unit.ByteSizeValue;
 import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.common.xcontent.XContentParser;
@@ -98,18 +100,20 @@ public class InternalRestClient implements Closeable {
     private final Header[] defaultHeaders;
     private final long maxRetryTimeoutMillis;
     private final String pathPrefix;
+    private final ByteSizeValue maxResponseSize;
     private final AtomicInteger lastHostIndex = new AtomicInteger(0);
     private volatile Set<HttpHost> hosts;
     private final ConcurrentMap<HttpHost, DeadHostState> blacklist = new ConcurrentHashMap<>();
     private final FailureListener failureListener;
 
     InternalRestClient(CloseableHttpAsyncClient client, long maxRetryTimeoutMillis, Header[] defaultHeaders,
-                       HttpHost[] hosts, String pathPrefix, FailureListener failureListener) {
+                       HttpHost[] hosts, String pathPrefix, FailureListener failureListener, ByteSizeValue maxResponseSize) {
         this.client = client;
         this.maxRetryTimeoutMillis = maxRetryTimeoutMillis;
         this.defaultHeaders = defaultHeaders;
         this.failureListener = failureListener;
         this.pathPrefix = pathPrefix;
+        this.maxResponseSize = maxResponseSize;
         setHosts(hosts);
     }
 
@@ -216,7 +220,7 @@ public class InternalRestClient implements Closeable {
      */
     public RestResponse performRequest(String method, String endpoint, Map<String, String> params,
                                        HttpEntity entity, Header... headers) throws IOException {
-        HttpAsyncResponseConsumer<HttpResponse> responseConsumer = new HeapBufferedAsyncResponseConsumer();
+        HttpAsyncResponseConsumer<HttpResponse> responseConsumer = new HeapBufferedAsyncResponseConsumer(maxResponseSize);
         return performRequest(method, endpoint, params, entity, responseConsumer, headers);
     }
 
@@ -293,7 +297,7 @@ public class InternalRestClient implements Closeable {
      */
     public void performRequestAsync(String method, String endpoint, Map<String, String> params,
                                     HttpEntity entity, ResponseListener responseListener, Header... headers) {
-        HttpAsyncResponseConsumer<HttpResponse> responseConsumer = new HeapBufferedAsyncResponseConsumer();
+        HttpAsyncResponseConsumer<HttpResponse> responseConsumer = new HeapBufferedAsyncResponseConsumer(maxResponseSize);
         performRequestAsync(method, endpoint, params, entity, responseConsumer, responseListener, headers);
     }
 
@@ -678,16 +682,4 @@ public class InternalRestClient implements Closeable {
         }
     }
 
-    /**
-     * Listener that allows to be notified whenever a failure happens. Useful when sniffing is enabled, so that we can sniff on failure.
-     * The default implementation is a no-op.
-     */
-    public static class FailureListener {
-        /**
-         * Notifies that the host provided as argument has just failed
-         */
-        public void onFailure(HttpHost host) {
-
-        }
-    }
 }

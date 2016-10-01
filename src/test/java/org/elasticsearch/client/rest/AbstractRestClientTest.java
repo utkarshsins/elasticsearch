@@ -25,11 +25,15 @@ import org.elasticsearch.action.support.master.AcknowledgedResponse;
 import org.elasticsearch.client.ClusterAdminClient;
 import org.elasticsearch.client.IndicesAdminClient;
 import org.elasticsearch.common.Strings;
+import org.elasticsearch.common.unit.ByteSizeUnit;
+import org.elasticsearch.common.unit.ByteSizeValue;
+import org.elasticsearch.common.unit.TimeValue;
 import org.junit.After;
 import org.junit.Before;
 
 import java.io.InputStream;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -47,7 +51,10 @@ public abstract class AbstractRestClientTest {
 
     @Before
     public void setUp() {
-        client = new RestClient("localhost");
+        client = RestClient.builder("localhost")
+                .setMaxRetryTimeout(new TimeValue(60, TimeUnit.SECONDS))
+                .setMaxResponseSize(new ByteSizeValue(1, ByteSizeUnit.GB))
+                .build();
         this.indicesAdminClient = client.admin().indices();
         this.clusterAdminClient = client.admin().cluster();
         this.index = createIndex();

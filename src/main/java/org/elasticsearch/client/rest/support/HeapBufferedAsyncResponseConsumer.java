@@ -32,6 +32,9 @@ import org.apache.http.nio.util.ByteBufferAllocator;
 import org.apache.http.nio.util.HeapByteBufferAllocator;
 import org.apache.http.nio.util.SimpleInputBuffer;
 import org.apache.http.protocol.HttpContext;
+import org.elasticsearch.common.unit.ByteSizeUnit;
+import org.elasticsearch.common.unit.SizeUnit;
+import org.elasticsearch.common.unit.ByteSizeValue;
 
 import java.io.IOException;
 
@@ -43,10 +46,9 @@ import java.io.IOException;
  */
 public class HeapBufferedAsyncResponseConsumer extends AbstractAsyncResponseConsumer<HttpResponse> {
 
-    //default buffer limit is 250MB
-    public static final int DEFAULT_BUFFER_LIMIT = 250 * 1024 * 1024;
-
-    private final int bufferLimit;
+    public static final ByteSizeValue DEFAULT_BUFFER_LIMIT = new ByteSizeValue(1, ByteSizeUnit.GB);
+    public static final ByteSizeValue MIN_SIZE = new ByteSizeValue(1, ByteSizeUnit.KB);
+    private final ByteSizeValue bufferLimit;
     private volatile HttpResponse response;
     private volatile SimpleInputBuffer buf;
 
@@ -60,9 +62,9 @@ public class HeapBufferedAsyncResponseConsumer extends AbstractAsyncResponseCons
     /**
      * Creates a new instance of this consumer with the provided buffer limit
      */
-    public HeapBufferedAsyncResponseConsumer(int bufferLimit) {
-        if (bufferLimit <= 0) {
-            throw new IllegalArgumentException("bufferLimit must be greater than 0");
+    public HeapBufferedAsyncResponseConsumer(ByteSizeValue bufferLimit) {
+        if (bufferLimit.bytes() <= MIN_SIZE.bytes()) {
+            throw new IllegalArgumentException("bufferLimit must be greater than " + MIN_SIZE);
         }
         this.bufferLimit = bufferLimit;
     }
@@ -75,7 +77,7 @@ public class HeapBufferedAsyncResponseConsumer extends AbstractAsyncResponseCons
     @Override
     protected void onEntityEnclosed(HttpEntity entity, ContentType contentType) throws IOException {
         long len = entity.getContentLength();
-        if (len > bufferLimit) {
+        if (len > bufferLimit.bytes()) {
             throw new ContentTooLongException("entity content is too long [" + len +
                     "] for the configured buffer limit [" + bufferLimit + "]");
         }
