@@ -1413,10 +1413,16 @@ public class MetaData implements Iterable<IndexMetaData> {
             }
             return builder.build();
         }
-        public static MetaData readFrom(XContentObject in) {
+        public static MetaData readFrom(XContentObject in) throws IOException {
             Builder builder = new Builder();
             builder.transientSettings(readSettingsFromStream(in));
             builder.persistentSettings(readSettingsFromStream(in));
+            XContentObject xIndices = in.getAsXContentObject("indices");
+            for (String index : xIndices.keySet()) {
+                XContentObject xIndexMetadata = xIndices.getAsXContentObject(index);
+                xIndexMetadata.put("index", index);
+                builder.put(IndexMetaData.Builder.readFrom(xIndexMetadata), false);
+            }
             //todo bdk finish
 /*
             int size = in.readVInt();

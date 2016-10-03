@@ -581,6 +581,10 @@ public class MappingMetaData {
         return result;
     }
 
+    public static MappingMetaData readFrom(XContentObject xContentObject) throws IOException {
+        return new MappingMetaData(xContentObject.get("type"), xContentObject.getInternalMap());
+    }
+
     public static MappingMetaData readFrom(StreamInput in) throws IOException {
         String type = in.readString();
         CompressedString source = CompressedString.readCompressedString(in);

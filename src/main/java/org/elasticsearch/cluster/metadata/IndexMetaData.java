@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableMap;
 import org.elasticsearch.ElasticsearchIllegalArgumentException;
 import org.elasticsearch.ElasticsearchIllegalStateException;
 import org.elasticsearch.Version;
+import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
 import org.elasticsearch.cluster.block.ClusterBlock;
 import org.elasticsearch.cluster.block.ClusterBlockLevel;
 import org.elasticsearch.cluster.node.DiscoveryNodeFilters;
@@ -38,19 +39,13 @@ import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.settings.loader.SettingsLoader;
-import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentFactory;
-import org.elasticsearch.common.xcontent.XContentParser;
+import org.elasticsearch.common.xcontent.*;
 import org.elasticsearch.index.mapper.MapperService;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.warmer.IndexWarmersMetaData;
 
 import java.io.IOException;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import static org.elasticsearch.cluster.node.DiscoveryNodeFilters.OpType.AND;
 import static org.elasticsearch.cluster.node.DiscoveryNodeFilters.OpType.OR;
@@ -679,6 +674,30 @@ public class IndexMetaData {
             return builder.build();
         }
 
+        public static IndexMetaData readFrom(XContentObject xIndexMetadata) throws IOException {
+            Builder builder =new Builder(xIndexMetadata.get("index"));
+            builder.settings(ImmutableSettings.settingsBuilder().put(SettingsLoader.Helper.loadNestedFromMap(xIndexMetadata.getAsMap("settings"))));
+            builder.state(State.fromString(xIndexMetadata.get("state")));
+            XContentObject xMappings = xIndexMetadata.getAsXContentObject("mappings");
+            Set<String> types = xMappings.keySet();
+            for (String type : types) {
+                XContentObject xContentObject = xMappings.getAsXContentObject(type);
+                xContentObject.put("type", type);
+                MappingMetaData mappingMetaData = MappingMetaData.readFrom(xContentObject);
+                builder.putMapping(mappingMetaData);
+            }
+            // todo bdk this is not correct as the rest response from the sever is only including the alias name
+            // todo and not the complete alias metadata
+            List<String> xAliases = xIndexMetadata.getAsStrings("aliases");
+            if (xAliases != null && xAliases.size() > 0) {
+                for (String xAliase : xAliases) {
+                    builder.putAlias(new AliasMetaData.Builder(xAliase));
+                }
+            }
+            //todo bdk finish custom metadata
+            return builder.build();
+        }
+
         public static IndexMetaData readFrom(StreamInput in) throws IOException {
             Builder builder = new Builder(in.readString());
             builder.version(in.readLong());
@@ -722,5 +741,6 @@ public class IndexMetaData {
                 lookupFactorySafe(cursor.key).writeTo(cursor.value, out);
             }
         }
+
     }
 }

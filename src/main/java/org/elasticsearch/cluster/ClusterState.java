@@ -689,7 +689,6 @@ public class ClusterState implements ToXContent {
 
         /**
          * @param in                 input stream
-         * @param localNode          used to set the local node in the cluster state. can be null.
          * @param defaultClusterName this cluster name will be used of receiving a cluster state from a node on version older than 1.1.1
          *                           or if the sending node did not set a cluster name
          */

@@ -30,7 +30,9 @@ import org.elasticsearch.action.admin.cluster.stats.ClusterStatsResponse;
 import org.elasticsearch.client.rest.AbstractRestClientTest;
 import org.elasticsearch.cluster.ClusterName;
 import org.elasticsearch.cluster.ClusterState;
+import org.elasticsearch.cluster.metadata.IndexMetaData;
 import org.elasticsearch.cluster.metadata.RepositoryMetaData;
+import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.snapshots.SnapshotInfo;
 import org.junit.Test;
 
@@ -54,10 +56,12 @@ public class RestClusterAdminClientTest extends AbstractRestClientTest {
         ClusterStateResponse response = clusterAdminClient.prepareState().get();
         ClusterState state = response.getState();
         assertNotNull(state);
-        assertNotNull(state.blocks());
-        assertNotNull(state.routingTable());
         assertNotNull(state.getMetaData());
-        assertNotNull(state.getMetaData().indices());
+        ImmutableOpenMap<String, IndexMetaData> indices = state.getMetaData().indices();
+        assertNotNull(indices);
+        assertTrue(indices.size() > 0);
+        assertNotNull(state.routingTable());
+        assertNotNull(state.blocks());
         ClusterName clusterName = response.getClusterName();
         assertNotNull(clusterName);
         assertNotNull(clusterName.value());
