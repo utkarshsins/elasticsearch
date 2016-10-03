@@ -19,7 +19,7 @@
             <outputDirectory>/lib</outputDirectory>
             <useTransitiveDependencies>false</useTransitiveDependencies>
             <includes>
-                <include>org.elasticsearch:elasticsearch</include>
+                <include>org.elasticsearch:${project.artifactId}</include>
             </includes>
         </dependencySet>
     </dependencySets>
