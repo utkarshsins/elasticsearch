@@ -316,7 +316,7 @@ public final class XContentBuilder implements BytesStream, Releasable {
         if (values == null) {
             generator.writeNull();
         } else {
-            generator.writeString(Joiner.on(',').join(values));
+            generator.writeString(Joiner.on(',').skipNulls().join(values));
         }
         return this;
     }

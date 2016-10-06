@@ -36,6 +36,7 @@ import org.elasticsearch.common.bytes.BytesArray;
 import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
+import org.elasticsearch.common.util.UriBuilder;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.common.xcontent.XContentHelper;
@@ -289,9 +290,10 @@ public class CountRequest extends BroadcastOperationRequest<CountRequest> {
 
     @Override
     public String getEndPoint() {
-        String indicesCsv = Joiner.on(',').join(this.indices);
-        String typesCsv = Joiner.on(',').join(this.types);
-        return Joiner.on('/').join(indicesCsv, typesCsv, "_count");
+        return UriBuilder.newBuilder()
+                .csv(this.indices())
+                .csv(this.types())
+                .slash("_count").build();
     }
 
 

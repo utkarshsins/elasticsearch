@@ -108,7 +108,7 @@ public class ClearScrollRequest extends ActionRequest<ClearScrollRequest> {
         payload.put("scroll_id", scrollIds.toArray(new String[scrollIds.size()]));
         return new NStringEntity(XContentHelper.convertToJson(payload, false), StandardCharsets.UTF_8);
 */
-        return new NStringEntity(Joiner.on(',').join(scrollIds), StandardCharsets.UTF_8);
+        return new NStringEntity(Joiner.on(',').skipNulls().join(scrollIds), StandardCharsets.UTF_8);
 
     }
 }

@@ -1425,11 +1425,6 @@ public class MetaData implements Iterable<IndexMetaData> {
             }
             //todo bdk finish
 /*
-            int size = in.readVInt();
-            for (int i = 0; i < size; i++) {
-                builder.put(IndexMetaData.Builder.readFrom(in), false);
-            }
-            size = in.readVInt();
             for (int i = 0; i < size; i++) {
                 builder.put(IndexTemplateMetaData.Builder.readFrom(in));
             }

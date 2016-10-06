@@ -167,8 +167,8 @@ public class ClusterStateRequest extends MasterNodeReadOperationRequest<ClusterS
     public Map<String, String> getParams() {
         List<String> metrics = getMetrics();
         return new MapBuilder<>(super.getParams())
-                .putIf("indices", Joiner.on(',').join(indices()), indices.length > 0)
-                .putIf("metrics", Joiner.on(',').join(metrics), !metrics.isEmpty())
+                .putIf("indices", Joiner.on(',').skipNulls().join(indices()), indices.length > 0)
+                .putIf("metrics", Joiner.on(',').skipNulls().join(metrics), !metrics.isEmpty())
                 .map();
     }
 

@@ -35,6 +35,7 @@ import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.collect.MapBuilder;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
+import org.elasticsearch.common.util.UriBuilder;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.rest.RestRequest;
@@ -720,7 +721,7 @@ public class MoreLikeThisRequest extends ActionRequest<MoreLikeThisRequest> impl
 
     @Override
     public String getEndPoint() {
-        return Joiner.on('/').join(this.index(), this.type(), this.id(), "_mlt");
+        return UriBuilder.newBuilder().slash(index(), type(), id(), "_mlt").build();
     }
 
     @Override
@@ -728,7 +729,7 @@ public class MoreLikeThisRequest extends ActionRequest<MoreLikeThisRequest> impl
         MapBuilder<String, String> builder = new MapBuilder<String, String>()
                 .putIfNotNull("routing", routing);
         if (this.fields != null) {
-            builder.put("mlt_fields", Joiner.on(',').join(this.fields));
+            builder.put("mlt_fields", Joiner.on(',').skipNulls().join(this.fields));
         }
         builder.putIf("min_doc_freq", String.valueOf(minDocFreq), minDocFreq != -1);
 

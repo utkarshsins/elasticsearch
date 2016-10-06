@@ -31,6 +31,7 @@ import org.elasticsearch.common.Nullable;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.lucene.uid.Versions;
+import org.elasticsearch.common.util.UriBuilder;
 import org.elasticsearch.index.VersionType;
 import org.elasticsearch.rest.RestRequest;
 import org.elasticsearch.search.fetch.source.FetchSourceContext;
@@ -359,7 +360,7 @@ public class GetRequest extends SingleShardOperationRequest<GetRequest> {
 
     @Override
     public String getEndPoint() {
-        return Joiner.on('/').join(index(), type(), id());
+        return UriBuilder.newBuilder().slash(index(), type(), id()).build();
     }
 
     @Override

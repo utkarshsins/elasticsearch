@@ -33,6 +33,7 @@ import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.collect.MapBuilder;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
+import org.elasticsearch.common.util.UriBuilder;
 import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.rest.RestRequest;
 import org.elasticsearch.search.fetch.source.FetchSourceContext;
@@ -229,7 +230,7 @@ public class ExplainRequest extends SingleShardOperationRequest<ExplainRequest> 
 
     @Override
     public String getEndPoint() {
-        return Joiner.on('/').join(index, type, id, "_explain");
+        return UriBuilder.newBuilder().slash(index(), type(), id(), "_explain").build();
     }
 
 
@@ -245,7 +246,7 @@ public class ExplainRequest extends SingleShardOperationRequest<ExplainRequest> 
                 .putIfNotNull("preference", this.preference);
 
         if (this.fields != null) {
-            builder.putIfNotNull("fields", Joiner.on(',').join(this.fields));
+            builder.putIfNotNull("fields", Joiner.on(',').skipNulls().join(this.fields));
         }
 
 

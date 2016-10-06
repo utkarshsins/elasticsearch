@@ -41,6 +41,7 @@ import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.util.UriBuilder;
 import org.elasticsearch.common.xcontent.*;
 import org.elasticsearch.common.xcontent.support.XContentMapValues;
 import org.elasticsearch.rest.RestRequest;
@@ -490,7 +491,7 @@ public class PutIndexTemplateRequest extends MasterNodeOperationRequest<PutIndex
 
     @Override
     public String getEndPoint() {
-        return Joiner.on('/').join("_template", name);
+        return UriBuilder.newBuilder().slash("_template", name).build();
     }
 
     @Override

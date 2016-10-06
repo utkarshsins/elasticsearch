@@ -37,6 +37,7 @@ import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.lucene.uid.Versions;
+import org.elasticsearch.common.util.UriBuilder;
 import org.elasticsearch.common.xcontent.*;
 import org.elasticsearch.index.VersionType;
 import org.elasticsearch.rest.RestRequest;
@@ -738,7 +739,7 @@ public class UpdateRequest extends InstanceShardOperationRequest<UpdateRequest> 
 
     @Override
     public String getEndPoint() {
-        return Joiner.on('/').join(index(), type(), id(), "_update");
+        return UriBuilder.newBuilder().slash(index(), type(), id(), "_update").build();
     }
 
     @Override

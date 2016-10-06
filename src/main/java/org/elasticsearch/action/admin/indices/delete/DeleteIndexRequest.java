@@ -22,13 +22,18 @@ package org.elasticsearch.action.admin.indices.delete;
 import com.google.common.base.Joiner;
 import org.elasticsearch.action.ActionRequestValidationException;
 import org.elasticsearch.action.IndicesRequest;
+import org.elasticsearch.action.WriteConsistencyLevel;
 import org.elasticsearch.action.support.IndicesOptions;
 import org.elasticsearch.action.support.master.AcknowledgedRequest;
 import org.elasticsearch.action.support.master.MasterNodeOperationRequest;
+import org.elasticsearch.action.support.replication.ReplicationType;
+import org.elasticsearch.common.collect.MapBuilder;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
+import org.elasticsearch.common.lucene.uid.Versions;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.util.CollectionUtils;
+import org.elasticsearch.common.util.UriBuilder;
 import org.elasticsearch.rest.RestRequest;
 
 import java.io.IOException;
@@ -144,14 +149,14 @@ public class DeleteIndexRequest extends MasterNodeOperationRequest<DeleteIndexRe
 
     @Override
     public String getEndPoint() {
-        String indicesCsv = Joiner.on(',').join(this.indices);
-        return "/" + indicesCsv;
+        return UriBuilder.newBuilder().csv(indices()).build();
     }
 
     @Override
     public Map<String, String> getParams() {
-        //todo bdk handle timeout
-        return super.getParams();
+        MapBuilder<String, String> builder = new MapBuilder<>(super.getParams());
+        builder.putIf("timeout", String.valueOf(timeout), timeout != AcknowledgedRequest.DEFAULT_ACK_TIMEOUT);
+        return builder.map();
     }
 
     @Override

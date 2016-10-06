@@ -31,6 +31,7 @@ import org.elasticsearch.action.support.master.info.ClusterInfoRequest;
 import org.elasticsearch.cluster.metadata.MetaData;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
+import org.elasticsearch.common.util.UriBuilder;
 import org.elasticsearch.rest.RestRequest;
 
 import java.io.IOException;
@@ -237,15 +238,16 @@ public class GetIndexRequest extends ClusterInfoRequest<GetIndexRequest> {
 
     @Override
     public String getEndPoint() {
+        UriBuilder builder = UriBuilder.newBuilder()
+                .csv(indices())
+                .csv(types());
 
-        String indicesCsv = Joiner.on(',').join(this.indices());
-        String typesCsv = Joiner.on(',').join(this.types());
-        String featuresCsv = "";
         if (this.features != DEFAULT_FEATURES) {
             List<String> featureNames = Lists.transform(Arrays.asList(this.features), FEATURE_TO_PREFERRED_NAME_TRANSFORMER);
-            featuresCsv = Joiner.on(',').join(featureNames);
+            String[] f = featureNames.toArray(new String[featureNames.size()]);
+            builder.csv(f);
         }
-        return Joiner.on('/').join(indicesCsv, typesCsv, featuresCsv);
+        return builder.build();
     }
 
     @Override

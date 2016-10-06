@@ -37,6 +37,7 @@ import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.collect.MapBuilder;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
+import org.elasticsearch.common.util.UriBuilder;
 import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.rest.RestRequest;
 import org.elasticsearch.search.suggest.SuggestBuilder;
@@ -191,8 +192,7 @@ public final class SuggestRequest extends BroadcastOperationRequest<SuggestReque
 
     @Override
     public String getEndPoint() {
-        String indicesCsv = Joiner.on(',').join(this.indices);
-        return Joiner.on('/').join(indicesCsv, "_suggest");
+        return UriBuilder.newBuilder().csv(indices()).slash("_suggest").build();
     }
 
     @Override

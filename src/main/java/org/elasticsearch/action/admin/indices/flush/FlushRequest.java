@@ -26,6 +26,7 @@ import org.elasticsearch.action.support.broadcast.BroadcastOperationRequest;
 import org.elasticsearch.common.collect.MapBuilder;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
+import org.elasticsearch.common.util.UriBuilder;
 import org.elasticsearch.rest.RestRequest;
 
 import java.io.IOException;
@@ -139,7 +140,7 @@ public class FlushRequest extends BroadcastOperationRequest<FlushRequest> {
 
     @Override
     public String getEndPoint() {
-        return Joiner.on('/').join(Joiner.on(',').join(indices), "_flush");
+        return UriBuilder.newBuilder().csv(this.indices()).slash("_flush").build();
     }
 
     @Override

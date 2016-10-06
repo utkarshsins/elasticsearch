@@ -32,6 +32,7 @@ import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.lucene.uid.Versions;
+import org.elasticsearch.common.util.UriBuilder;
 import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.index.VersionType;
 import org.elasticsearch.rest.RestRequest;
@@ -259,7 +260,7 @@ public class DeleteRequest extends ShardReplicationOperationRequest<DeleteReques
 
     @Override
     public String getEndPoint() {
-        return Joiner.on('/').join(index(), type(), id());
+        return UriBuilder.newBuilder().slash(index(), type(), id()).build();
     }
 
     @Override

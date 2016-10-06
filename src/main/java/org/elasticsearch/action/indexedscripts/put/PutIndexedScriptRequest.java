@@ -36,6 +36,7 @@ import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.lucene.uid.Versions;
+import org.elasticsearch.common.util.UriBuilder;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.common.xcontent.XContentHelper;
@@ -381,7 +382,7 @@ public class PutIndexedScriptRequest extends ActionRequest<PutIndexedScriptReque
 
     @Override
     public String getEndPoint() {
-        return Joiner.on("/").join("_scripts", scriptLang, id);
+        return UriBuilder.newBuilder().slash("_scripts", scriptLang, id()).build();
     }
 
     @Override

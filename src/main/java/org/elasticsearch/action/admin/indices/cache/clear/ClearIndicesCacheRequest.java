@@ -24,6 +24,7 @@ import org.elasticsearch.Version;
 import org.elasticsearch.action.support.broadcast.BroadcastOperationRequest;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
+import org.elasticsearch.common.util.UriBuilder;
 import org.elasticsearch.rest.RestRequest;
 
 import java.io.IOException;
@@ -140,8 +141,7 @@ public class ClearIndicesCacheRequest extends BroadcastOperationRequest<ClearInd
 
     @Override
     public String getEndPoint() {
-        String indicesCsv = Joiner.on(',').join(this.indices());
-        return Joiner.on('/').join(indicesCsv, "_cache/clear");
+        return UriBuilder.newBuilder().csv(this.indices()).slash("_cache", "clear").build();
     }
 
     @Override

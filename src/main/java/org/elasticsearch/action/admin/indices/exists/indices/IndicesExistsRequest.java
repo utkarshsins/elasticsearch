@@ -29,6 +29,7 @@ import org.elasticsearch.action.support.master.MasterNodeReadOperationRequest;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
+import org.elasticsearch.common.util.UriBuilder;
 import org.elasticsearch.rest.RestRequest;
 
 import java.io.IOException;
@@ -92,7 +93,7 @@ public class IndicesExistsRequest extends MasterNodeReadOperationRequest<Indices
 
     @Override
     public String getEndPoint() {
-        return "/" + Joiner.on(',').join(indices);
+        return UriBuilder.newBuilder().csv(this.indices()).build();
     }
 
 

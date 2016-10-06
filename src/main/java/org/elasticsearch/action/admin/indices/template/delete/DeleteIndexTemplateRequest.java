@@ -23,6 +23,7 @@ import org.elasticsearch.action.ActionRequestValidationException;
 import org.elasticsearch.action.support.master.MasterNodeOperationRequest;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
+import org.elasticsearch.common.util.UriBuilder;
 import org.elasticsearch.rest.RestRequest;
 
 import java.io.IOException;
@@ -76,7 +77,7 @@ public class DeleteIndexTemplateRequest extends MasterNodeOperationRequest<Delet
 
     @Override
     public String getEndPoint() {
-        return Joiner.on('/').join("_template", name);
+        return UriBuilder.newBuilder().slash("_template", name).build();
     }
 
     @Override
