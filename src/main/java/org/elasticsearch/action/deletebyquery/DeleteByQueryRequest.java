@@ -236,7 +236,7 @@ public class DeleteByQueryRequest extends IndicesReplicationOperationRequest<Del
 
     @Override
     public ActionRestRequest getActionRestRequest(Version version) {
-        if (version.onOrAfter(Version.V_5_0_0)) {
+        if (version.id >= Version.V_5_0_0_ID) {
             return new ActionRequestV5(this);
         }
         else {

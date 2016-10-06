@@ -274,7 +274,7 @@ public class ExistsRequest extends BroadcastOperationRequest<ExistsRequest> {
 
     @Override
     public ActionRestRequest getActionRestRequest(Version version) {
-        if (version.onOrAfter(Version.V_5_0_0)) {
+        if (version.id >= Version.V_5_0_0_ID) {
             return SearchAction.INSTANCE.newRequestBuilder(null)
                     .setIndices(this.indices)
                     .setTypes(this.types)
