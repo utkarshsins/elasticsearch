@@ -46,6 +46,12 @@ public class XContentObjectImpl implements XContentObject {
             return new XContentObjectImpl(o);
         }
     };
+    public static final Function<String, BytesReference> STRING_TO_BYTES_REFERENCE_TRANSFORMER = new Function<String, BytesReference>() {
+        @Override
+        public BytesReference apply(String s) {
+            return new BytesArray(s);
+        }
+    };
     private final Map<String, Object> internalMap;
 
     public XContentObjectImpl(Map<String, Object> map) {
@@ -357,6 +363,17 @@ public class XContentObjectImpl implements XContentObject {
     @Override
     public BytesReference getAsBytesReference(String key) {
         return new BytesArray(get(key));
+    }
+
+    @Override
+    public List<BytesReference> getAsBytesReferences(Enum key) {
+        return getAsBytesReferences(key.name());
+    }
+
+    @Override
+    public List<BytesReference> getAsBytesReferences(String key) {
+        List<String> refs = getAsStrings(key);
+        return Lists.transform(refs, STRING_TO_BYTES_REFERENCE_TRANSFORMER);
     }
 
     @Override

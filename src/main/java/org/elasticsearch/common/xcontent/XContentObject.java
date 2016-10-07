@@ -372,6 +372,9 @@ public interface XContentObject {
 
     BytesReference getAsBytesReference(String key);
 
+    List<BytesReference> getAsBytesReferences(Enum key);
+    List<BytesReference> getAsBytesReferences(String key);
+
     BytesReference getAsBytesReference(Enum key);
 
     <T> Map<T, XContentObject>  getAsXContentObjectsMap(String key);
