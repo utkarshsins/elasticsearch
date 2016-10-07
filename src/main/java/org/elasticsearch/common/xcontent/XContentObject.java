@@ -401,4 +401,6 @@ public interface XContentObject {
     DateTime getAsDate(String key);
 
     List<String> getAsStrings(String key);
+
+    String toJson() throws IOException;
 }

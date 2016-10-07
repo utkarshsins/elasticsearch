@@ -336,6 +336,11 @@ public class XContentObjectImpl implements XContentObject {
     }
 
     @Override
+    public String toJson() throws IOException {
+        return XContentHelper.convertToJson(internalMap, true);
+    }
+
+    @Override
     public Set<String> keySet() {
         return internalMap.keySet();
     }

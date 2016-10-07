@@ -245,9 +245,9 @@ public class InternalRange<B extends InternalRange.Bucket> extends InternalAggre
             InternalAggregations aggregations = InternalAggregations.readAggregations(xBucket);
             ValueFormatter formatter = null;
             buckets.add(getFactory().createBucket(xBucket.get(CommonJsonField.key),
-                    xBucket.getAsLong(CommonJsonField.from),
-                    xBucket.getAsLong(CommonJsonField.to),
-                    xBucket.getAsLong(CommonJsonField.doc_count),
+                    xBucket.getAsDouble(CommonJsonField.from, Double.NEGATIVE_INFINITY),
+                    xBucket.getAsDouble(CommonJsonField.to, Double.POSITIVE_INFINITY),
+                    xBucket.getAsLong(CommonJsonField.doc_count, 0L),
                     aggregations, formatter));
         }
         this.ranges = buckets;
