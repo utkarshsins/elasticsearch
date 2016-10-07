@@ -233,7 +233,7 @@ public class InternalAggregations implements Aggregations, ToXContent, Streamabl
                     InternalAggregation internalAggregation = stream.readResult(agg);
                     aggregations.add(internalAggregation);
                 } catch (java.lang.AbstractMethodError e) {
-                    throw new AbstractMethodError("Aggregation type: " + type + " Class: " + stream.getClass().getName() + "is missing implementation for Stream.readResult(XContentObject obj)")
+                    throw new AbstractMethodError("Aggregation type: " + type + " Class: " + stream.getClass().getName() + "is missing implementation for Stream.readResult(XContentObject obj)");
                 }
             }
         }
