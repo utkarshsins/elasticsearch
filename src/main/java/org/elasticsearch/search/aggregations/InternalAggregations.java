@@ -219,6 +219,9 @@ public class InternalAggregations implements Aggregations, ToXContent, Streamabl
             aggregations = Lists.newArrayListWithCapacity(aggs.size());
             for (XContentObject agg : aggs) {
                 String type = agg.get(CommonJsonField._type);
+                if (type == null) {
+                    throw new IllegalStateException("Missing required field: _type. The elasticsearch cluster isn't patched to handle rest aggregations. Please upgrade/patch your elasticsearch server.");
+                }
 
                 AggregationStreams.Stream stream;
                 stream = AggregationStreams.stream(new BytesArray(type));
