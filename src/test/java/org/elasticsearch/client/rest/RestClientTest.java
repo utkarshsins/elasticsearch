@@ -1027,20 +1027,39 @@ public class RestClientTest extends AbstractRestClientTest {
 
     @Test
     public void testScanAndScroll() throws ExecutionException, InterruptedException {
-        indexDocument(100);
-
+        int recordWritten = 1000;
+        indexDocument(recordWritten);
+        int blockSize = 10;
         TimeValue scrollKeepAlive = TimeValue.timeValueHours(1);
-        SearchResponse response = client.prepareSearch(index)
-//                .setSearchType(SearchType.SCAN)
+        SearchResponse response;
+        response = client.prepareSearch(index)
                 .setScroll(scrollKeepAlive)
-                .setQuery(QueryBuilders.termQuery("color", Color.red))
-                .setSize(2).execute().actionGet();
+                .setSize(blockSize)
+                .setQuery(QueryBuilders.matchAllQuery())
+                .execute().actionGet();
 
         assertNotNull(response.getScrollId());
 
-        SearchResponse response2 = client.prepareSearchScroll(response.getScrollId()).setScroll(scrollKeepAlive).execute().actionGet();
-        validateScrollResponse(response2);
 
+        int recordsRead = 0;
+        recordsRead += response.getHits().hits().length;
+        for (;;) {
+            response = client.prepareSearchScroll(response.getScrollId()).setScroll(scrollKeepAlive).execute().actionGet();
+            if (response.getHits().hits().length == 0) {
+                break;
+            }
+            recordsRead += response.getHits().hits().length;
+
+        }
+        assertEquals(recordWritten, recordsRead);
+
+        response = client.prepareSearch(index)
+                .setScroll(scrollKeepAlive)
+                .setSize(blockSize)
+                .setQuery(QueryBuilders.matchAllQuery())
+                .execute().actionGet();
+
+        assertNotNull(response.getScrollId());
         ClearScrollResponse clearScrollResponse = client.prepareClearScroll().addScrollId(response.getScrollId()).get();
         assertTrue(clearScrollResponse.isSucceeded());
         SearchResponse response3 = client.prepareSearchScroll(response.getScrollId()).setScroll(scrollKeepAlive).execute().actionGet();

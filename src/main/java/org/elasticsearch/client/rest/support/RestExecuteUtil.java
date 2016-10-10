@@ -42,6 +42,13 @@ public class RestExecuteUtil {
             }
             Version version = internalRestClient.getVersion();
             assert version != null;
+
+            ActionRequestValidationException validationException = request.validate();
+            if (validationException != null) {
+                listener.onFailure(validationException);
+                return;
+            }
+
             ActionRestRequest actionRestRequest = request.getActionRestRequest(version);
             RestResponse restResponse = internalRestClient.performRequest (
                     actionRestRequest.getMethod().name(),

@@ -24,6 +24,7 @@ import org.apache.http.nio.entity.NStringEntity;
 import org.elasticsearch.Version;
 import org.elasticsearch.action.ActionRequest;
 import org.elasticsearch.action.ActionRequestValidationException;
+import org.elasticsearch.common.collect.MapBuilder;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.unit.TimeValue;
@@ -142,7 +143,11 @@ public class SearchScrollRequest extends ActionRequest<SearchScrollRequest> {
 
     @Override
     public Map<String, String> getParams() {
-        return Collections.emptyMap();
+        if (scroll != null) {
+            return new MapBuilder<String, String>()
+                    .put("scroll", this.scroll.keepAlive().toString()).map();
+        }
+        return super.getParams();
     }
 
     @Override
