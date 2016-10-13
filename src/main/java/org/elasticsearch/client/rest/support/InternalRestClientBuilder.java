@@ -29,6 +29,7 @@ import org.elasticsearch.client.rest.HttpClientConfigCallback;
 import org.elasticsearch.client.rest.RequestConfigCallback;
 import org.elasticsearch.common.unit.ByteSizeValue;
 
+import javax.net.ssl.SSLContext;
 import java.util.Objects;
 
 /**
@@ -47,6 +48,7 @@ public class InternalRestClientBuilder {
     private static final Header[] EMPTY_HEADERS = new Header[0];
 
     private final HttpHost[] hosts;
+    private boolean contentCompressionEnabled = true;
     private long maxRetryTimeout = DEFAULT_MAX_RETRY_TIMEOUT_MILLIS;
     private Header[] defaultHeaders = EMPTY_HEADERS;
     private FailureListener failureListener;
@@ -70,6 +72,7 @@ public class InternalRestClientBuilder {
             Objects.requireNonNull(host, "host cannot be null");
         }
         this.hosts = hosts;
+        contentCompressionEnabled = true;
     }
 
     /**
@@ -85,6 +88,15 @@ public class InternalRestClientBuilder {
             Objects.requireNonNull(defaultHeader, "default header must not be null");
         }
         this.defaultHeaders = defaultHeaders;
+        return this;
+    }
+
+    /**
+     * Sets the content compression enabled or not, current default is true
+     * <p>
+     */
+    public InternalRestClientBuilder setContentCompressionEnabled(boolean contentCompressionEnabled) {
+        this.contentCompressionEnabled = contentCompressionEnabled;
         return this;
     }
 
@@ -189,7 +201,8 @@ public class InternalRestClientBuilder {
         //default timeouts are all infinite
         RequestConfig.Builder requestConfigBuilder = RequestConfig.custom().setConnectTimeout(DEFAULT_CONNECT_TIMEOUT_MILLIS)
                 .setSocketTimeout(DEFAULT_SOCKET_TIMEOUT_MILLIS)
-                .setConnectionRequestTimeout(DEFAULT_CONNECTION_REQUEST_TIMEOUT_MILLIS);
+                .setConnectionRequestTimeout(DEFAULT_CONNECTION_REQUEST_TIMEOUT_MILLIS)
+                .setContentCompressionEnabled(contentCompressionEnabled);
         if (requestConfigCallback != null) {
             requestConfigBuilder = requestConfigCallback.customizeRequestConfig(requestConfigBuilder);
         }

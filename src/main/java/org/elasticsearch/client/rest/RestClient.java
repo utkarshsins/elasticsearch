@@ -162,5 +162,13 @@ public class RestClient extends AbstractClient implements Client {
             internalRestClientBuilder.setMaxResponseSize(size);
             return this;
         }
+        /**
+         * Sets the content compression enabled or not, current default is true
+         * <p>
+         */
+        public Builder setContentCompressionEnabled(boolean contentCompressionEnabled) {
+            internalRestClientBuilder.setContentCompressionEnabled(contentCompressionEnabled);
+            return this;
+        }
     }
 }
