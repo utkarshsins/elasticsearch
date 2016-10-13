@@ -28,8 +28,8 @@ import org.elasticsearch.client.rest.FailureListener;
 import org.elasticsearch.client.rest.HttpClientConfigCallback;
 import org.elasticsearch.client.rest.RequestConfigCallback;
 import org.elasticsearch.common.unit.ByteSizeValue;
+import org.elasticsearch.common.unit.TimeValue;
 
-import javax.net.ssl.SSLContext;
 import java.util.Objects;
 
 /**
@@ -50,12 +50,44 @@ public class InternalRestClientBuilder {
     private final HttpHost[] hosts;
     private boolean contentCompressionEnabled = true;
     private long maxRetryTimeout = DEFAULT_MAX_RETRY_TIMEOUT_MILLIS;
+    private TimeValue connectionRequestTimeout = new TimeValue(DEFAULT_CONNECTION_REQUEST_TIMEOUT_MILLIS);
+    private TimeValue connectTimeout = new TimeValue(DEFAULT_CONNECT_TIMEOUT_MILLIS);
+    private TimeValue socketTimeout = new TimeValue(DEFAULT_SOCKET_TIMEOUT_MILLIS);
+    private int maxConnectionsTotal = DEFAULT_MAX_CONN_TOTAL;
+    private int maxConnectionsPerRoute = DEFAULT_MAX_CONN_PER_ROUTE;
+
     private Header[] defaultHeaders = EMPTY_HEADERS;
     private FailureListener failureListener;
     private HttpClientConfigCallback httpClientConfigCallback;
     private RequestConfigCallback requestConfigCallback;
     private String pathPrefix;
     private ByteSizeValue maxResponseSize;
+
+    public InternalRestClientBuilder setConnectionRequestTimeout(TimeValue connectionRequestTimeout) {
+        this.connectionRequestTimeout = connectionRequestTimeout;
+        return this;
+    }
+
+    public InternalRestClientBuilder setConnectTimeout(TimeValue connectTimeout) {
+        this.connectTimeout = connectTimeout;
+        return this;
+    }
+
+    public InternalRestClientBuilder setSocketTimeout(TimeValue socketTimeout) {
+        this.socketTimeout = socketTimeout;
+        return this;
+    }
+
+    public InternalRestClientBuilder setMaxConnectionsTotal(int maxConnectionsTotal) {
+        this.maxConnectionsTotal = maxConnectionsTotal;
+        return this;
+    }
+
+    public InternalRestClientBuilder setMaxConnectionsPerRoute(int maxConnectionsPerRoute) {
+        this.maxConnectionsPerRoute = maxConnectionsPerRoute;
+        return this;
+    }
+
 
     /**
      * Creates a new builder instance and sets the hosts that the client will send requests to.
@@ -72,7 +104,6 @@ public class InternalRestClientBuilder {
             Objects.requireNonNull(host, "host cannot be null");
         }
         this.hosts = hosts;
-        contentCompressionEnabled = true;
     }
 
     /**
@@ -198,18 +229,18 @@ public class InternalRestClientBuilder {
     }
 
     private CloseableHttpAsyncClient createHttpClient() {
-        //default timeouts are all infinite
-        RequestConfig.Builder requestConfigBuilder = RequestConfig.custom().setConnectTimeout(DEFAULT_CONNECT_TIMEOUT_MILLIS)
-                .setSocketTimeout(DEFAULT_SOCKET_TIMEOUT_MILLIS)
-                .setConnectionRequestTimeout(DEFAULT_CONNECTION_REQUEST_TIMEOUT_MILLIS)
+        RequestConfig.Builder requestConfigBuilder = RequestConfig.custom()
+                .setConnectTimeout((int)connectTimeout.millis())
+                .setSocketTimeout((int)socketTimeout.millis())
+                .setConnectionRequestTimeout((int)connectionRequestTimeout.millis())
                 .setContentCompressionEnabled(contentCompressionEnabled);
         if (requestConfigCallback != null) {
             requestConfigBuilder = requestConfigCallback.customizeRequestConfig(requestConfigBuilder);
         }
 
         HttpAsyncClientBuilder httpClientBuilder = HttpAsyncClientBuilder.create().setDefaultRequestConfig(requestConfigBuilder.build())
-                //default settings for connection pooling may be too constraining
-                .setMaxConnPerRoute(DEFAULT_MAX_CONN_PER_ROUTE).setMaxConnTotal(DEFAULT_MAX_CONN_TOTAL);
+                .setMaxConnPerRoute(maxConnectionsPerRoute)
+                .setMaxConnTotal(maxConnectionsTotal);
         if (httpClientConfigCallback != null) {
             httpClientBuilder = httpClientConfigCallback.customizeHttpClient(httpClientBuilder);
         }
@@ -220,4 +251,5 @@ public class InternalRestClientBuilder {
         this.maxResponseSize = maxResponseSize;
         return this;
     }
+
 }

@@ -140,9 +140,32 @@ public class RestClient extends AbstractClient implements Client {
             return this;
         }
 
-        public Builder setPathPrefix(String pathPrefix) {
-            internalRestClientBuilder.setPathPrefix(pathPrefix);
-            return this;
+        public InternalRestClientBuilder setConnectionRequestTimeout(TimeValue connectionRequestTimeout) {
+            return internalRestClientBuilder.setConnectionRequestTimeout(connectionRequestTimeout);
+        }
+
+        public InternalRestClientBuilder setConnectTimeout(TimeValue connectTimeout) {
+            return internalRestClientBuilder.setConnectTimeout(connectTimeout);
+        }
+
+        public InternalRestClientBuilder setSocketTimeout(TimeValue socketTimeout) {
+            return internalRestClientBuilder.setSocketTimeout(socketTimeout);
+        }
+
+        public InternalRestClientBuilder setMaxConnectionsTotal(int maxConnectionsTotal) {
+            return internalRestClientBuilder.setMaxConnectionsTotal(maxConnectionsTotal);
+        }
+
+        public InternalRestClientBuilder setMaxConnectionsPerRoute(int maxConnectionsPerRoute) {
+            return internalRestClientBuilder.setMaxConnectionsPerRoute(maxConnectionsPerRoute);
+        }
+
+        public InternalRestClientBuilder setMaxRetryTimeoutMillis(long maxRetryTimeoutMillis) {
+            return internalRestClientBuilder.setMaxRetryTimeoutMillis(maxRetryTimeoutMillis);
+        }
+
+        public InternalRestClientBuilder setPathPrefix(String pathPrefix) {
+            return internalRestClientBuilder.setPathPrefix(pathPrefix);
         }
 
         public RestClient build() {
@@ -162,6 +185,7 @@ public class RestClient extends AbstractClient implements Client {
             internalRestClientBuilder.setMaxResponseSize(size);
             return this;
         }
+
         /**
          * Sets the content compression enabled or not, current default is true
          * <p>
