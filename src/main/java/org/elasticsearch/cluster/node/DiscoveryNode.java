@@ -389,7 +389,7 @@ public class DiscoveryNode implements Streamable, Serializable {
         DiscoveryNode discoveryNode  = new DiscoveryNode();
         discoveryNode.nodeId = xNode.get("node_id");
         discoveryNode.nodeName = xNode.get("name");
-        discoveryNode.address = InetSocketTransportAddress.readInetSocketTransportAddress(xNode.get("transport_address"));
+//        discoveryNode.address = InetSocketTransportAddress.readInetSocketTransportAddress(xNode.get("transport_address"));
         discoveryNode.attributes = ImmutableMap.copyOf(Maps.transformEntries(xNode.getAsMap("attributes"), STRING_OBJECT_STRING_ENTRY_TRANSFORMER));
         return discoveryNode;
     }
