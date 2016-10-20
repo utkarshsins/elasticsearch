@@ -491,7 +491,7 @@ public class InternalRestClient implements Closeable {
     }
 
     private static boolean isSuccessfulResponse(String method, int statusCode) {
-        return statusCode < 300 /*|| statusCode == 404*/;
+        return statusCode < 300 || (statusCode == 404 && HttpHead.METHOD_NAME.equals(method));
     }
 
     private static boolean isRetryStatus(int statusCode) {
