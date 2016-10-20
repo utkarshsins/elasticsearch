@@ -26,6 +26,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpOptions;
@@ -491,7 +492,8 @@ public class InternalRestClient implements Closeable {
     }
 
     private static boolean isSuccessfulResponse(String method, int statusCode) {
-        return statusCode < 300 || (statusCode == 404 && HttpHead.METHOD_NAME.equals(method));
+        return statusCode < 300 ||
+                (statusCode == 404 && (HttpHead.METHOD_NAME.equals(method) || HttpDelete.METHOD_NAME.equals(method)));
     }
 
     private static boolean isRetryStatus(int statusCode) {
