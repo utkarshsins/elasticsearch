@@ -294,7 +294,7 @@ public class ExistsRequest extends BroadcastOperationRequest<ExistsRequest> {
 
         @Override
         public RestRequest.Method getMethod() {
-            return RestRequest.Method.DELETE;
+            return RestRequest.Method.GET;
         }
 
         @Override
@@ -302,7 +302,7 @@ public class ExistsRequest extends BroadcastOperationRequest<ExistsRequest> {
             UriBuilder uriBuilder = UriBuilder.newBuilder()
                     .csv(request.indices())
                     .csv(request.types())
-                    .slash("_query");
+                    .slash("_search").slash("exists");
             return uriBuilder.build();
         }
 
@@ -322,43 +322,4 @@ public class ExistsRequest extends BroadcastOperationRequest<ExistsRequest> {
         }
 
     }
-
-    private static class ActionRequestV5 implements ActionRestRequest {
-        private ExistsRequest request;
-
-        ActionRequestV5(ExistsRequest request) {
-            this.request = request;
-        }
-
-        @Override
-        public RestRequest.Method getMethod() {
-            return RestRequest.Method.POST;
-        }
-
-        @Override
-        public String getEndPoint() {
-            UriBuilder uriBuilder = UriBuilder.newBuilder()
-                    .csv(request.indices())
-                    .csv(request.types())
-                    .slash("_search");
-            return uriBuilder.build();
-        }
-
-        @Override
-        public HttpEntity getEntity() throws IOException {
-            return new NStringEntity(XContentHelper.convertToJson(request.source, false), StandardCharsets.UTF_8);
-        }
-
-        @Override
-        public Map<String, String> getParams() {
-            return request.getParams();
-        }
-
-        @Override
-        public HttpEntity getBulkEntity() throws IOException {
-            return ActionRequest.EMPTY_ENTITY;
-        }
-    }
-
-
 }

@@ -288,6 +288,17 @@ public class SearchResponse extends ActionResponse implements StatusToXContent {
     }
 
     enum JsonFields implements XContentParsable<SearchResponse>, XContentObjectParseable<SearchResponse> {
+        error {
+            @Override
+            public void apply(XContentObject source, SearchResponse object) throws IOException {
+                throw new RuntimeException(source.get(this));
+            }
+
+            @Override
+            public void apply(VersionedXContentParser versionedXContentParser, SearchResponse response) throws IOException {
+                throw new RuntimeException(versionedXContentParser.getParser().text());
+            }
+        },
         _scroll_id {
             @Override
             public void apply(XContentObject source, SearchResponse object) throws IOException {

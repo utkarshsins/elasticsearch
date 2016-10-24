@@ -22,9 +22,12 @@ import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
 import org.elasticsearch.action.support.broadcast.BroadcastOperationResponse;
 import org.elasticsearch.action.support.master.AcknowledgedResponse;
+import org.elasticsearch.client.Client;
 import org.elasticsearch.client.ClusterAdminClient;
 import org.elasticsearch.client.IndicesAdminClient;
+import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.Strings;
+import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.unit.ByteSizeUnit;
 import org.elasticsearch.common.unit.ByteSizeValue;
 import org.elasticsearch.common.unit.TimeValue;
@@ -47,10 +50,15 @@ public abstract class AbstractRestClientTest {
     protected IndicesAdminClient indicesAdminClient;
     protected ClusterAdminClient clusterAdminClient;
     protected String index;
-    protected RestClient client;
+    protected Client client;
 
     @Before
     public void setUp() {
+/*
+        TransportClient transportClient = new TransportClient();
+        transportClient.addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
+        client = transportClient;
+*/
         client = RestClient.builder("localhost")
                 .setMaxRetryTimeout(new TimeValue(60, TimeUnit.SECONDS))
                 .setMaxResponseSize(new ByteSizeValue(1, ByteSizeUnit.GB))
@@ -104,6 +112,7 @@ public abstract class AbstractRestClientTest {
     }
 
 
-
-
+    public void refresh() {
+        this.indicesAdminClient.prepareRefresh(index).get();
+    }
 }

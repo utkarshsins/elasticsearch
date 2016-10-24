@@ -114,7 +114,12 @@ public class ClearScrollResponse extends ActionResponse implements StatusToXCont
 
     @Override
     public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
-        XContentHelper.populate(versionedXContentParser, JsonFields.fields, this);
+        if (versionedXContentParser.getVersion().id  >= Version.V_5_0_0_ID) {
+            XContentHelper.populate(versionedXContentParser, JsonFields.fields, this);
+        }
+        else {
+            this.succeeded = true;
+        }
     }
 
 }

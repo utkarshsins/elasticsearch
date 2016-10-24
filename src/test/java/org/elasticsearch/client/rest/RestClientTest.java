@@ -980,6 +980,7 @@ public class RestClientTest extends AbstractRestClientTest {
     @Test
     public void testSearchWithFiltersAggregation() throws ExecutionException, InterruptedException {
         indexDocument(100);
+        refresh();
 
         SearchRequestBuilder search = client.prepareSearch(index);
         String name = "agg";
@@ -1062,8 +1063,13 @@ public class RestClientTest extends AbstractRestClientTest {
         assertNotNull(response.getScrollId());
         ClearScrollResponse clearScrollResponse = client.prepareClearScroll().addScrollId(response.getScrollId()).get();
         assertTrue(clearScrollResponse.isSucceeded());
-        SearchResponse response3 = client.prepareSearchScroll(response.getScrollId()).setScroll(scrollKeepAlive).execute().actionGet();
-        assertEquals(0, response3.getHits().hits().length);
+        try {
+            client.prepareSearchScroll(response.getScrollId()).setScroll(scrollKeepAlive).execute().actionGet();
+            fail("Should have thrown an exception of SearchPhaseExecutionException");
+        }
+        catch (Exception ignore) {
+            // ignore
+        }
 
     }
 
@@ -1110,6 +1116,7 @@ public class RestClientTest extends AbstractRestClientTest {
     @Test
     public void testExistsRequest() throws ExecutionException, InterruptedException {
         indexDocument(100);
+        super.refresh();
 
         ExistsResponse existsResponse = client.prepareExists(index)
                 .setTypes(STATS_TYPE)
