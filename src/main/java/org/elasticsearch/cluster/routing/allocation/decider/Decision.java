@@ -25,6 +25,7 @@ import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.common.xcontent.XContentObject;
 
 import java.io.IOException;
 import java.util.List;
@@ -74,6 +75,31 @@ public abstract class Decision implements ToXContent {
             out.writeOptionalString(d.getExplanation());
         }
     }
+    public static Decision readFrom(List<XContentObject> decisions) {
+        if (decisions.size() > 1) {
+            Multi result = new Multi();
+            for (XContentObject decision : decisions) {
+                result.add(readFrom(decision));
+            }
+            return result;
+        }
+        else if (decisions.size() == 1) {
+            XContentObject xContentObject = decisions.get(0);
+            return readFrom(xContentObject);
+        }
+        else {
+            throw new IllegalStateException("No decisions. One or more is expected");
+        }
+    }
+
+    private static Decision readFrom(XContentObject xContentObject) {
+        Single result = new Single();
+        result.type = Type.readFrom(xContentObject);
+        result.label = xContentObject.get("decider");
+        result.explanationString = xContentObject.get("explanation");
+        return result;
+    }
+
 
     public static Decision readFrom(StreamInput in) throws IOException {
         // Determine whether to read a Single or Multi Decision
@@ -135,6 +161,10 @@ public abstract class Decision implements ToXContent {
                 default:
                     throw new ElasticsearchIllegalArgumentException("Invalid Type [" + type + "]");
             }
+        }
+
+        public static Type readFrom(XContentObject xContentObject) {
+            return Type.resolve(xContentObject.get("decision"));
         }
     }
 

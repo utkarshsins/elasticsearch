@@ -22,6 +22,7 @@ package org.elasticsearch.action.support.nodes;
 import org.elasticsearch.cluster.node.DiscoveryNode;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
+import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.transport.TransportResponse;
 
 import java.io.IOException;
@@ -59,4 +60,8 @@ public abstract class NodeOperationResponse extends TransportResponse {
         super.writeTo(out);
         node.writeTo(out);
     }
+    public void readFrom(XContentObject in) throws IOException {
+        node = DiscoveryNode.readNode(in);
+    }
+
 }

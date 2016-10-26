@@ -26,11 +26,14 @@ import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.settings.SettingsFilter;
 import org.elasticsearch.common.xcontent.ToXContent;
+import org.elasticsearch.common.xcontent.VersionedXContentParser;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.common.xcontent.XContentObject;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -54,6 +57,20 @@ public class NodesInfoResponse extends NodesOperationResponse<NodeInfo> implemen
             nodes[i] = NodeInfo.readNodeInfo(in);
         }
     }
+    @Override
+    public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
+//        super.readFrom(versionedXContentParser); //todo bdk add back for cluster name
+        XContentObject xContentObject = versionedXContentParser.getParser().xContentObject();
+        XContentObject xNodes = xContentObject.getAsXContentObject("nodes");
+        this.nodes = new NodeInfo[xNodes.size()];
+        Set<String> xNodeIds = xNodes.keySet();
+        int i = 0;
+        for (String xNodeId : xNodeIds) {
+            XContentObject xNodeInfo = xNodes.getAsXContentObject(xNodeId);
+            nodes[i++] = NodeInfo.readNodeInfo(xNodeInfo);
+        }
+    }
+
 
     @Override
     public void writeTo(StreamOutput out) throws IOException {
@@ -150,4 +167,5 @@ public class NodesInfoResponse extends NodesOperationResponse<NodeInfo> implemen
             return "{ \"error\" : \"" + e.getMessage() + "\"}";
         }
     }
+
 }

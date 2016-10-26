@@ -19,6 +19,9 @@
 
 package org.elasticsearch.action.admin.cluster.reroute;
 
+import groovy.json.JsonBuilder;
+import org.apache.http.HttpEntity;
+import org.apache.http.nio.entity.NStringEntity;
 import org.elasticsearch.ElasticsearchParseException;
 import org.elasticsearch.Version;
 import org.elasticsearch.action.ActionRequestValidationException;
@@ -26,12 +29,20 @@ import org.elasticsearch.action.support.master.AcknowledgedRequest;
 import org.elasticsearch.cluster.routing.allocation.command.AllocationCommand;
 import org.elasticsearch.cluster.routing.allocation.command.AllocationCommands;
 import org.elasticsearch.common.bytes.BytesReference;
+import org.elasticsearch.common.collect.MapBuilder;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
+import org.elasticsearch.common.util.UriBuilder;
+import org.elasticsearch.common.xcontent.ToXContent;
+import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.common.xcontent.XContentParser;
+import org.elasticsearch.rest.RestRequest;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 /**
  * Request to submit cluster reroute allocation commands
@@ -143,5 +154,36 @@ public class ClusterRerouteRequest extends AcknowledgedRequest<ClusterRerouteReq
             out.writeBoolean(explain);
         }
         writeTimeout(out);
+    }
+
+    @Override
+    public RestRequest.Method getMethod() {
+        return RestRequest.Method.POST;
+    }
+
+    @Override
+    public String getEndPoint() {
+        return UriBuilder.newBuilder()
+                .slash("_cluster", "reroute").build();
+    }
+
+    @Override
+    public Map<String, String> getParams() {
+        return new MapBuilder<>(super.getParams())
+                .putIf("dry_run", String.valueOf(dryRun), dryRun)
+                .putIf("explain", String.valueOf(explain), explain)
+                .map();
+
+    }
+
+    @Override
+    public HttpEntity getEntity() throws IOException {
+        if (this.commands.commands().isEmpty()) {
+            return super.getEntity();
+        }
+
+        XContentBuilder jsonBuilder = XContentFactory.jsonBuilder();
+        AllocationCommands.toXContent(this.commands, jsonBuilder, ToXContent.EMPTY_PARAMS);
+        return new NStringEntity(jsonBuilder.string(), StandardCharsets.UTF_8);
     }
 }

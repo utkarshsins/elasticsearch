@@ -20,9 +20,12 @@ package org.elasticsearch.client.rest.admin;
 
 import com.google.common.collect.Maps;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
+import org.elasticsearch.action.admin.cluster.node.hotthreads.NodesHotThreadsResponse;
+import org.elasticsearch.action.admin.cluster.node.info.NodesInfoResponse;
 import org.elasticsearch.action.admin.cluster.repositories.delete.DeleteRepositoryResponse;
 import org.elasticsearch.action.admin.cluster.repositories.get.GetRepositoriesResponse;
 import org.elasticsearch.action.admin.cluster.repositories.put.PutRepositoryResponse;
+import org.elasticsearch.action.admin.cluster.reroute.ClusterRerouteResponse;
 import org.elasticsearch.action.admin.cluster.snapshots.create.CreateSnapshotResponse;
 import org.elasticsearch.action.admin.cluster.snapshots.delete.DeleteSnapshotResponse;
 import org.elasticsearch.action.admin.cluster.state.ClusterStateResponse;
@@ -32,8 +35,12 @@ import org.elasticsearch.cluster.ClusterName;
 import org.elasticsearch.cluster.ClusterState;
 import org.elasticsearch.cluster.metadata.IndexMetaData;
 import org.elasticsearch.cluster.metadata.RepositoryMetaData;
+import org.elasticsearch.cluster.routing.allocation.RoutingExplanations;
+import org.elasticsearch.cluster.routing.allocation.command.MoveAllocationCommand;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
+import org.elasticsearch.index.shard.ShardId;
 import org.elasticsearch.snapshots.SnapshotInfo;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Iterator;
@@ -120,5 +127,36 @@ public class RestClusterAdminClientTest extends AbstractRestClientTest {
         assertAcknowledged(deleteSnapshotResponse);
     }
 
+    @Test
+    @Ignore
+    public void testNodesHotThreads() {
+        NodesHotThreadsResponse response = clusterAdminClient.prepareNodesHotThreads().get();
+        // Currently broke, NodesHotThreadsResponse needs to return proper json.
+    }
+
+    /**
+     * This looks deprecated in later releases
+     */
+    @Test
+    @Ignore
+    public void testNodesRestart() {
+        clusterAdminClient.prepareNodesRestart().get();
+    }
+
+    @Test
+    public void testReroute() {
+        ClusterRerouteResponse response = clusterAdminClient.prepareReroute()
+                .setDryRun(true)
+                .setExplain(true)
+                .get();
+        assertNotNull(response);
+        //todo setup multi-node test
+    }
+
+    @Test
+    public void testNodesInfo() {
+        NodesInfoResponse response = clusterAdminClient.prepareNodesInfo().all().get();
+        assertNotNull(response);
+    }
 
 }

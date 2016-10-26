@@ -26,6 +26,7 @@ import org.elasticsearch.common.jna.Natives;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentBuilderString;
+import org.elasticsearch.common.xcontent.XContentObject;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -89,6 +90,10 @@ public class ProcessInfo implements Streamable, Serializable, ToXContent {
 
     public boolean isMlockall() {
         return mlockall;
+    }
+
+    public static ProcessInfo readProcessInfo(XContentObject in) {
+        return null;
     }
 
     static final class Fields {

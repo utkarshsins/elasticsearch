@@ -23,6 +23,7 @@ import org.elasticsearch.action.support.nodes.NodesOperationResponse;
 import org.elasticsearch.cluster.ClusterName;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
+import org.elasticsearch.common.xcontent.VersionedXContentParser;
 
 import java.io.IOException;
 
@@ -54,5 +55,4 @@ public class NodesHotThreadsResponse extends NodesOperationResponse<NodeHotThrea
             node.writeTo(out);
         }
     }
-
 }

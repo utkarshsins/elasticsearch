@@ -26,6 +26,7 @@ import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.common.xcontent.XContentObject;
 
 import java.io.IOException;
 
@@ -64,6 +65,16 @@ public class RerouteExplanation implements ToXContent {
         Decision.writeTo(explanation.decisions, out);
     }
 
+    public static RerouteExplanation readFrom(XContentObject xExplanation) throws IOException {
+        String commandName = xExplanation.get("command");
+        AllocationCommand command;
+        command = AllocationCommands.lookupFactorySafe(commandName).fromXContent(xExplanation.getAsXContentParser("parameters"));
+        Decision decisions = Decision.readFrom(xExplanation.getAsXContentObjects("decisions"));
+        return new RerouteExplanation(command, decisions);
+
+    }
+
+
     @Override
     public XContentBuilder toXContent(XContentBuilder builder, Params params) throws IOException {
         builder.startObject();
@@ -81,4 +92,5 @@ public class RerouteExplanation implements ToXContent {
         builder.endObject();
         return builder;
     }
+
 }

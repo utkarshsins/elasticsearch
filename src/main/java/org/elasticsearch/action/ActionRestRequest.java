@@ -19,13 +19,11 @@
 
 package org.elasticsearch.action;
 
-import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.elasticsearch.rest.RestRequest;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.Set;
 
 /**
  */

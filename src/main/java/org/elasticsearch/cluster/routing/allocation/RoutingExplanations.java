@@ -23,6 +23,7 @@ import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.common.xcontent.XContentObject;
 
 import java.io.IOException;
 import java.util.List;
@@ -62,6 +63,15 @@ public class RoutingExplanations implements ToXContent {
         return exp;
     }
 
+    public static RoutingExplanations readFrom(List<XContentObject> in) throws IOException {
+        RoutingExplanations explanations = new RoutingExplanations();
+        for (XContentObject xExplanation : in) {
+            RerouteExplanation explanation = RerouteExplanation.readFrom(xExplanation);
+            explanations.add(explanation);
+        }
+        return explanations;
+    }
+
     /**
      * Write the RoutingExplanations object
      */
@@ -81,4 +91,5 @@ public class RoutingExplanations implements ToXContent {
         builder.endArray();
         return builder;
     }
+
 }

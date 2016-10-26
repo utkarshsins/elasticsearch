@@ -27,6 +27,7 @@ import org.elasticsearch.common.unit.ByteSizeValue;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentBuilderString;
+import org.elasticsearch.common.xcontent.XContentObject;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -280,6 +281,10 @@ public class JvmInfo implements Streamable, Serializable, ToXContent {
         return systemProperties;
     }
 
+    public void readFrom(XContentObject in) {
+
+    }
+
     @Override
     public XContentBuilder toXContent(XContentBuilder builder, Params params) throws IOException {
         builder.startObject(Fields.JVM);
@@ -303,6 +308,12 @@ public class JvmInfo implements Streamable, Serializable, ToXContent {
 
         builder.endObject();
         return builder;
+    }
+
+    public static JvmInfo readJvmInfo(XContentObject in) {
+        JvmInfo jvmInfo = new JvmInfo();
+        jvmInfo.readFrom(in);
+        return jvmInfo;
     }
 
     static final class Fields {

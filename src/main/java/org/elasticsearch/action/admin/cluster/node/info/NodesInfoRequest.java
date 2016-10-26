@@ -19,17 +19,27 @@
 
 package org.elasticsearch.action.admin.cluster.node.info;
 
+import com.google.common.collect.Sets;
+import org.apache.http.HttpEntity;
 import org.elasticsearch.action.support.nodes.NodesOperationRequest;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
+import org.elasticsearch.common.util.UriBuilder;
+import org.elasticsearch.rest.RestRequest;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A request to get node (cluster) level information.
  */
 public class NodesInfoRequest extends NodesOperationRequest<NodesInfoRequest> {
 
+    private static final String[] EMPTY_ARRAY = new String[0];
+    private static final HashSet<String> ALL_METRICS = Sets.newHashSet("_all");
+    private static final String[] ALL_NODES = new String[] {"_all"};
     private boolean settings = true;
     private boolean os = true;
     private boolean process = true;
@@ -246,5 +256,56 @@ public class NodesInfoRequest extends NodesOperationRequest<NodesInfoRequest> {
         out.writeBoolean(transport);
         out.writeBoolean(http);
         out.writeBoolean(plugins);
+    }
+
+    @Override
+    public RestRequest.Method getMethod() {
+        return RestRequest.Method.GET;
+    }
+
+    @Override
+    public String getEndPoint() {
+        String[] nodes = (nodesIds().length == 0) ? ALL_NODES : nodesIds();
+        return UriBuilder.newBuilder()
+                .slash("_nodes")
+                .csv(nodes)
+                .slash("info")
+                .csv(getMetrics().toArray(EMPTY_ARRAY)).build();
+
+    }
+
+    private Set<String> getMetrics() {
+        if (settings && os && process && jvm && threadPool && network && transport && http && plugins) {
+            return ALL_METRICS;
+        }
+        Set<String> metrics = Sets.newHashSet();
+        if (settings) {
+            metrics.add("settings");
+        }
+        if (os) {
+            metrics.add("os");
+        }
+        if (process) {
+            metrics.add("process");
+        }
+        if (jvm) {
+            metrics.add("jvm");
+        }
+        if (threadPool) {
+            metrics.add("thread_pool");
+        }
+        if (network) {
+            metrics.add("network");
+        }
+        if (transport) {
+            metrics.add("transport");
+        }
+        if (http) {
+            metrics.add("http");
+        }
+        if (plugins) {
+            metrics.add("plugins");
+        }
+        return metrics;
     }
 }

@@ -26,6 +26,7 @@ import org.elasticsearch.common.unit.ByteSizeValue;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentBuilderString;
+import org.elasticsearch.common.xcontent.XContentObject;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -86,6 +87,10 @@ public class OsInfo implements Streamable, Serializable, ToXContent {
 
     public Swap getSwap() {
         return swap();
+    }
+
+    public static OsInfo readOsInfo(XContentObject in) {
+        return null;
     }
 
     static final class Fields {

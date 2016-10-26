@@ -25,8 +25,11 @@ import org.elasticsearch.cluster.ClusterName;
 import org.elasticsearch.cluster.node.DiscoveryNode;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
+import org.elasticsearch.common.xcontent.VersionedXContentParser;
+import org.elasticsearch.common.xcontent.XContentObject;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  *
@@ -38,6 +41,17 @@ public class NodesRestartResponse extends NodesOperationResponse<NodesRestartRes
 
     public NodesRestartResponse(ClusterName clusterName, NodeRestartResponse[] nodes) {
         super(clusterName, nodes);
+    }
+
+    @Override
+    public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
+        XContentObject xContentObject = versionedXContentParser.getParser().xContentObject();
+        List<XContentObject> xNodes = xContentObject.getAsXContentObjects("nodes");
+        nodes = new NodeRestartResponse[xNodes.size()];
+        int i = 0;
+        for (XContentObject xNode : xNodes) {
+            nodes[i++] = NodeRestartResponse.readNodeRestartResponse(xNode);
+        }
     }
 
     @Override
@@ -72,5 +86,12 @@ public class NodesRestartResponse extends NodesOperationResponse<NodesRestartRes
             res.readFrom(in);
             return res;
         }
+
+        public static NodeRestartResponse readNodeRestartResponse(XContentObject in) throws IOException {
+            NodeRestartResponse res = new NodeRestartResponse();
+            res.readFrom(in);
+            return res;
+        }
+
     }
 }

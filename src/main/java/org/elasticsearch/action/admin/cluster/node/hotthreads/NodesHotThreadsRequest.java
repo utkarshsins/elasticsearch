@@ -19,12 +19,17 @@
 
 package org.elasticsearch.action.admin.cluster.node.hotthreads;
 
+import org.apache.http.HttpEntity;
 import org.elasticsearch.action.support.nodes.NodesOperationRequest;
+import org.elasticsearch.common.collect.MapBuilder;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.common.util.UriBuilder;
+import org.elasticsearch.rest.RestRequest;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -96,5 +101,27 @@ public class NodesHotThreadsRequest extends NodesOperationRequest<NodesHotThread
         out.writeString(type);
         interval.writeTo(out);
         out.writeInt(snapshots);
+    }
+
+    @Override
+    public RestRequest.Method getMethod() {
+        return RestRequest.Method.GET;
+    }
+
+    @Override
+    public String getEndPoint() {
+        return UriBuilder.newBuilder()
+                .slash("_cluster", "nodes")
+                .csv(nodesIds())
+                .slash("hot_threads").build();
+    }
+
+    @Override
+    public Map<String, String> getParams() {
+        return new MapBuilder<String, String>()
+                .putIfNotNull("type", type)
+                .put("threads", String.valueOf(threads))
+                .put("interval", interval.toString())
+                .put("snapshots", String.valueOf(snapshots)).map();
     }
 }

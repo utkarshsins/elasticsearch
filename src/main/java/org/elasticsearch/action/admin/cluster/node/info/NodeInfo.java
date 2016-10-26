@@ -29,6 +29,9 @@ import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.xcontent.XContentHelper;
+import org.elasticsearch.common.xcontent.XContentObject;
+import org.elasticsearch.common.xcontent.XContentObjectParseable;
 import org.elasticsearch.http.HttpInfo;
 import org.elasticsearch.monitor.jvm.JvmInfo;
 import org.elasticsearch.monitor.network.NetworkInfo;
@@ -193,6 +196,93 @@ public class NodeInfo extends NodeOperationResponse {
         NodeInfo nodeInfo = new NodeInfo();
         nodeInfo.readFrom(in);
         return nodeInfo;
+    }
+
+    public static NodeInfo readNodeInfo(XContentObject in) throws IOException {
+        NodeInfo nodeInfo = new NodeInfo();
+        nodeInfo.readFrom(in);
+        return nodeInfo;
+    }
+
+    //todo rest finish
+    enum JsonField implements XContentObjectParseable<NodeInfo> {
+
+        version {
+            @Override
+            public void apply(XContentObject source, NodeInfo object) throws IOException {
+                object.version = Version.fromString(source.get(this));
+            }
+        },
+        build {
+            @Override
+            public void apply(XContentObject source, NodeInfo object) throws IOException {
+                object.build = Build.readBuild(source.getAsXContentObject(this));
+            }
+        },
+        settings {
+            @Override
+            public void apply(XContentObject source, NodeInfo object) throws IOException {
+                object.settings = ImmutableSettings.readSettingsFromStream(source.getAsXContentObject(this));
+            }
+        },
+        os {
+            @Override
+            public void apply(XContentObject source, NodeInfo object) throws IOException {
+                //todo rest finish
+                object.os = OsInfo.readOsInfo(source.getAsXContentObject(this));
+            }
+        },
+        process {
+            @Override
+            public void apply(XContentObject source, NodeInfo object) throws IOException {
+                //todo rest finish
+                object.process = ProcessInfo.readProcessInfo(source.getAsXContentObject(this));
+            }
+        },
+        jvm {
+            @Override
+            public void apply(XContentObject source, NodeInfo object) throws IOException {
+                //todo rest finish
+                object.jvm = JvmInfo.readJvmInfo(source.getAsXContentObject(this));
+            }
+        },
+        thread_pool {
+            @Override
+            public void apply(XContentObject source, NodeInfo object) throws IOException {
+                //todo rest finish
+            }
+        },
+        network {
+            @Override
+            public void apply(XContentObject source, NodeInfo object) throws IOException {
+                //todo rest finish
+            }
+        },
+        transport {
+            @Override
+            public void apply(XContentObject source, NodeInfo object) throws IOException {
+                //todo rest finish
+            }
+        },
+        http {
+            @Override
+            public void apply(XContentObject source, NodeInfo object) throws IOException {
+                //todo rest finish
+            }
+        },
+        plugins {
+            @Override
+            public void apply(XContentObject source, NodeInfo object) throws IOException {
+
+            }
+        }
+
+    }
+
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        super.readFrom(in);
+        XContentHelper.populate(in, JsonField.values(), this);
     }
 
     @Override

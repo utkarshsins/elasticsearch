@@ -1232,6 +1232,7 @@ public class RestClientTest extends AbstractRestClientTest {
     @Ignore
     public void testMoreLikeThisSearch() throws ExecutionException, InterruptedException {
         //todo bdk implement
+        SearchResponse response = client.prepareMoreLikeThis(index, STATS_TYPE, ).get();
     }
 
     @Test
