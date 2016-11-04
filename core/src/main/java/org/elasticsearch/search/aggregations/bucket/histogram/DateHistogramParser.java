@@ -36,6 +36,9 @@ import java.util.Map;
  */
 public class DateHistogramParser extends NumericValuesSourceParser {
 
+    public static final ParseField REVERSE_POST_TZ = new ParseField("reverse_post_tz", "reversePostTz");
+    public static final ParseField PRE_ZONE_ADJUST_LARGE_INTERVAL = new ParseField("pre_zone_adjust_large_interval", "preZoneAdjustLargeInterval");
+
     public DateHistogramParser() {
         super(true, true, true);
     }
@@ -96,6 +99,12 @@ public class DateHistogramParser extends NumericValuesSourceParser {
                 return true;
             } else if (context.matchField(currentFieldName, Histogram.KEYED_FIELD)) {
                 otherOptions.put(Histogram.KEYED_FIELD, parser.booleanValue());
+                return true;
+            } else if (context.matchField(currentFieldName, REVERSE_POST_TZ)) {
+                otherOptions.put(REVERSE_POST_TZ, parser.booleanValue());
+                return true;
+            } else if (context.matchField(currentFieldName, PRE_ZONE_ADJUST_LARGE_INTERVAL)) {
+                otherOptions.put(PRE_ZONE_ADJUST_LARGE_INTERVAL, parser.booleanValue());
                 return true;
             } else if (context.matchField(currentFieldName, Histogram.OFFSET_FIELD)) {
                 if (token == XContentParser.Token.VALUE_STRING) {
