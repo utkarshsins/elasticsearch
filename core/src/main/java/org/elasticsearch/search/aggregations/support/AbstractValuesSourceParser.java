@@ -36,7 +36,7 @@ import java.util.Map;
  */
 public abstract class AbstractValuesSourceParser<VS extends ValuesSource>
         implements Aggregator.Parser {
-    static final ParseField TIME_ZONE = new ParseField("time_zone");
+    static final ParseField TIME_ZONE = new ParseField("time_zone", "pre_zone", "post_zone");
 
     public abstract static class AnyValuesSourceParser extends AbstractValuesSourceParser<ValuesSource> {
 
@@ -104,13 +104,27 @@ public abstract class AbstractValuesSourceParser<VS extends ValuesSource>
             } else if ("missing".equals(currentFieldName) && token.isValue()) {
                 missing = parser.objectText();
             } else if (timezoneAware && context.getParseFieldMatcher().match(currentFieldName, TIME_ZONE)) {
-                if (token == XContentParser.Token.VALUE_STRING) {
-                    timezone = DateTimeZone.forID(parser.text());
-                } else if (token == XContentParser.Token.VALUE_NUMBER) {
-                    timezone = DateTimeZone.forOffsetHours(parser.intValue());
-                } else {
-                    throw new ParsingException(parser.getTokenLocation(),
+                if (currentFieldName.equals("pre_zone")) {
+                    if (token == XContentParser.Token.VALUE_STRING) {
+                        String text = parser.text();
+                        if (!text.startsWith("-")) {
+                            text = "-" + text;
+                        }
+                        timezone = DateTimeZone.forID(text);
+                    } else {
+                        throw new ParsingException(parser.getTokenLocation(),
                             "Unexpected token " + token + " [" + currentFieldName + "] in [" + aggregationName + "].");
+                    }
+                }
+                else {
+                    if (token == XContentParser.Token.VALUE_STRING) {
+                        timezone = DateTimeZone.forID(parser.text());
+                    } else if (token == XContentParser.Token.VALUE_NUMBER) {
+                        timezone = DateTimeZone.forOffsetHours(parser.intValue());
+                    } else {
+                        throw new ParsingException(parser.getTokenLocation(),
+                            "Unexpected token " + token + " [" + currentFieldName + "] in [" + aggregationName + "].");
+                    }
                 }
             } else if (token == XContentParser.Token.VALUE_STRING) {
                 if ("field".equals(currentFieldName)) {

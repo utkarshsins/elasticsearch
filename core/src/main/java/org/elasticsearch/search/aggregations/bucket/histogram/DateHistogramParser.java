@@ -99,8 +99,11 @@ public class DateHistogramParser extends NumericValuesSourceParser {
                 return true;
             } else if (context.matchField(currentFieldName, Histogram.OFFSET_FIELD)) {
                 if (token == XContentParser.Token.VALUE_STRING) {
-                    otherOptions.put(Histogram.OFFSET_FIELD,
-                            DateHistogramAggregationBuilder.parseStringOffset(parser.text()));
+                    long value = DateHistogramAggregationBuilder.parseStringOffset(parser.text());
+                    if (currentFieldName.equals("pre_offset")) {
+                        value = -value;
+                    }
+                    otherOptions.put(Histogram.OFFSET_FIELD, value);
                     return true;
                 } else {
                     otherOptions.put(Histogram.OFFSET_FIELD, parser.longValue());
