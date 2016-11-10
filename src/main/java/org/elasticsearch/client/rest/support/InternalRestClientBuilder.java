@@ -30,6 +30,8 @@ import org.elasticsearch.client.rest.RequestConfigCallback;
 import org.elasticsearch.common.unit.ByteSizeValue;
 import org.elasticsearch.common.unit.TimeValue;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Objects;
 
 /**
@@ -62,6 +64,25 @@ public class InternalRestClientBuilder {
     private RequestConfigCallback requestConfigCallback;
     private String pathPrefix;
     private ByteSizeValue maxResponseSize;
+    private HttpHost proxy;
+    private Collection<String> proxyPreferredAuthSchemes;
+    private Collection<String> targetPreferredAuthSchemes;
+
+    public InternalRestClientBuilder setProxy(HttpHost proxy) {
+        this.proxy = proxy;
+        return this;
+    }
+
+    public InternalRestClientBuilder setProxyPreferredAuthSchemes(String... proxyPreferredAuthSchemes) {
+        this.proxyPreferredAuthSchemes = Arrays.asList(proxyPreferredAuthSchemes);
+        return this;
+    }
+
+
+    public InternalRestClientBuilder setTargetPreferredAuthSchemes(String... targetPreferredAuthSchemes) {
+        this.targetPreferredAuthSchemes = Arrays.asList(targetPreferredAuthSchemes);
+        return this;
+    }
 
     public InternalRestClientBuilder setConnectionRequestTimeout(TimeValue connectionRequestTimeout) {
         this.connectionRequestTimeout = connectionRequestTimeout;
@@ -230,6 +251,9 @@ public class InternalRestClientBuilder {
 
     private CloseableHttpAsyncClient createHttpClient() {
         RequestConfig.Builder requestConfigBuilder = RequestConfig.custom()
+                .setProxy(proxy)
+                .setProxyPreferredAuthSchemes(proxyPreferredAuthSchemes)
+                .setTargetPreferredAuthSchemes(targetPreferredAuthSchemes)
                 .setConnectTimeout((int)connectTimeout.millis())
                 .setSocketTimeout((int)socketTimeout.millis())
                 .setConnectionRequestTimeout((int)connectionRequestTimeout.millis())

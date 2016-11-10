@@ -35,8 +35,7 @@
           "type": "date"
         },
         "currentLocation": {
-          "type" : "geo_point",
-          "lat_lon" : "true"
+          "type" : "geo_point"
         },
         "reach": {
           "type" : "geo_shape"

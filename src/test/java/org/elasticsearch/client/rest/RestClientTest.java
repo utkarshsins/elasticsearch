@@ -67,6 +67,7 @@ import org.elasticsearch.search.aggregations.bucket.filters.Filters;
 import org.elasticsearch.search.aggregations.bucket.geogrid.GeoHashGrid;
 import org.elasticsearch.search.aggregations.bucket.global.Global;
 import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogram;
+import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramBuilder;
 import org.elasticsearch.search.aggregations.bucket.histogram.Histogram;
 import org.elasticsearch.search.aggregations.bucket.missing.Missing;
 import org.elasticsearch.search.aggregations.bucket.nested.Nested;
@@ -913,9 +914,12 @@ public class RestClientTest extends AbstractRestClientTest {
 
         SearchRequestBuilder search = client.prepareSearch(index);
         String name = "agg";
-        search.addAggregation(AggregationBuilders.dateHistogram(name)
+        DateHistogramBuilder dateHistogramBuilder = AggregationBuilders.dateHistogram(name)
                 .field("datePretty")
-                .interval(DateHistogram.Interval.YEAR));
+                .preOffset("1d")
+                .reversePostTz(true)
+                .interval(DateHistogram.Interval.YEAR);
+        search.addAggregation(dateHistogramBuilder);
 
         search.setSize(0); // no hits please
 
@@ -1232,7 +1236,6 @@ public class RestClientTest extends AbstractRestClientTest {
     @Ignore
     public void testMoreLikeThisSearch() throws ExecutionException, InterruptedException {
         //todo bdk implement
-        SearchResponse response = client.prepareMoreLikeThis(index, STATS_TYPE, ).get();
     }
 
     @Test

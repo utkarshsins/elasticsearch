@@ -34,6 +34,7 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.threadpool.ThreadPool;
 import org.elasticsearch.transport.TransportService;
 
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -103,6 +104,9 @@ public class InternalTransportClient extends AbstractClient {
     public <Request extends ActionRequest, Response extends ActionResponse, RequestBuilder extends ActionRequestBuilder<Request, Response, RequestBuilder, Client>> void execute(final Action<Request, Response, RequestBuilder, Client> action, final Request request, ActionListener<Response> listener) {
         headers.applyTo(request);
         final TransportActionNodeProxy<Request, Response> proxy = actions.get(action);
+        if (proxy == null) {
+            throw new IllegalStateException(String.format(Locale.ROOT, "Unknown action: '%s'", action.name()));
+        }
         nodesService.execute(new TransportClientNodesService.NodeListenerCallback<Response>() {
             @Override
             public void doWithNode(DiscoveryNode node, ActionListener<Response> listener) {

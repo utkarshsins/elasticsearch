@@ -111,6 +111,8 @@ public class RestClient extends AbstractClient implements Client {
     
     
     public static class Builder {
+        private InternalRestClientBuilder internalRestClientBuilder;
+
         public Builder(HttpHost... hosts) {
             internalRestClientBuilder = InternalRestClient.builder(hosts);
         }
@@ -140,41 +142,45 @@ public class RestClient extends AbstractClient implements Client {
             return this;
         }
 
-        public InternalRestClientBuilder setConnectionRequestTimeout(TimeValue connectionRequestTimeout) {
-            return internalRestClientBuilder.setConnectionRequestTimeout(connectionRequestTimeout);
+        public Builder setConnectionRequestTimeout(TimeValue connectionRequestTimeout) {
+            internalRestClientBuilder.setConnectionRequestTimeout(connectionRequestTimeout);
+            return this;
         }
 
-        public InternalRestClientBuilder setConnectTimeout(TimeValue connectTimeout) {
-            return internalRestClientBuilder.setConnectTimeout(connectTimeout);
+        public Builder setConnectTimeout(TimeValue connectTimeout) {
+            internalRestClientBuilder.setConnectTimeout(connectTimeout);
+            return this;
         }
 
-        public InternalRestClientBuilder setSocketTimeout(TimeValue socketTimeout) {
-            return internalRestClientBuilder.setSocketTimeout(socketTimeout);
+        public Builder setSocketTimeout(TimeValue socketTimeout) {
+            internalRestClientBuilder.setSocketTimeout(socketTimeout);
+            return this;
         }
 
-        public InternalRestClientBuilder setMaxConnectionsTotal(int maxConnectionsTotal) {
-            return internalRestClientBuilder.setMaxConnectionsTotal(maxConnectionsTotal);
+        public Builder setMaxConnectionsTotal(int maxConnectionsTotal) {
+            internalRestClientBuilder.setMaxConnectionsTotal(maxConnectionsTotal);
+            return this;
         }
 
-        public InternalRestClientBuilder setMaxConnectionsPerRoute(int maxConnectionsPerRoute) {
-            return internalRestClientBuilder.setMaxConnectionsPerRoute(maxConnectionsPerRoute);
+        public Builder setMaxConnectionsPerRoute(int maxConnectionsPerRoute) {
+            internalRestClientBuilder.setMaxConnectionsPerRoute(maxConnectionsPerRoute);
+            return this;
         }
 
-        public InternalRestClientBuilder setMaxRetryTimeoutMillis(long maxRetryTimeoutMillis) {
-            return internalRestClientBuilder.setMaxRetryTimeoutMillis(maxRetryTimeoutMillis);
+        public Builder setMaxRetryTimeoutMillis(long maxRetryTimeoutMillis) {
+            internalRestClientBuilder.setMaxRetryTimeoutMillis(maxRetryTimeoutMillis);
+            return this;
         }
 
-        public InternalRestClientBuilder setPathPrefix(String pathPrefix) {
-            return internalRestClientBuilder.setPathPrefix(pathPrefix);
+        public Builder setPathPrefix(String pathPrefix) {
+            internalRestClientBuilder.setPathPrefix(pathPrefix);
+            return this;
         }
 
         public RestClient build() {
             InternalRestClient internalRestClient = internalRestClientBuilder.build();
             return new RestClient(internalRestClient);
         }
-
-        private InternalRestClientBuilder internalRestClientBuilder;
-
 
         public Builder setMaxRetryTimeout(TimeValue maxRetryTimeout) {
             internalRestClientBuilder.setMaxRetryTimeoutMillis(maxRetryTimeout.millis());
@@ -192,6 +198,21 @@ public class RestClient extends AbstractClient implements Client {
          */
         public Builder setContentCompressionEnabled(boolean contentCompressionEnabled) {
             internalRestClientBuilder.setContentCompressionEnabled(contentCompressionEnabled);
+            return this;
+        }
+
+        public Builder setProxy(HttpHost proxy) {
+            internalRestClientBuilder.setProxy(proxy);
+            return this;
+        }
+
+        public Builder setProxyPreferredAuthSchemes(String... proxyPreferredAuthSchemes) {
+            internalRestClientBuilder.setProxyPreferredAuthSchemes(proxyPreferredAuthSchemes);
+            return this;
+        }
+
+        public Builder setTargetPreferredAuthSchemes(String... targetPreferredAuthSchemes) {
+            internalRestClientBuilder.setTargetPreferredAuthSchemes(targetPreferredAuthSchemes);
             return this;
         }
     }
