@@ -77,11 +77,4 @@ public abstract class MasterNodeOperationRequest<T extends MasterNodeOperationRe
         masterNodeTimeout.writeTo(out);
     }
 
-    @Override
-    public Map<String, String> getParams() {
-        return new MapBuilder<String, String>()
-                .putIfNotNull("master_timeout", masterNodeTimeout.toString())
-                .map();
-
-    }
 }
