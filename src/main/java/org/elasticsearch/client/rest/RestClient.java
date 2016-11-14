@@ -22,6 +22,7 @@ package org.elasticsearch.client.rest;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.elasticsearch.ElasticsearchException;
+import org.elasticsearch.Version;
 import org.elasticsearch.action.*;
 import org.elasticsearch.action.support.PlainActionFuture;
 import org.elasticsearch.client.AdminClient;
@@ -68,6 +69,13 @@ public class RestClient extends AbstractClient implements Client {
             this.internalRestClient.readVersionAndClusterName();
         }
         return this.internalRestClient.getClusterName();
+    }
+
+    public Version getClusterVersion() {
+        if (this.internalRestClient.getVersion() == null) {
+            this.internalRestClient.readVersionAndClusterName();
+        }
+        return this.internalRestClient.getVersion();
     }
 
 
