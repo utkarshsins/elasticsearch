@@ -44,6 +44,7 @@ import java.util.Map;
  */
 public class ClusterStateRequest extends MasterNodeReadOperationRequest<ClusterStateRequest> implements IndicesRequest.Replaceable {
 
+    public static final int METRICS_COUNT = 4;
     private boolean routingTable = true;
     private boolean nodes = true;
     private boolean metaData = true;
@@ -168,7 +169,7 @@ public class ClusterStateRequest extends MasterNodeReadOperationRequest<ClusterS
         List<String> metrics = getMetrics();
         return new MapBuilder<>(super.getParams())
                 .putIf("indices", Joiner.on(',').skipNulls().join(indices()), indices.length > 0)
-                .putIf("metrics", Joiner.on(',').skipNulls().join(metrics), !metrics.isEmpty())
+                .putIf("metric", Joiner.on(',').skipNulls().join(metrics), !metrics.isEmpty() && metrics.size() != METRICS_COUNT)
                 .map();
     }
 
