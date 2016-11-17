@@ -27,6 +27,7 @@ import org.elasticsearch.ElasticsearchIllegalArgumentException;
 import org.elasticsearch.Version;
 import org.elasticsearch.action.ActionRequest;
 import org.elasticsearch.action.ActionRequestValidationException;
+import org.elasticsearch.action.ActionRestRequest;
 import org.elasticsearch.action.IndicesRequest;
 import org.elasticsearch.action.support.IndicesOptions;
 import org.elasticsearch.client.Requests;
@@ -659,7 +660,9 @@ public class SearchRequest extends ActionRequest<SearchRequest> implements Indic
     @Override
     public HttpEntity getEntity() throws IOException {
         if (source != null) {
-            return new NStringEntity(XContentHelper.convertToJson(source, false), StandardCharsets.UTF_8);
+            String json = XContentHelper.convertToJson(source, false);
+
+            return new NStringEntity(json, StandardCharsets.UTF_8);
         }
         else {
             return HttpUtils.EMPTY_ENTITY;
@@ -692,12 +695,55 @@ public class SearchRequest extends ActionRequest<SearchRequest> implements Indic
         if (scroll != null) {
             builder.put("scroll", scroll.keepAlive().toString());
         }
-/*
-        if (searchType != null && searchType != SearchType.DEFAULT) {
-            builder.put("search_type", searchType.name().toLowerCase(Locale.ROOT));
-        }
-*/
 
         return builder.map();
+    }
+
+    @Override
+    public ActionRestRequest getActionRestRequest(Version version) {
+        ActionRestRequest actionRestRequest = super.getActionRestRequest(version);
+        if (version.id >= Version.V_5_0_0_ID) {
+            return new SearchRequestV5(actionRestRequest);
+        }
+        else {
+            return actionRestRequest;
+        }
+    }
+
+    private static class SearchRequestV5 implements ActionRestRequest{
+        ActionRestRequest actionRestRequest;
+
+        public SearchRequestV5(ActionRestRequest actionRestRequest) {
+            this.actionRestRequest = actionRestRequest;
+        }
+
+        public RestRequest.Method getMethod() {
+            return actionRestRequest.getMethod();
+        }
+
+        public String getEndPoint() {
+            return actionRestRequest.getEndPoint();
+        }
+
+        public HttpEntity getEntity() throws IOException {
+            HttpEntity entity = actionRestRequest.getEntity();
+            String json = Strings.valueOf(entity.getContent());
+            Map<String, Object> map = XContentHelper.fromJson(json);
+            // fields has been deprecated and renamed to stored_fields
+            if (map.containsKey("fields")) {
+                map.put("stored_fields", map.get("fields"));
+                map.remove("fields");
+                return new NStringEntity(XContentHelper.convertToJson(map, false), StandardCharsets.UTF_8);
+            }
+            return entity;
+        }
+
+        public Map<String, String> getParams() {
+            return actionRestRequest.getParams();
+        }
+
+        public HttpEntity getBulkEntity() throws IOException {
+            return actionRestRequest.getBulkEntity();
+        }
     }
 }

@@ -278,6 +278,19 @@ public class RestClientTest extends AbstractRestClientTest {
     }
 
     @Test
+    public void testSearchWithFields() throws ExecutionException, InterruptedException {
+        indexDocument();
+
+        SearchRequestBuilder search = client.prepareSearch(index).addField("datePretty");
+        SearchResponse response = client.search(search.request()).get();
+        SearchHits hits = response.getHits();
+        assertNotNull(hits);
+        SearchHit[] hits1 = hits.hits();
+        assertNotNull(hits1);
+        assertTrue(hits1.length > 0);
+    }
+
+    @Test
     public void testSearchWithAggregationValueCount() throws ExecutionException, InterruptedException {
         indexDocument();
 
