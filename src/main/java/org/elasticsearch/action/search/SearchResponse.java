@@ -296,7 +296,7 @@ public class SearchResponse extends ActionResponse implements StatusToXContent {
 
             @Override
             public void apply(VersionedXContentParser versionedXContentParser, SearchResponse response) throws IOException {
-                throw new RuntimeException(versionedXContentParser.getParser().text());
+                throw new RuntimeException(versionedXContentParser.getParser().xContentObject().toJson());
             }
         },
         _scroll_id {
