@@ -341,6 +341,13 @@ public class XContentObjectImpl implements XContentObject {
     }
 
     @Override
+    public boolean isNull(String key) {
+        return !internalMap.containsKey(key) ||
+                internalMap.get(key) == null ||
+                internalMap.get(key).equals("null");
+    }
+
+    @Override
     public Set<String> keySet() {
         return internalMap.keySet();
     }

@@ -582,6 +582,27 @@ public class RestClientTest extends AbstractRestClientTest {
     }
 
     @Test
+    public void testSearchWithMaxAggregationWithEmptyIndex() throws ExecutionException, InterruptedException {
+
+        SearchRequestBuilder search = client.prepareSearch(index);
+        String name = "agg";
+        search.addAggregation(AggregationBuilders.max(name).field("amount"));
+        search.setSize(0); // no hits please
+
+        SearchResponse response = client.search(search.request()).get();
+        SearchHits hits = response.getHits();
+        assertNotNull(hits);
+        SearchHit[] hits1 = hits.hits();
+        assertNotNull(hits1);
+        assertEquals(0, hits1.length);
+        Aggregations aggregations = response.getAggregations();
+        assertNotNull(aggregations);
+        Max aggregation = aggregations.get(name);
+        assertNotNull(aggregation);
+        assertTrue(aggregation.getValue() == Double.POSITIVE_INFINITY);
+    }
+
+    @Test
     public void testSearchWithMinAggregation() throws ExecutionException, InterruptedException {
         indexDocument();
 

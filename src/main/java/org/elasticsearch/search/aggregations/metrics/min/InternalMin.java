@@ -55,7 +55,7 @@ public class InternalMin extends InternalNumericMetricsAggregation.SingleValue i
 
     public void readFrom(XContentObject in) {
         this.name = in.get(CommonJsonField._name);
-        this.min = in.getAsDouble("value");
+        this.min = in.getAsDouble("value", Double.POSITIVE_INFINITY);
     }
 
     public static void registerStreams() {

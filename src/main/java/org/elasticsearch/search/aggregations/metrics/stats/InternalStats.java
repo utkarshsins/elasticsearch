@@ -73,17 +73,17 @@ public class InternalStats extends InternalNumericMetricsAggregation.MultiValue 
         }, sum {
             @Override
             public void apply(XContentObject source, InternalStats object) throws IOException {
-                object.sum = source.getAsDouble(this, 0D);
+                object.sum = source.getAsDouble(this, Double.POSITIVE_INFINITY);
             }
         }, min {
             @Override
             public void apply(XContentObject source, InternalStats object) throws IOException {
-                object.min = source.getAsDouble(this, 0D);
+                object.min = source.getAsDouble(this, Double.POSITIVE_INFINITY);
             }
         }, max {
             @Override
             public void apply(XContentObject source, InternalStats object) throws IOException {
-                object.max = source.getAsDouble(this, 0D);
+                object.max = source.getAsDouble(this, Double.POSITIVE_INFINITY);
             }
         }, avg {
             @Override

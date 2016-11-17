@@ -55,7 +55,7 @@ public class InternalMax extends InternalNumericMetricsAggregation.SingleValue i
 
     public void readFrom(XContentObject in) {
         this.name = in.get(CommonJsonField._name);
-        this.max = in.getAsDouble("value");
+        this.max = in.getAsDouble("value", Double.POSITIVE_INFINITY);
     }
 
     public static void registerStreams() {
