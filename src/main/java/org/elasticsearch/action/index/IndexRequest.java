@@ -749,8 +749,11 @@ public class IndexRequest extends ShardReplicationOperationRequest<IndexRequest>
         builder.putIf("timeout", String.valueOf(timeout), timeout != DEFAULT_TIMEOUT);
         builder.putIf("version_type", versionType.name(), versionType != DEFAULT_VERSION_TYPE);
         builder.putIf("op_type", opType.name(), opType != DEFAULT_OP_TYPE);
+/*
+        // this don't work with version >= 5.0
         builder.putIf("replication", replicationType().name(), replicationType() != ReplicationType.DEFAULT);
         builder.putIf("consistency", consistencyLevel().name(), consistencyLevel() != WriteConsistencyLevel.DEFAULT);
+*/
         return builder.map();
     }
 
