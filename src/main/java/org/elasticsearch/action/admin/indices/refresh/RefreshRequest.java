@@ -91,7 +91,8 @@ public class RefreshRequest extends BroadcastOperationRequest<RefreshRequest> {
     @Override
     public Map<String, String> getParams() {
         return new MapBuilder<>(super.getParams())
-                .putIf("force", String.valueOf(force), force)
+                // force has been deprecated in 5.0
+//                .putIf("force", String.valueOf(force), force)
                 .map();
     }
 
