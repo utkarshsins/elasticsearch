@@ -76,6 +76,10 @@ public class LeafSearchLookup {
         return this.docMap;
     }
 
+    public LeafReaderContext context(){
+        return this.ctx;
+    }
+
     public void setDocument(int docId) {
         docMap.setDocument(docId);
         sourceLookup.setSegmentAndDocument(ctx, docId);
