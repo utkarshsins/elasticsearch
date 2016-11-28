@@ -25,6 +25,8 @@ import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.xcontent.VersionedXContentParser;
 import org.elasticsearch.common.xcontent.XContentHelper;
+import org.elasticsearch.common.xcontent.XContentObject;
+import org.elasticsearch.common.xcontent.XContentObjectParseable;
 import org.elasticsearch.common.xcontent.XContentParsable;
 import org.elasticsearch.rest.RestStatus;
 
@@ -117,8 +119,13 @@ public class IndexResponse extends ActionResponse {
         out.writeBoolean(created);
     }
 
-    enum JsonFields implements XContentParsable<IndexResponse> {
+    enum JsonFields implements XContentParsable<IndexResponse>, XContentObjectParseable<IndexResponse> {
         _index {
+            @Override
+            public void apply(XContentObject source, IndexResponse object) throws IOException {
+                object.index = source.get(this);
+            }
+
             @Override
             public void apply(VersionedXContentParser versionedXContentParser, IndexResponse response) throws IOException {
                 response.index = versionedXContentParser.getParser().text();
@@ -126,11 +133,20 @@ public class IndexResponse extends ActionResponse {
         },
         _type {
             @Override
+            public void apply(XContentObject source, IndexResponse object) throws IOException {
+                object.type = source.get(this);
+            }
+            @Override
             public void apply(VersionedXContentParser versionedXContentParser, IndexResponse response) throws IOException {
                 response.type = versionedXContentParser.getParser().text();
             }
         },
         _id {
+            @Override
+            public void apply(XContentObject source, IndexResponse object) throws IOException {
+                object.id = source.get(this);
+            }
+
             @Override
             public void apply(VersionedXContentParser versionedXContentParser, IndexResponse response) throws IOException {
                 response.id = versionedXContentParser.getParser().text();
@@ -138,17 +154,90 @@ public class IndexResponse extends ActionResponse {
         },
         _version {
             @Override
+            public void apply(XContentObject source, IndexResponse object) throws IOException {
+                object.version = source.getAsLong(this);
+            }
+            @Override
             public void apply(VersionedXContentParser versionedXContentParser, IndexResponse response) throws IOException {
                 response.version = versionedXContentParser.getParser().intValue();
             }
         },
         status {
             @Override
+            public void apply(XContentObject source, IndexResponse object) throws IOException {
+                object.bulkStatus = RestStatus.valueOf(source.getAsInt(this));
+            }
+            @Override
             public void apply(VersionedXContentParser versionedXContentParser, IndexResponse response) throws IOException {
                 response.bulkStatus = RestStatus.valueOf(versionedXContentParser.getParser().intValue());
             }
         },
+        result {
+            @Override
+            public void apply(XContentObject source, IndexResponse object) throws IOException {
+                object.created = "created".equals(source.get(this));
+            }
+
+            @Override
+            public void apply(VersionedXContentParser versionedXContentParser, IndexResponse response) throws IOException {
+                response.created = "created".equals(versionedXContentParser.getParser().text());
+            }
+        },
+        forced_refresh {
+            @Override
+            public void apply(XContentObject source, IndexResponse object) throws IOException {
+
+            }
+            @Override
+            public void apply(VersionedXContentParser versionedXContentParser, IndexResponse response) throws IOException {
+                // 5.0 return value
+            }
+        },
+        _shards {
+            @Override
+            public void apply(XContentObject source, IndexResponse object) throws IOException {
+
+            }
+            @Override
+            public void apply(VersionedXContentParser versionedXContentParser, IndexResponse response) throws IOException {
+                // 5.0 return value
+            }
+        },
+        total {
+            @Override
+            public void apply(XContentObject source, IndexResponse object) throws IOException {
+
+            }
+            @Override
+            public void apply(VersionedXContentParser versionedXContentParser, IndexResponse response) throws IOException {
+                // 5.0 return value
+            }
+        },
+        successful {
+            @Override
+            public void apply(XContentObject source, IndexResponse object) throws IOException {
+
+            }
+            @Override
+            public void apply(VersionedXContentParser versionedXContentParser, IndexResponse response) throws IOException {
+                // 5.0 return value
+            }
+        },
+        failed {
+            @Override
+            public void apply(XContentObject source, IndexResponse object) throws IOException {
+
+            }
+            @Override
+            public void apply(VersionedXContentParser versionedXContentParser, IndexResponse response) throws IOException {
+                // 5.0 return value
+            }
+        },
         created {
+            @Override
+            public void apply(XContentObject source, IndexResponse object) throws IOException {
+                object.created = source.getAsBoolean(this);
+            }
             @Override
             public void apply(VersionedXContentParser versionedXContentParser, IndexResponse response) throws IOException {
                 response.created = versionedXContentParser.getParser().booleanValue();
@@ -168,4 +257,8 @@ public class IndexResponse extends ActionResponse {
         XContentHelper.populate(versionedXContentParser, JsonFields.fields, this);
     }
 
+    @Override
+    public void readFrom(XContentObject source) throws IOException {
+        XContentHelper.populate(source, JsonFields.values(), this);
+    }
 }

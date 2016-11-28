@@ -21,6 +21,7 @@ package org.elasticsearch.search.internal;
 
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
+import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.index.mapper.MapperService;
 import org.elasticsearch.search.SearchHitField;
 
@@ -90,6 +91,17 @@ public class InternalSearchHitField implements SearchHitField {
         InternalSearchHitField result = new InternalSearchHitField();
         result.readFrom(in);
         return result;
+    }
+
+    public static InternalSearchHitField readSearchHitField(String name, XContentObject in) throws IOException {
+        InternalSearchHitField result = new InternalSearchHitField();
+        result.readFrom(name, in);
+        return result;
+    }
+
+    public void readFrom(String name, XContentObject in) {
+        this.name = name;
+        this.values = in.getAsObjects(this.name);
     }
 
     @Override

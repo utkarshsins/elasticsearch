@@ -111,7 +111,6 @@ public class RestIndicesAdminClientTest extends AbstractRestClientTest {
     }
 
     @Test
-    @Ignore
     public void testAliases() {
         IndicesAliasesResponse response;
         response = indicesAdminClient.prepareAliases()

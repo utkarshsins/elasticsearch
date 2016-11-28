@@ -502,12 +502,15 @@ public class XContentHelper {
                 }
                 else {
                     if (log.isDebugEnabled()) {
-                        log.debug("Skipping unknown field: " + currentFieldName);
+                        log.debug("Skipping field: " + currentFieldName + " for class: " + o.getClass().getName());
                     }
                     if (token == XContentParser.Token.START_OBJECT) {
                         versionedXContentParser.getParser().skipChildren();
                     }
                 }
+            }
+            else if (token == null) {
+                throw new IllegalStateException("Read past the end of the stream.");
             }
         }
 

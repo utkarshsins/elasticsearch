@@ -41,6 +41,7 @@ import org.elasticsearch.common.util.CollectionUtils;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.rest.RestRequest;
 
@@ -58,7 +59,7 @@ import static org.elasticsearch.common.xcontent.ToXContent.EMPTY_PARAMS;
 public class IndicesAliasesRequest extends AcknowledgedRequest<IndicesAliasesRequest> implements IndicesRequest {
 
     private List<AliasActions> allAliasActions = Lists.newArrayList();
-    
+
     private IndicesOptions indicesOptions = IndicesOptions.fromOptions(false, false, true, false);
 
     public IndicesAliasesRequest() {
@@ -76,25 +77,25 @@ public class IndicesAliasesRequest extends AcknowledgedRequest<IndicesAliasesReq
         private String[] indices = Strings.EMPTY_ARRAY;
         private String[] aliases = Strings.EMPTY_ARRAY;
         private AliasAction aliasAction;
-        
+
         public AliasActions(AliasAction.Type type, String[] indices, String[] aliases) {
             aliasAction = new AliasAction(type);
             indices(indices);
             aliases(aliases);
         }
-        
+
         public AliasActions(AliasAction.Type type, String index, String alias) {
-            aliasAction = new AliasAction(type);
+            aliasAction = new AliasAction(type, index, alias);
             indices(index);
             aliases(alias);
         }
-        
+
         AliasActions(AliasAction.Type type, String[] index, String alias) {
             aliasAction = new AliasAction(type);
             indices(index);
             aliases(alias);
         }
-        
+
         public AliasActions(AliasAction action) {
             this.aliasAction = action;
             indices(action.index());
@@ -114,7 +115,7 @@ public class IndicesAliasesRequest extends AcknowledgedRequest<IndicesAliasesReq
             aliasAction.filter(filter);
             return this;
         }
-        
+
         public AliasActions filter(FilterBuilder filter) {
             aliasAction.filter(filter);
             return this;
@@ -140,7 +141,7 @@ public class IndicesAliasesRequest extends AcknowledgedRequest<IndicesAliasesReq
             aliasAction.filter(filter);
             return this;
         }
-        
+
         public void indices(String... indices) {
             if (indices == null) {
                 throw new ElasticsearchIllegalArgumentException("indices must not be null");
@@ -153,15 +154,15 @@ public class IndicesAliasesRequest extends AcknowledgedRequest<IndicesAliasesReq
             }
             this.indices = finalIndices.toArray(new String[finalIndices.size()]);
         }
-        
+
         public void aliases(String... aliases) {
             this.aliases = aliases;
         }
-        
+
         public String[] aliases() {
             return aliases;
         }
-        
+
         public String[] indices() {
             return indices;
         }
@@ -177,7 +178,7 @@ public class IndicesAliasesRequest extends AcknowledgedRequest<IndicesAliasesReq
                 ImmutableOpenMap<String, ImmutableList<AliasMetaData>> aliasMetaData = metaData.findAliases(aliases, indexAsArray);
                 List<String> finalAliases = new ArrayList<>();
                 for (ObjectCursor<ImmutableList<AliasMetaData>> curAliases : aliasMetaData.values()) {
-                    for (AliasMetaData aliasMeta: curAliases.value) {
+                    for (AliasMetaData aliasMeta : curAliases.value) {
                         finalAliases.add(aliasMeta.alias());
                     }
                 }
@@ -187,13 +188,14 @@ public class IndicesAliasesRequest extends AcknowledgedRequest<IndicesAliasesReq
                 return aliases;
             }
         }
+
         public AliasActions readFrom(StreamInput in) throws IOException {
             indices = in.readStringArray();
             aliases = in.readStringArray();
             aliasAction = readAliasAction(in);
             return this;
         }
-        
+
         public void writeTo(StreamOutput out) throws IOException {
             out.writeStringArray(indices);
             out.writeStringArray(aliases);
@@ -203,7 +205,24 @@ public class IndicesAliasesRequest extends AcknowledgedRequest<IndicesAliasesReq
         @Override
         public XContentBuilder toXContent(XContentBuilder builder, Params params) throws IOException {
             builder.startObject();
-            this.aliasAction.toXContent(builder, params);
+            builder.startObject(this.actionType().name().toLowerCase(Locale.ROOT));
+            builder.startArray("indices");
+            for (String index : indices) {
+                builder.value(index);
+            }
+            builder.endArray();
+            builder.startArray("aliases");
+            for (String alias : aliases) {
+                builder.value(alias);
+            }
+            builder.endArray();
+            builder.fieldIfNotNull("search_routing", this.aliasAction.searchRouting())
+                    .fieldIfNotNull("index_routing", this.aliasAction.indexRouting());
+            if (Strings.isNotEmpty(this.aliasAction.filter())) {
+                builder.field("filter", XContentHelper.fromJson(this.aliasAction.filter()));
+            }
+
+            builder.endObject();
             builder.endObject();
             return builder;
         }
@@ -382,11 +401,14 @@ public class IndicesAliasesRequest extends AcknowledgedRequest<IndicesAliasesReq
 
     @Override
     public HttpEntity getEntity() throws IOException {
-        //todo bdk fix this, it's broke
         XContentBuilder jsonBuilder = XContentFactory.jsonBuilder();
+        jsonBuilder.startObject();
+        jsonBuilder.startArray("actions");
         for (AliasActions aliasAction : allAliasActions) {
             aliasAction.toXContent(jsonBuilder, EMPTY_PARAMS);
         }
+        jsonBuilder.endArray();
+        jsonBuilder.endObject();
         return new NStringEntity(jsonBuilder.string(), StandardCharsets.UTF_8);
     }
 

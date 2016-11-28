@@ -28,6 +28,8 @@ import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.VersionedXContentParser;
 import org.elasticsearch.common.xcontent.XContentHelper;
+import org.elasticsearch.common.xcontent.XContentObject;
+import org.elasticsearch.common.xcontent.XContentObjectParseable;
 import org.elasticsearch.common.xcontent.XContentParsable;
 import org.elasticsearch.common.xcontent.XContentParser;
 
@@ -129,43 +131,39 @@ public class BulkResponse extends ActionResponse implements Iterable<BulkItemRes
 
 
 
-    enum JsonFields implements XContentParsable<BulkResponse> {
+    enum JsonFields implements XContentObjectParseable<BulkResponse> {
         took {
             @Override
-            public void apply(VersionedXContentParser versionedXContentParser, BulkResponse response) throws IOException {
-                response.tookInMillis = versionedXContentParser.getParser().longValue();
+            public void apply(XContentObject source, BulkResponse object) throws IOException {
+                object.tookInMillis = source.getAsLong(this);
             }
         },
         errors {
             @Override
-            public void apply(VersionedXContentParser versionedXContentParser, BulkResponse response) throws IOException {
-                response.errors = versionedXContentParser.getParser().booleanValue();
+            public void apply(XContentObject source, BulkResponse object) throws IOException {
+                object.errors = source.getAsBoolean(this);
             }
         },
         items {
             @Override
-            public void apply(VersionedXContentParser versionedXContentParser, BulkResponse response) throws IOException {
+            public void apply(XContentObject source, BulkResponse object) throws IOException {
                 List<BulkItemResponse> items = Lists.newArrayList();
-                for (versionedXContentParser.getParser().nextToken(); versionedXContentParser.getParser().currentToken() != XContentParser.Token.END_ARRAY; versionedXContentParser.getParser().nextToken()) {
+                List<XContentObject> xItems = source.getAsXContentObjects(this);
+                for (XContentObject xItem : xItems) {
                     BulkItemResponse item = new BulkItemResponse();
-                    item.readFrom(versionedXContentParser);
+                    item.readFrom(xItem);
                     items.add(item);
+
                 }
-                response.responses = items.toArray(new BulkItemResponse[items.size()]);
+                object.responses = items.toArray(new BulkItemResponse[items.size()]);
             }
         };
 
-        static Map<String, XContentParsable<BulkResponse>> fields = Maps.newLinkedHashMap();
-        static {
-            for (BulkResponse.JsonFields field : values()) {
-                fields.put(field.name(), field);
-            }
-        }
     }
 
     @Override
     public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
-        XContentHelper.populate(versionedXContentParser, JsonFields.fields, this);
+        XContentHelper.populate(versionedXContentParser.getParser().xContentObject(), JsonFields.values(), this);
     }
 
 }

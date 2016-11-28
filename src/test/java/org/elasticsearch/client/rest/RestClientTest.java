@@ -23,7 +23,9 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.elasticsearch.action.ActionFuture;
+import org.elasticsearch.action.ActionResponse;
 import org.elasticsearch.action.bulk.BulkItemResponse;
+import org.elasticsearch.action.bulk.BulkProcessor;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.count.CountRequest;
@@ -45,11 +47,13 @@ import org.elasticsearch.action.indexedscripts.put.PutIndexedScriptResponse;
 import org.elasticsearch.action.search.*;
 import org.elasticsearch.action.suggest.SuggestResponse;
 import org.elasticsearch.action.support.QuerySourceBuilder;
+import org.elasticsearch.action.support.replication.ReplicationType;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.common.unit.DistanceUnit;
 import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.common.util.concurrent.EsRejectedExecutionException;
 import org.elasticsearch.index.query.FilterBuilders;
 import org.elasticsearch.index.query.IdsQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -181,6 +185,23 @@ public class RestClientTest extends AbstractRestClientTest {
     }
 
     @Test
+    public void testSearchIndex() throws ExecutionException, InterruptedException {
+        String id = UUID.randomUUID().toString();
+        IndexRequest request = new IndexRequest(index, STATS_TYPE, id);
+        Map<String, Object> source = Maps.newHashMap();
+        source.put("datePretty", "2016-02-28T05:30:00+05:30");
+        request.source(source);
+        IndexResponse indexResponse = this.client.index(request).get();
+        assertEquals(id, indexResponse.getId());
+        assertEquals(index, indexResponse.getIndex());
+        assertEquals(STATS_TYPE, indexResponse.getType());
+
+        GetResponse getResponse = getDocument(id);
+        assertEquals(id, getResponse.getId());
+        assertEquals(source.get("datePretty"), getResponse.getSourceAsMap().get("datePretty"));
+    }
+
+    @Test
     public void testDelete() throws ExecutionException, InterruptedException {
         // add test doc
         IndexResponse indexResponse = indexDocument();
@@ -226,6 +247,103 @@ public class RestClientTest extends AbstractRestClientTest {
     }
 
     @Test
+    public void testBulkProcessorIndex() throws ExecutionException, InterruptedException {
+        BulkProcessorListener listener = new BulkProcessorListener();
+        BulkProcessor.Builder builder = BulkProcessor.builder(client, listener).setBulkActions(100);
+        BulkProcessor esBulkProcessor = builder.setConcurrentRequests(0).build();
+        int count = 1000;
+        for (int i = 0; i < count; i++) {
+            esBulkProcessor.add(newIndexRequest());
+        }
+        esBulkProcessor.flush();
+        esBulkProcessor.close();
+        refresh();
+        assertEquals(count, getCount());
+    }
+
+    @Test
+    public void testBulkProcessorDelete() throws ExecutionException, InterruptedException {
+        BulkProcessorListener listener = new BulkProcessorListener();
+        BulkProcessor.Builder builder = BulkProcessor.builder(client, listener).setBulkActions(100);
+        BulkProcessor esBulkProcessor = builder.setConcurrentRequests(0).build();
+        List<IndexRequest> indexRequests = new ArrayList<>();
+        int count = 1000;
+        for (int i = 0; i < count; i++) {
+            IndexRequest request = newIndexRequest();
+            indexRequests.add(request);
+            esBulkProcessor.add(request);
+        }
+        esBulkProcessor.flush();
+
+        for (IndexRequest indexRequest : indexRequests) {
+            esBulkProcessor.add(new DeleteRequest(indexRequest.index(), indexRequest.type(), indexRequest.id()));
+        }
+        esBulkProcessor.flush();
+        esBulkProcessor.close();
+
+        refresh();
+        assertEquals(0, getCount());
+    }
+
+    @Test
+    public void testBulkProcessorUpdate() throws Exception {
+        BulkProcessorListener listener = new BulkProcessorListener();
+        BulkProcessor.Builder builder = BulkProcessor.builder(client, listener).setBulkActions(100);
+        BulkProcessor esBulkProcessor = builder.setConcurrentRequests(0).build();
+        List<IndexRequest> indexRequests = new ArrayList<>();
+        int count = 1000;
+        for (int i = 0; i < count; i++) {
+            IndexRequest request = newIndexRequest();
+            indexRequests.add(request);
+            esBulkProcessor.add(request);
+        }
+        esBulkProcessor.flush();
+
+        for (IndexRequest indexRequest : indexRequests) {
+            UpdateRequest request = new UpdateRequest(indexRequest.index(), indexRequest.type(), indexRequest.id());
+            request.doc(indexRequest);
+            esBulkProcessor.add(request);
+        }
+        esBulkProcessor.flush();
+        esBulkProcessor.close();
+
+        refresh();
+        assertEquals(count, getCount());
+    }
+
+    public static class BulkProcessorListener implements BulkProcessor.Listener {
+
+        private final Map<String, ActionResponse> responseMap = Maps.newHashMap();
+
+        @Override
+        public void beforeBulk(long executionId, BulkRequest request) {
+            request.replicationType(ReplicationType.ASYNC);
+        }
+
+        @Override
+        public void afterBulk(long executionId, BulkRequest request, BulkResponse response) {
+            for (BulkItemResponse itemResponse : response.getItems()) {
+                String id = itemResponse.getId();
+                BulkItemResponse.Failure failure = itemResponse.getFailure();
+
+                if (failure == null) {
+                    responseMap.put(id, itemResponse.getResponse());
+                }
+            }
+        }
+
+        @Override
+        public void afterBulk(long executionId, BulkRequest request, Throwable failure) {
+            if (failure != null) {
+                throw new RuntimeException(failure);
+            }
+        }
+
+        public Map<String, ActionResponse> getResponseMap() {
+            return responseMap;
+        }
+    }
+    @Test
     public void testBulkWithErrors() throws ExecutionException, InterruptedException {
         BulkRequest request = new BulkRequest();
         int count = 10000;
@@ -242,6 +360,14 @@ public class RestClientTest extends AbstractRestClientTest {
         }
     }
 
+    public long getCount() throws ExecutionException, InterruptedException {
+        CountRequest request;
+        request = new CountRequest(index);
+        request.types(STATS_TYPE);
+        CountResponse countResponse = client.count(request).get();
+        return countResponse.getCount();
+
+    }
     @Test
     public void testCount() throws ExecutionException, InterruptedException {
         IndexResponse indexResponse = indexDocument();
@@ -288,6 +414,7 @@ public class RestClientTest extends AbstractRestClientTest {
         SearchHit[] hits1 = hits.hits();
         assertNotNull(hits1);
         assertTrue(hits1.length > 0);
+        assertNotNull(hits1[0].field("datePretty"));
     }
 
     @Test

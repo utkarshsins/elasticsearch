@@ -56,6 +56,7 @@ public class RestExecuteUtil {
                     actionRestRequest.getParams(),
                     actionRestRequest.getEntity());
             Response response = action.newResponse();
+            response.init(request);
             if (actionRestRequest.getMethod() == RestRequest.Method.HEAD) {
                 response.exists(restResponse.getHttpResponse().getStatusLine().getStatusCode() == STATUS_OK);
             }

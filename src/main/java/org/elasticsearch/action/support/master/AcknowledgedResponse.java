@@ -74,6 +74,12 @@ public abstract class AcknowledgedResponse extends ActionResponse {
             public void apply(VersionedXContentParser versionedXContentParser, AcknowledgedResponse response) throws IOException {
                 response.acknowledged = versionedXContentParser.getParser().booleanValue();
             }
+        },
+        shards_acknowledged {
+            @Override
+            public void apply(VersionedXContentParser versionedXContentParser, AcknowledgedResponse response) throws IOException {
+                // 5.0 results //todo bdk handle
+            }
         };
 
         static Map<String, XContentParsable<AcknowledgedResponse>> fields = Maps.newLinkedHashMap();

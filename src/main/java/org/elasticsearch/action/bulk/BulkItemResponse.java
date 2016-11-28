@@ -19,23 +19,25 @@
 
 package org.elasticsearch.action.bulk;
 
+import com.google.common.collect.Maps;
 import org.elasticsearch.ExceptionsHelper;
 import org.elasticsearch.action.ActionResponse;
-import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.delete.DeleteResponse;
-import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
-import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Streamable;
 import org.elasticsearch.common.xcontent.FromXContent;
 import org.elasticsearch.common.xcontent.VersionedXContentParser;
-import org.elasticsearch.common.xcontent.XContentParser;
+import org.elasticsearch.common.xcontent.XContentHelper;
+import org.elasticsearch.common.xcontent.XContentObject;
+import org.elasticsearch.common.xcontent.XContentObjectParseable;
+import org.elasticsearch.common.xcontent.XContentParsable;
 import org.elasticsearch.rest.RestStatus;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * Represents a single item response for an action executed as part of the bulk API. Holds the index/type/id
@@ -306,28 +308,61 @@ public class BulkItemResponse implements Streamable, FromXContent {
             RestStatus.writeTo(out, failure.getStatus());
         }
     }
+    enum JsonFields implements XContentObjectParseable<BulkItemResponse>, XContentParsable<BulkItemResponse> {
+        index {
+            @Override
+            public void apply(VersionedXContentParser versionedXContentParser, BulkItemResponse object) throws IOException {
+                object.response = new IndexResponse();
+                object.response.readFrom(versionedXContentParser);
+            }
+
+            @Override
+            public void apply(XContentObject source, BulkItemResponse response) throws IOException {
+                response.response = new IndexResponse();
+                response.response.readFrom(source);
+            }
+        },
+        update {
+            @Override
+            public void apply(VersionedXContentParser versionedXContentParser, BulkItemResponse object) throws IOException {
+                object.response = new UpdateResponse();
+                object.response.readFrom(versionedXContentParser);
+            }
+
+            @Override
+            public void apply(XContentObject source, BulkItemResponse response) throws IOException {
+                response.response = new UpdateResponse();
+                response.response.readFrom(source);
+            }
+        },
+        delete {
+            @Override
+            public void apply(VersionedXContentParser versionedXContentParser, BulkItemResponse object) throws IOException {
+                object.response = new DeleteResponse();
+                object.response.readFrom(versionedXContentParser);
+            }
+
+            @Override
+            public void apply(XContentObject source, BulkItemResponse response) throws IOException {
+                response.response = new DeleteResponse();
+                response.response.readFrom(source);
+            }
+        };
+        static Map<String, XContentParsable<BulkItemResponse>> fields = Maps.newLinkedHashMap();
+        static {
+            for (BulkItemResponse.JsonFields field : values()) {
+                fields.put(field.name(), field);
+            }
+        }
+    }
 
     @Override
     public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
-        if (versionedXContentParser.getParser().currentToken() == XContentParser.Token.START_OBJECT) {
-            versionedXContentParser.getParser().nextToken();
-        }
-        this.opType = versionedXContentParser.getParser().currentName();
-        if (IndexRequest.BULK_TYPE.equals(this.opType)) {
-            this.response = new IndexResponse();
-        }
-        else if (UpdateRequest.BULK_TYPE.equals(this.opType)) {
-            this.response = new UpdateResponse();
-        }
-        else if (DeleteRequest.BULK_TYPE.equals(this.opType)) {
-            this.response = new DeleteResponse();
-        }
-        else {
-            throw new IllegalStateException("Unknown bulk action: " + this.opType);
-        }
-        this.response.readFrom(versionedXContentParser);
-        versionedXContentParser.getParser().nextToken(); // END_OBJECT
+        XContentHelper.populate(versionedXContentParser,  JsonFields.fields, this);
     }
 
+    public void readFrom(XContentObject xItem) throws IOException {
+        XContentHelper.populate(xItem, JsonFields.values(), this);
+    }
 
 }

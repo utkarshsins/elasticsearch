@@ -42,7 +42,9 @@ import org.elasticsearch.search.highlight.HighlightField;
 import org.elasticsearch.search.lookup.SourceLookup;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import static org.elasticsearch.common.lucene.Lucene.readExplanation;
@@ -439,6 +441,26 @@ public class InternalSearchHit implements SearchHit {
                 hit.sortValues = versionedXContentParser.getParser().array();
             }
         },
+        fields {
+            @Override
+            public void apply(XContentObject source, InternalSearchHit hit) throws IOException {
+                XContentObject xFields = source.getAsXContentObject(this);
+                hit.fields =  new HashMap<>(xFields.size());
+                for (String fieldName : xFields.keySet()) {
+                    SearchHitField searchHitField = InternalSearchHitField.readSearchHitField(fieldName, xFields);
+                    hit.fields.put(fieldName, searchHitField);
+                }
+            }
+
+            @Override
+            public void apply(VersionedXContentParser versionedXContentParser, InternalSearchHit hit) throws IOException {
+                hit.fields =  new HashMap<>();
+                Map<String, Object> map = versionedXContentParser.getParser().map();
+                for (Map.Entry<String, Object> entry : map.entrySet()) {
+                    hit.fields.put(entry.getKey(), new InternalSearchHitField(entry.getKey(), (List<Object>) entry.getValue()));
+                }
+            }
+        },
         _id {
             @Override
             public void apply(XContentObject source, InternalSearchHit hit) throws IOException {
@@ -451,18 +473,18 @@ public class InternalSearchHit implements SearchHit {
             }
         };
 
-        static Map<String, XContentParsable<InternalSearchHit>> fields = Maps.newLinkedHashMap();
+        static Map<String, XContentParsable<InternalSearchHit>> fieldsMap = Maps.newLinkedHashMap();
 
         static {
             for (InternalSearchHit.JsonFields field : values()) {
-                fields.put(field.name(), field);
+                fieldsMap.put(field.name(), field);
             }
         }
     }
 
     @Override
     public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
-        XContentHelper.populate(versionedXContentParser, JsonFields.fields, this);
+        XContentHelper.populate(versionedXContentParser, JsonFields.fieldsMap, this);
     }
 
     public static class Fields {

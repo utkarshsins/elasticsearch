@@ -405,4 +405,6 @@ public interface XContentObject {
     String toJson() throws IOException;
 
     boolean isNull(String key);
+
+    List<Object> getAsObjects(String key);
 }

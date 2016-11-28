@@ -323,9 +323,6 @@ public class XContentObjectImpl implements XContentObject {
         try {
             if (value instanceof String[]) {
                 String[] valueAsArray = (String[]) value;
-                if (valueAsArray == null) {
-                    return Collections.emptyList();
-                }
                 return Arrays.asList(valueAsArray);
             }
             return (List<String>) value;
@@ -334,6 +331,21 @@ public class XContentObjectImpl implements XContentObject {
             throw new XContentObjectValueException(String[].class, key, value);
         }
     }
+    @Override
+    public List<Object> getAsObjects(String key) {
+        Object value = internalMap.get(key);
+        try {
+            if (value instanceof Object[]) {
+                Object[] valueAsArray = (Object[]) value;
+                return Arrays.asList(valueAsArray);
+            }
+            return (List<Object>) value;
+        }
+        catch (ClassCastException e) {
+            throw new XContentObjectValueException(Object[].class, key, value);
+        }
+    }
+
 
     @Override
     public String toJson() throws IOException {

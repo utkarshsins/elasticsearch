@@ -20,6 +20,7 @@
 package org.elasticsearch.action.search;
 
 import com.google.common.collect.Maps;
+import org.elasticsearch.action.ActionRequest;
 import org.elasticsearch.action.ActionResponse;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
@@ -41,7 +42,7 @@ import static org.elasticsearch.search.internal.InternalSearchResponse.newIntern
 /**
  * A response of a search request.
  */
-public class SearchResponse extends ActionResponse implements StatusToXContent {
+public class SearchResponse extends ActionResponse<SearchRequest> implements StatusToXContent {
 
     private InternalSearchResponse internalResponse;
 
@@ -391,4 +392,8 @@ public class SearchResponse extends ActionResponse implements StatusToXContent {
 
     }
 
+    @Override
+    public void init(SearchRequest request) {
+
+    }
 }

@@ -654,7 +654,7 @@ public class SearchRequest extends ActionRequest<SearchRequest> implements Indic
 
     @Override
     public RestRequest.Method getMethod() {
-        return RestRequest.Method.GET;
+        return RestRequest.Method.POST;
     }
 
     @Override
@@ -729,7 +729,7 @@ public class SearchRequest extends ActionRequest<SearchRequest> implements Indic
             HttpEntity entity = actionRestRequest.getEntity();
             String json = Strings.valueOf(entity.getContent());
             Map<String, Object> map = XContentHelper.fromJson(json);
-            // fields has been deprecated and renamed to stored_fields
+            // fields has been deprecated in 5.0 and renamed to stored_fields
             if (map.containsKey("fields")) {
                 map.put("stored_fields", map.get("fields"));
                 map.remove("fields");

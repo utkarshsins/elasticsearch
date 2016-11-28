@@ -86,13 +86,13 @@ public class AliasAction implements Streamable, ToXContent {
 
     @Override
     public XContentBuilder toXContent(XContentBuilder builder, Params params) throws IOException {
-        return builder.startObject().startObject(this.actionType.name().toLowerCase(Locale.ROOT))
+        return builder.startObject(this.actionType.name().toLowerCase(Locale.ROOT))
                 .fieldIfNotNull("index", this.index)
                 .fieldIfNotNull("alias", this.alias)
                 .fieldIfNotNull("search_routing", this.searchRouting)
                 .fieldIfNotNull("index_routing", this.indexRouting)
                 .fieldIfNotNull("filter", filter)
-                .endObject().endObject();
+                .endObject();
     }
 
 
