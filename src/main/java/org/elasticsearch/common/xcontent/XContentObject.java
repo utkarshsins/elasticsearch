@@ -409,5 +409,5 @@ public interface XContentObject {
 
     List<Object> getAsObjects(String key);
 
-    XContentObjectImpl getParent();
+    XContentObject getParent();
 }

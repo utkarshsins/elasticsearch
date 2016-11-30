@@ -516,7 +516,7 @@ public class XContentObjectImpl implements XContentObject {
     }
 
     @Override
-    public XContentObjectImpl getParent() {
+    public XContentObject getParent() {
         return parent;
     }
 }
