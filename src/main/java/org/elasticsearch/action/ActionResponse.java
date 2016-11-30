@@ -32,7 +32,7 @@ import java.io.IOException;
 /**
  * Base class for responses to action requests.
  */
-public abstract class ActionResponse<Request extends ActionRequest> extends TransportResponse implements FromXContent {
+public abstract class ActionResponse extends TransportResponse implements FromXContent {
 
     @Override
     public void readFrom(StreamInput in) throws IOException {
@@ -64,6 +64,4 @@ public abstract class ActionResponse<Request extends ActionRequest> extends Tran
         throw new UnsupportedOperationException("Implement me in: " + this.getClass().getName());
     }
 
-    public void init(Request request) {
-    }
 }

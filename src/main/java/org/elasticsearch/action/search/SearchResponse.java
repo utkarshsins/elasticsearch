@@ -42,7 +42,7 @@ import static org.elasticsearch.search.internal.InternalSearchResponse.newIntern
 /**
  * A response of a search request.
  */
-public class SearchResponse extends ActionResponse<SearchRequest> implements StatusToXContent {
+public class SearchResponse extends ActionResponse implements StatusToXContent {
 
     private InternalSearchResponse internalResponse;
 
@@ -389,11 +389,6 @@ public class SearchResponse extends ActionResponse<SearchRequest> implements Sta
 
     public void readFrom(XContentObject in) throws IOException {
         XContentHelper.populate(in, JsonFields.values(), this);
-
-    }
-
-    @Override
-    public void init(SearchRequest request) {
 
     }
 }
