@@ -107,6 +107,14 @@ public class BulkItemResponse implements Streamable, FromXContent {
         public RestStatus getStatus() {
             return this.status;
         }
+
+        public static Failure readFrom(XContentObject in) {
+            return new Failure(in.get("index"),
+                        in.get("type"),
+                        in.getParent().get("_id"),
+                        in.get("reason"),
+                        RestStatus.valueOf(in.getParent().getAsInt("status")));
+        }
     }
 
     private int id;
@@ -308,7 +316,7 @@ public class BulkItemResponse implements Streamable, FromXContent {
             RestStatus.writeTo(out, failure.getStatus());
         }
     }
-    enum JsonFields implements XContentObjectParseable<BulkItemResponse>, XContentParsable<BulkItemResponse> {
+    enum JsonField implements XContentObjectParseable<BulkItemResponse>, XContentParsable<BulkItemResponse> {
         index {
             @Override
             public void apply(VersionedXContentParser versionedXContentParser, BulkItemResponse object) throws IOException {
@@ -320,7 +328,23 @@ public class BulkItemResponse implements Streamable, FromXContent {
             public void apply(XContentObject source, BulkItemResponse response) throws IOException {
                 response.response = new IndexResponse();
                 response.response.readFrom(source);
+                handleFailure(source, response, this);
             }
+        },
+        create {
+            @Override
+            public void apply(VersionedXContentParser versionedXContentParser, BulkItemResponse object) throws IOException {
+                object.response = new IndexResponse();
+                object.response.readFrom(versionedXContentParser);
+            }
+
+            @Override
+            public void apply(XContentObject source, BulkItemResponse response) throws IOException {
+                response.response = new IndexResponse();
+                response.response.readFrom(source);
+                handleFailure(source, response, this);
+            }
+
         },
         update {
             @Override
@@ -333,6 +357,7 @@ public class BulkItemResponse implements Streamable, FromXContent {
             public void apply(XContentObject source, BulkItemResponse response) throws IOException {
                 response.response = new UpdateResponse();
                 response.response.readFrom(source);
+                handleFailure(source, response, this);
             }
         },
         delete {
@@ -346,23 +371,31 @@ public class BulkItemResponse implements Streamable, FromXContent {
             public void apply(XContentObject source, BulkItemResponse response) throws IOException {
                 response.response = new DeleteResponse();
                 response.response.readFrom(source);
+                handleFailure(source, response, this);
             }
         };
         static Map<String, XContentParsable<BulkItemResponse>> fields = Maps.newLinkedHashMap();
         static {
-            for (BulkItemResponse.JsonFields field : values()) {
+            for (JsonField field : values()) {
                 fields.put(field.name(), field);
+            }
+        }
+
+        private static void handleFailure(XContentObject source, BulkItemResponse response, JsonField jsonField) {
+            XContentObject xContentObject = source.getAsXContentObject(jsonField);
+            if (xContentObject.containsKey("error")) {
+                response.failure = Failure.readFrom(xContentObject.getAsXContentObject("error"));
             }
         }
     }
 
     @Override
     public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
-        XContentHelper.populate(versionedXContentParser,  JsonFields.fields, this);
+        XContentHelper.populate(versionedXContentParser,  JsonField.fields, this);
     }
 
     public void readFrom(XContentObject xItem) throws IOException {
-        XContentHelper.populate(xItem, JsonFields.values(), this);
+        XContentHelper.populate(xItem, JsonField.values(), this);
     }
 
 }

@@ -53,9 +53,15 @@ public class XContentObjectImpl implements XContentObject {
         }
     };
     private final Map<String, Object> internalMap;
+    private XContentObjectImpl parent;
 
     public XContentObjectImpl(Map<String, Object> map) {
         this.internalMap = map;
+    }
+
+    public XContentObjectImpl(XContentObjectImpl parent, Map<String, Object> map) {
+        this.internalMap = map;
+        this.parent = parent;
     }
 
     @Override
@@ -227,7 +233,7 @@ public class XContentObjectImpl implements XContentObject {
             if (map == null) {
                 return null;
             }
-            return new XContentObjectImpl(map);
+            return new XContentObjectImpl(this, map);
         } catch (ClassCastException e) {
             throw new XContentObjectValueException(Map.class, key, value, e);
         }
@@ -507,5 +513,10 @@ public class XContentObjectImpl implements XContentObject {
     @Override
     public String toString() {
         return internalMap.toString();
+    }
+
+    @Override
+    public XContentObjectImpl getParent() {
+        return parent;
     }
 }

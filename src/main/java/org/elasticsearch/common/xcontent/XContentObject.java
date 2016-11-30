@@ -22,6 +22,7 @@ package org.elasticsearch.common.xcontent;
 import org.elasticsearch.cluster.metadata.AliasMetaData;
 import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.text.Text;
+import org.elasticsearch.common.xcontent.support.XContentObjectImpl;
 import org.elasticsearch.index.get.GetResult;
 import org.elasticsearch.search.aggregations.CommonJsonField;
 import org.joda.time.DateTime;
@@ -407,4 +408,6 @@ public interface XContentObject {
     boolean isNull(String key);
 
     List<Object> getAsObjects(String key);
+
+    XContentObjectImpl getParent();
 }

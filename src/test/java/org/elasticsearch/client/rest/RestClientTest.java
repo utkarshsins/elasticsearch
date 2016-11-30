@@ -185,6 +185,29 @@ public class RestClientTest extends AbstractRestClientTest {
     }
 
     @Test
+    public void testIndexDocExistsOpTypeCreate() throws ExecutionException, InterruptedException {
+        String id = UUID.randomUUID().toString();
+        IndexRequest request = new IndexRequest(index, STATS_TYPE, id);
+        Map<String, Object> source = Maps.newHashMap();
+        source.put("datePretty", "2016-02-28T05:30:00+05:30");
+        request.source(source);
+        IndexResponse indexResponse = this.client.index(request).get();
+        assertEquals(id, indexResponse.getId());
+        assertEquals(index, indexResponse.getIndex());
+        assertEquals(STATS_TYPE, indexResponse.getType());
+
+        request.create(true);
+        try {
+            IndexResponse indexResponse1 = this.client.index(request).get();
+            fail("Exception expected");
+        } catch (InterruptedException e) {
+            // ignore
+        } catch (ExecutionException e) {
+            //ignore
+        }
+    }
+
+    @Test
     public void testSearchIndex() throws ExecutionException, InterruptedException {
         String id = UUID.randomUUID().toString();
         IndexRequest request = new IndexRequest(index, STATS_TYPE, id);
@@ -244,6 +267,21 @@ public class RestClientTest extends AbstractRestClientTest {
         for (BulkItemResponse itemResponse : bulkItemResponse.getItems()) {
             assertFalse("Item failed to index", itemResponse.isFailed());
         }
+    }
+
+    @Test
+    public void testBulkIndexWithOptTypeCreate() throws ExecutionException, InterruptedException {
+        BulkRequest request = new BulkRequest();
+            IndexRequest request1 = newIndexRequest();
+            request.add(request1);
+            request1.create(true);
+            request.add(request1);
+
+        BulkResponse bulkItemResponse = client.bulk(request).get();
+        BulkItemResponse[] items = bulkItemResponse.getItems();
+        assertEquals(2, items.length);
+        assertFalse("Item failed to index", items[0].isFailed());
+        assertTrue("Item failed to index", items[1].isFailed());
     }
 
     @Test

@@ -388,7 +388,6 @@ public class IndicesAliasesRequest extends AcknowledgedRequest<IndicesAliasesReq
     }
 
 
-    @Override
     public String getEndPoint() {
         return "_aliases";
     }
