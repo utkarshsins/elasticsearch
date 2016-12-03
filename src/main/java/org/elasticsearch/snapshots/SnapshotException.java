@@ -21,6 +21,7 @@ package org.elasticsearch.snapshots;
 
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.cluster.metadata.SnapshotId;
+import org.elasticsearch.common.xcontent.XContentObject;
 
 /**
  * Generic snapshot exception
@@ -39,5 +40,9 @@ public class SnapshotException extends ElasticsearchException {
 
     public SnapshotId snapshot() {
         return snapshot;
+    }
+
+    public SnapshotException(XContentObject in) {
+        this(new SnapshotId(in.get("repository", ""), in.get("snapshot", "")), in.get("reason"));
     }
 }

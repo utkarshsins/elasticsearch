@@ -19,6 +19,7 @@
 
 package org.elasticsearch.repositories;
 
+import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.rest.RestStatus;
 
 /**
@@ -34,5 +35,9 @@ public class RepositoryMissingException extends RepositoryException {
     @Override
     public RestStatus status() {
         return RestStatus.NOT_FOUND;
+    }
+
+    public RepositoryMissingException(XContentObject in) {
+        super(in);
     }
 }

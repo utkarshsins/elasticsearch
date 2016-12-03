@@ -20,6 +20,7 @@
 package org.elasticsearch.snapshots;
 
 import org.elasticsearch.cluster.metadata.SnapshotId;
+import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.rest.RestStatus;
 
 /**
@@ -41,4 +42,7 @@ public class SnapshotMissingException extends SnapshotException {
         return RestStatus.NOT_FOUND;
     }
 
+    public SnapshotMissingException(XContentObject in) {
+        super(in);
+    }
 }

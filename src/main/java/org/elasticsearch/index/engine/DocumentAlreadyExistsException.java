@@ -18,6 +18,7 @@
  */
 package org.elasticsearch.index.engine;
 
+import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.index.shard.ShardId;
 import org.elasticsearch.rest.RestStatus;
 
@@ -33,5 +34,9 @@ public class DocumentAlreadyExistsException extends EngineException {
     @Override
     public RestStatus status() {
         return RestStatus.CONFLICT;
+    }
+
+    public DocumentAlreadyExistsException(XContentObject in) {
+        super(in);
     }
 }

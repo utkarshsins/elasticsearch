@@ -25,7 +25,7 @@ package org.elasticsearch;
 public class ElasticsearchIllegalStateException extends ElasticsearchException {
 
     public ElasticsearchIllegalStateException() {
-        super(null);
+        super((String)null);
     }
 
     public ElasticsearchIllegalStateException(String msg) {

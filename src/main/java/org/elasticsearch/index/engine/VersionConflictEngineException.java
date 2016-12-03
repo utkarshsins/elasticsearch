@@ -18,6 +18,7 @@
  */
 package org.elasticsearch.index.engine;
 
+import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.index.shard.ShardId;
 import org.elasticsearch.rest.RestStatus;
 
@@ -34,6 +35,12 @@ public class VersionConflictEngineException extends EngineException {
         super(shardId, "[" + type + "][" + id + "]: version conflict, current [" + current + "], provided [" + provided + "]");
         this.current = current;
         this.provided = provided;
+    }
+
+    public VersionConflictEngineException(XContentObject in) {
+        super(in);
+        current = 0;
+        provided = 0;
     }
 
     @Override

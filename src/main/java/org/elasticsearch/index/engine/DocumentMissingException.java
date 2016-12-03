@@ -18,6 +18,7 @@
  */
 package org.elasticsearch.index.engine;
 
+import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.index.shard.ShardId;
 import org.elasticsearch.rest.RestStatus;
 
@@ -28,6 +29,10 @@ public class DocumentMissingException extends EngineException {
 
     public DocumentMissingException(ShardId shardId, String type, String id) {
         super(shardId, "[" + type + "][" + id + "]: document missing");
+    }
+
+    public DocumentMissingException(XContentObject in) {
+        super(in);
     }
 
     @Override

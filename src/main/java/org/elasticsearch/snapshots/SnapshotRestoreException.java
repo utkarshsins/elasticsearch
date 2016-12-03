@@ -32,4 +32,5 @@ public class SnapshotRestoreException extends SnapshotException {
     public SnapshotRestoreException(SnapshotId snapshot, String message, Throwable cause) {
         super(snapshot, message, cause);
     }
+
 }

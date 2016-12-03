@@ -20,6 +20,7 @@
 package org.elasticsearch.snapshots;
 
 import org.elasticsearch.cluster.metadata.SnapshotId;
+import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.rest.RestStatus;
 
 /**
@@ -37,5 +38,9 @@ public class ConcurrentSnapshotExecutionException extends SnapshotException {
     @Override
     public RestStatus status() {
         return RestStatus.SERVICE_UNAVAILABLE;
+    }
+
+    public ConcurrentSnapshotExecutionException(XContentObject in) {
+        super(in);
     }
 }

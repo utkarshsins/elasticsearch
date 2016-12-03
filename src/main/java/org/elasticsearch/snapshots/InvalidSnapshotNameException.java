@@ -21,6 +21,7 @@ package org.elasticsearch.snapshots;
 
 import org.elasticsearch.ElasticsearchWrapperException;
 import org.elasticsearch.cluster.metadata.SnapshotId;
+import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.rest.RestStatus;
 
 /**
@@ -37,5 +38,8 @@ public class InvalidSnapshotNameException extends SnapshotException implements E
         return RestStatus.BAD_REQUEST;
     }
 
+    public InvalidSnapshotNameException(XContentObject in) {
+        super(in);
+    }
 }
 

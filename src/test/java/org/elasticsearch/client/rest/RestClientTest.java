@@ -49,14 +49,19 @@ import org.elasticsearch.action.suggest.SuggestResponse;
 import org.elasticsearch.action.support.QuerySourceBuilder;
 import org.elasticsearch.action.support.replication.ReplicationType;
 import org.elasticsearch.action.update.UpdateRequest;
+import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.common.unit.DistanceUnit;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.util.concurrent.EsRejectedExecutionException;
+import org.elasticsearch.index.engine.DocumentAlreadyExistsException;
+import org.elasticsearch.index.engine.DocumentMissingException;
+import org.elasticsearch.index.engine.VersionConflictEngineException;
 import org.elasticsearch.index.query.FilterBuilders;
 import org.elasticsearch.index.query.IdsQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.indices.IndexAlreadyExistsException;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.aggregations.Aggregation;
@@ -297,6 +302,40 @@ public class RestClientTest extends AbstractRestClientTest {
         esBulkProcessor.close();
         refresh();
         assertEquals(count, getCount());
+    }
+
+    @Test(expected = IndexAlreadyExistsException.class)
+    public void testIndexAlreadyExistsException() throws ExecutionException, InterruptedException {
+        client.admin().indices().prepareCreate(index).get();
+        fail("Expecting IndexAlreadyExistsException");
+    }
+
+    @Test(expected = DocumentMissingException.class)
+    public void testDocumentMissingException() throws ExecutionException, InterruptedException {
+        client.prepareUpdate(index, STATS_TYPE, UUID.randomUUID().toString()).setDoc(Maps.newHashMap()).get();
+        fail("Expecting DocumentMissingException");
+    }
+
+    @Test(expected = DocumentAlreadyExistsException.class)
+    public void testDocumentAlreadyExistsException() throws ExecutionException, InterruptedException {
+        IndexRequest indexRequest = newIndexRequest();
+        IndexResponse indexResponse = index(indexRequest);
+        Map<String, Object> sourceMap = indexRequest.sourceAsMap();
+        sourceMap.remove("version");
+        client.prepareIndex(indexRequest.index(), indexRequest.type(), indexRequest.id()).setSource(sourceMap).setVersion(indexResponse.getVersion()).setCreate(true).get();
+        fail("Expecting DocumentAlreadyExistsException");
+    }
+
+    @Test(expected = VersionConflictEngineException.class)
+    public void testVersionConflictEngineException() throws ExecutionException, InterruptedException {
+        IndexRequest indexRequest = newIndexRequest();
+        IndexResponse indexResponse = index(indexRequest);
+
+        client.prepareGet(indexRequest.index(), indexRequest.type(),
+                indexRequest.id())
+                .setVersion(indexResponse.getVersion() + 1).get();
+
+        fail("Expecting VersionConflictEngineException");
     }
 
     @Test

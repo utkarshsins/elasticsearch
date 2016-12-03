@@ -19,11 +19,13 @@
 package org.elasticsearch.client.rest.support;
 
 import org.apache.http.HttpEntity;
+import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.Version;
 import org.elasticsearch.action.*;
 import org.elasticsearch.common.bytes.BytesArray;
 import org.elasticsearch.common.xcontent.VersionedXContentParser;
 import org.elasticsearch.common.xcontent.XContentHelper;
+import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.rest.RestRequest;
 
@@ -64,12 +66,46 @@ public class RestExecuteUtil {
                 assert entity != null;
                 String content = HttpUtils.readUtf8(entity);
                 XContentParser parser = XContentHelper.createParser(new BytesArray(content));
-                response.readFrom(VersionedXContentParser.newInstance(version, parser));
+                if (content.startsWith("{\"error\":")) {
+                    throwException(version, parser);
+                }
+                else {
+                    response.readFrom(VersionedXContentParser.newInstance(version, parser));
+                }
             }
             listener.onResponse(response);
 
         } catch (Exception e) {
             listener.onFailure(e);
+        }
+    }
+
+    private static void throwException(Version version, XContentParser parser) throws Exception {
+        XContentObject map = parser.xContentObject();
+        if (version.id >= Version.V_5_0_0_ID) {
+            if (map.containsKey("error")) {
+                XContentObject error = map.getAsXContentObject("error");
+                if (error.containsKey("root_cause")) {
+                    error.getAsXContentObjects("root_cause").get(0);
+                    if (error.containsKey("type")) {
+                        String type = error.get("type");
+                        ElasticsearchExceptionHandler handler = ElasticsearchExceptionHandler.valueOfOrNull(type);
+                        Exception responseException = null;
+                        if (handler != null) {
+                            responseException = handler.newException(error);
+                        }
+                        if (responseException != null) {
+                            throw responseException;
+                        }
+                    }
+                }
+            }
+        }
+        else {
+            if (map.containsKey("error")) {
+                String message = map.get("error");
+                throw new ElasticsearchException(message);
+            }
         }
     }
 }

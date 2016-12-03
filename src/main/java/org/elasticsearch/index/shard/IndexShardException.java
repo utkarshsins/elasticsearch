@@ -19,6 +19,7 @@
 
 package org.elasticsearch.index.shard;
 
+import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.index.IndexException;
 
 /**
@@ -35,6 +36,11 @@ public class IndexShardException extends IndexException {
     public IndexShardException(ShardId shardId, String msg, Throwable cause) {
         super(shardId == null ? null : shardId.index(), false, "[" + (shardId == null ? "_na" : shardId.id()) + "] " + msg, cause);
         this.shardId = shardId;
+    }
+
+    public IndexShardException(XContentObject in) {
+        super(in);
+        this.shardId = null;
     }
 
     public ShardId shardId() {

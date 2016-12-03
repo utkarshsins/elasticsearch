@@ -24,6 +24,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.elasticsearch.common.Nullable;
 import org.elasticsearch.common.collect.Tuple;
+import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.rest.HasRestHeaders;
 import org.elasticsearch.rest.RestStatus;
 
@@ -53,6 +54,10 @@ public class ElasticsearchException extends RuntimeException {
      */
     public ElasticsearchException(String msg, Throwable cause) {
         super(msg, cause);
+    }
+
+    public ElasticsearchException(XContentObject in) {
+        this(in.get("reason", ""));
     }
 
     /**

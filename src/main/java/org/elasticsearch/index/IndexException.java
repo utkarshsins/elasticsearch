@@ -20,6 +20,7 @@
 package org.elasticsearch.index;
 
 import org.elasticsearch.ElasticsearchException;
+import org.elasticsearch.common.xcontent.XContentObject;
 
 /**
  *
@@ -39,6 +40,11 @@ public class IndexException extends ElasticsearchException {
     protected IndexException(Index index, boolean withSpace, String msg, Throwable cause) {
         super("[" + (index == null ? "_na" : index.name()) + "]" + (withSpace ? " " : "") + msg, cause);
         this.index = index;
+    }
+
+    public IndexException(XContentObject in) {
+        super(in);
+        this.index = new Index(in.get("index"));
     }
 
     public Index index() {

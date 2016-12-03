@@ -27,7 +27,7 @@ import org.elasticsearch.rest.RestStatus;
 public class ElasticsearchIllegalArgumentException extends ElasticsearchException {
 
     public ElasticsearchIllegalArgumentException() {
-        super(null);
+        super((String)null);
     }
 
     public ElasticsearchIllegalArgumentException(String msg) {

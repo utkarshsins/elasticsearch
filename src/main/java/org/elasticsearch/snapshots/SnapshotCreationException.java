@@ -21,6 +21,7 @@ package org.elasticsearch.snapshots;
 
 import org.elasticsearch.ElasticsearchWrapperException;
 import org.elasticsearch.cluster.metadata.SnapshotId;
+import org.elasticsearch.common.xcontent.XContentObject;
 
 /**
  * Thrown when snapshot creation fails completely
@@ -33,5 +34,9 @@ public class SnapshotCreationException extends SnapshotException implements Elas
 
     public SnapshotCreationException(SnapshotId snapshot, Throwable cause) {
         super(snapshot, "failed to create snapshot", cause);
+    }
+
+    public SnapshotCreationException(XContentObject in) {
+        super(in);
     }
 }

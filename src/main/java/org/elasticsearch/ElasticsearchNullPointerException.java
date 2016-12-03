@@ -25,7 +25,7 @@ package org.elasticsearch;
 public class ElasticsearchNullPointerException extends ElasticsearchException {
 
     public ElasticsearchNullPointerException() {
-        super(null);
+        super((String)null);
     }
 
     public ElasticsearchNullPointerException(String msg) {

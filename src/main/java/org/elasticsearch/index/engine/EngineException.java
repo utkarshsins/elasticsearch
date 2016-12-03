@@ -19,6 +19,7 @@
 
 package org.elasticsearch.index.engine;
 
+import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.index.shard.IndexShardException;
 import org.elasticsearch.index.shard.ShardId;
 
@@ -34,4 +35,9 @@ public class EngineException extends IndexShardException {
     public EngineException(ShardId shardId, String msg, Throwable cause) {
         super(shardId, msg, cause);
     }
+
+    public EngineException(XContentObject in) {
+        this(ShardId.readShardId(in), in.get("reason", ""));
+    }
+
 }

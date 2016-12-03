@@ -20,6 +20,7 @@
 package org.elasticsearch.repositories;
 
 import org.elasticsearch.ElasticsearchException;
+import org.elasticsearch.common.xcontent.XContentObject;
 
 /**
  * Generic repository exception
@@ -34,6 +35,10 @@ public class RepositoryException extends ElasticsearchException {
     public RepositoryException(String repository, String msg, Throwable cause) {
         super("[" + (repository == null ? "_na" : repository) + "] " + msg, cause);
         this.repository = repository;
+    }
+
+    public RepositoryException(XContentObject in) {
+        this(in.get("repository", null), in.get("reason"));
     }
 
     /**

@@ -20,15 +20,15 @@
 package org.elasticsearch.action.admin.cluster.snapshots.get;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import org.elasticsearch.action.ActionResponse;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
-import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentBuilderString;
+import org.elasticsearch.common.xcontent.*;
 import org.elasticsearch.snapshots.SnapshotInfo;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Get snapshots response
@@ -85,6 +85,17 @@ public class GetSnapshotsResponse extends ActionResponse implements ToXContent {
         }
         builder.endArray();
         return builder;
+    }
+
+    @Override
+    public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
+        XContentObject xContentObject = versionedXContentParser.getParser().xContentObject();
+        List<XContentObject> xSnapshots = xContentObject.getAsXContentObjects("snapshots");
+        ImmutableList.Builder<SnapshotInfo> builder = ImmutableList.builder();
+        for (XContentObject xSnapshot : xSnapshots) {
+            builder.add(SnapshotInfo.readSnapshotInfo(xSnapshot));
+        }
+        snapshots = builder.build();
     }
 
 }

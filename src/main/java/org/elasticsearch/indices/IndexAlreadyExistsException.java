@@ -19,6 +19,7 @@
 
 package org.elasticsearch.indices;
 
+import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.index.Index;
 import org.elasticsearch.index.IndexException;
 import org.elasticsearch.rest.RestStatus;
@@ -34,6 +35,10 @@ public class IndexAlreadyExistsException extends IndexException {
 
     public IndexAlreadyExistsException(Index index, String message) {
         super(index, message);
+    }
+
+    public IndexAlreadyExistsException(XContentObject in) {
+        super(in);
     }
 
     @Override

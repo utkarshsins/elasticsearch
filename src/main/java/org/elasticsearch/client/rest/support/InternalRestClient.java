@@ -26,7 +26,6 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpOptions;
@@ -37,11 +36,14 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpTrace;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.concurrent.FutureCallback;
+import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.nio.client.methods.HttpAsyncMethods;
 import org.apache.http.nio.protocol.HttpAsyncRequestProducer;
 import org.apache.http.nio.protocol.HttpAsyncResponseConsumer;
+import org.apache.http.util.EntityUtils;
 import org.apache.lucene.util.CollectionUtil;
+import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.Version;
 import org.elasticsearch.client.rest.FailureListener;
 import org.elasticsearch.common.bytes.BytesArray;
@@ -347,8 +349,32 @@ public class InternalRestClient implements Closeable {
                         onResponse(host);
                         listener.onSuccess(response);
                     } else {
-                        ResponseException responseException = new ResponseException(response);
-                        if (isRetryStatus(statusCode)) {
+                        Exception responseException = new ResponseException(response);;
+                        try {
+                            BufferedHttpEntity entity;
+                            entity = new BufferedHttpEntity(response.getEntity());
+                            XContentParser parser = XContentHelper.createParser(new BytesArray(EntityUtils.toString(entity)));
+                            XContentObject map = parser.xContentObject();
+                            if (map.containsKey("error")) {
+                                XContentObject error = map.getAsXContentObject("error").getAsXContentObjects("root_cause").get(0);
+                                if (error.containsKey("type")) {
+                                    String type = error.get("type");
+                                    ElasticsearchExceptionHandler handler = ElasticsearchExceptionHandler.valueOfOrNull(type);
+                                    if (handler != null) {
+                                        ElasticsearchException elasticsearchException = handler.newException(error);
+                                        if (elasticsearchException != null) {
+                                            responseException = elasticsearchException;
+                                        }
+                                    }
+                                }
+                            }
+
+                            response.getHttpResponse().setEntity(entity);
+                        } catch (IOException e1) {
+                            // ignore
+                        }
+
+                    if (isRetryStatus(statusCode)) {
                             //mark host dead and retry against next one
                             onFailure(host);
                             retryIfPossible(responseException, hosts, request);

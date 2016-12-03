@@ -16,29 +16,16 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
-package org.elasticsearch.indices;
-
-import org.elasticsearch.common.xcontent.XContentObject;
-import org.elasticsearch.index.Index;
-import org.elasticsearch.index.IndexException;
-import org.elasticsearch.rest.RestStatus;
+package org.elasticsearch;
 
 /**
- *
  */
-public class IndexMissingException extends IndexException {
-
-    public IndexMissingException(Index index) {
-        super(index, "missing");
+public class ResourceNotFoundException extends ElasticsearchException {
+    public ResourceNotFoundException(String msg) {
+        super(msg);
     }
 
-    @Override
-    public RestStatus status() {
-        return RestStatus.NOT_FOUND;
-    }
-
-    public IndexMissingException(XContentObject in) {
-        super(in);
+    public ResourceNotFoundException(String msg, Throwable cause) {
+        super(msg, cause);
     }
 }

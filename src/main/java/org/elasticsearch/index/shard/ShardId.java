@@ -22,6 +22,7 @@ package org.elasticsearch.index.shard;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Streamable;
+import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.index.Index;
 
 import java.io.IOException;
@@ -117,5 +118,10 @@ public class ShardId implements Serializable, Streamable, Comparable<ShardId> {
             return index.name().compareTo(o.getIndex());
         }
         return Integer.compare(shardId, o.getId());
+    }
+
+
+    public static ShardId readShardId(XContentObject in) {
+        return new ShardId(in.get("index"), in.getAsInt("shard"));
     }
 }

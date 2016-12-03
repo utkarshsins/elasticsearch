@@ -28,6 +28,7 @@ import org.elasticsearch.action.admin.cluster.repositories.put.PutRepositoryResp
 import org.elasticsearch.action.admin.cluster.reroute.ClusterRerouteResponse;
 import org.elasticsearch.action.admin.cluster.snapshots.create.CreateSnapshotResponse;
 import org.elasticsearch.action.admin.cluster.snapshots.delete.DeleteSnapshotResponse;
+import org.elasticsearch.action.admin.cluster.snapshots.get.GetSnapshotsResponse;
 import org.elasticsearch.action.admin.cluster.state.ClusterStateResponse;
 import org.elasticsearch.action.admin.cluster.stats.ClusterStatsResponse;
 import org.elasticsearch.client.rest.AbstractRestClientTest;
@@ -39,7 +40,9 @@ import org.elasticsearch.cluster.routing.allocation.RoutingExplanations;
 import org.elasticsearch.cluster.routing.allocation.command.MoveAllocationCommand;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.index.shard.ShardId;
+import org.elasticsearch.repositories.RepositoryMissingException;
 import org.elasticsearch.snapshots.SnapshotInfo;
+import org.elasticsearch.snapshots.SnapshotMissingException;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -123,8 +126,31 @@ public class RestClusterAdminClientTest extends AbstractRestClientTest {
         assertEquals(snapshotName, snapshotInfo.name());
         assertFalse(snapshotInfo.indices().isEmpty());
 
+        GetSnapshotsResponse getSnapshotsResponse = clusterAdminClient.prepareGetSnapshots(repoName).get();
+        getSnapshotsResponse.getSnapshots().asList().contains(snapshotInfo.name());
+
+
         DeleteSnapshotResponse deleteSnapshotResponse = clusterAdminClient.prepareDeleteSnapshot(repoName, snapshotName).get();
         assertAcknowledged(deleteSnapshotResponse);
+    }
+
+    @Test(expected = RepositoryMissingException.class)
+    public void testRepositoryMissingException() {
+        clusterAdminClient.prepareGetRepositories(UUID.randomUUID().toString()).get();
+    }
+
+    @Test(expected = SnapshotMissingException.class)
+    public void testSnapshotMissingException() {
+        String repoName = "repo-" + UUID.randomUUID().toString();
+        Map<String, Object> settings = Maps.newLinkedHashMap();
+        settings.put("location", "/tmp/" + repoName);
+        PutRepositoryResponse putResponse = clusterAdminClient.preparePutRepository(repoName)
+                .setType("fs")
+                .setSettings(settings)
+                .get();
+        assertAcknowledged(putResponse);
+
+        clusterAdminClient.prepareGetSnapshots(repoName).addSnapshots(UUID.randomUUID().toString()).get();
     }
 
     @Test

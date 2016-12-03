@@ -28,6 +28,7 @@ import org.elasticsearch.action.ValidateActions;
 import org.elasticsearch.action.support.single.shard.SingleShardOperationRequest;
 import org.elasticsearch.client.rest.support.HttpUtils;
 import org.elasticsearch.common.Nullable;
+import org.elasticsearch.common.collect.MapBuilder;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.lucene.uid.Versions;
@@ -37,6 +38,7 @@ import org.elasticsearch.rest.RestRequest;
 import org.elasticsearch.search.fetch.source.FetchSourceContext;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * A request to get a document (its source) from an index based on its type (optional) and id. Best created using
@@ -373,4 +375,9 @@ public class GetRequest extends SingleShardOperationRequest<GetRequest> {
         return RestRequest.Method.GET;
     }
 
+    @Override
+    public Map<String, String> getParams() {
+        return MapBuilder.<String, String>newMapBuilder()
+                .putIf("version", String.valueOf(version), version != Versions.MATCH_ANY).map();
+    }
 }

@@ -20,6 +20,7 @@
 package org.elasticsearch.common.util.concurrent;
 
 import org.elasticsearch.ElasticsearchException;
+import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.rest.RestStatus;
 
 /**
@@ -31,11 +32,15 @@ public class EsRejectedExecutionException extends ElasticsearchException {
     }
 
     public EsRejectedExecutionException() {
-        super(null);
+        super((String)null);
     }
 
     public EsRejectedExecutionException(Throwable e) {
         super(null, e);
+    }
+
+    public EsRejectedExecutionException(XContentObject in) {
+        super(in);
     }
 
     @Override
