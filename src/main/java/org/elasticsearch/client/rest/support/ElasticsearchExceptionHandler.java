@@ -20,6 +20,7 @@ package org.elasticsearch.client.rest.support;
 
 import com.google.common.collect.Maps;
 import org.elasticsearch.ElasticsearchException;
+import org.elasticsearch.common.util.concurrent.UncategorizedExecutionException;
 import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.indices.IndexMissingException;
 
@@ -294,7 +295,7 @@ public enum ElasticsearchExceptionHandler {
         try {
             return this.exceptionClass.getDeclaredConstructor(XContentObject.class).newInstance(error);
         } catch (Exception e) {
-            return null;
+            return new UncategorizedExecutionException(error);
         }
 
     }

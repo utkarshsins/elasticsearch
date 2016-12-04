@@ -19,12 +19,8 @@
 
 package org.elasticsearch.common.xcontent;
 
-import org.elasticsearch.cluster.metadata.AliasMetaData;
 import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.text.Text;
-import org.elasticsearch.common.xcontent.support.XContentObjectImpl;
-import org.elasticsearch.index.get.GetResult;
-import org.elasticsearch.search.aggregations.CommonJsonField;
 import org.joda.time.DateTime;
 
 import java.io.IOException;
@@ -300,11 +296,6 @@ public interface XContentObject {
      *
      * @param key key with which the specified value is to be associated
      * @param value value to be associated with the specified key
-     * @return the previous value associated with <tt>key</tt>, or
-     *         <tt>null</tt> if there was no mapping for <tt>key</tt>.
-     *         (A <tt>null</tt> return can also indicate that the map
-     *         previously associated <tt>null</tt> with <tt>key</tt>,
-     *         if the implementation supports <tt>null</tt> values.)
      * @throws UnsupportedOperationException if the <tt>put</tt> operation
      *         is not supported by this map
      * @throws ClassCastException if the class of the specified key or value
@@ -326,11 +317,6 @@ public interface XContentObject {
      *
      * @param key key with which the specified value is to be associated
      * @param value value to be associated with the specified key
-     * @return the previous value associated with <tt>key</tt>, or
-     *         <tt>null</tt> if there was no mapping for <tt>key</tt>.
-     *         (A <tt>null</tt> return can also indicate that the map
-     *         previously associated <tt>null</tt> with <tt>key</tt>,
-     *         if the implementation supports <tt>null</tt> values.)
      * @throws UnsupportedOperationException if the <tt>put</tt> operation
      *         is not supported by this map
      * @throws ClassCastException if the class of the specified key or value
@@ -344,8 +330,8 @@ public interface XContentObject {
 
     /**
      * Tests if the current value is an xContentObject
-     * @param key
-     * @return
+     * @param key the key to test
+     * @return true if a the key exists otherwise false
      */
     boolean isXContentObject(String key);
 
@@ -403,7 +389,7 @@ public interface XContentObject {
 
     List<String> getAsStrings(String key);
 
-    String toJson() throws IOException;
+    String toJson();
 
     boolean isNull(String key);
 

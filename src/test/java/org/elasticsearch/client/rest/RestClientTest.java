@@ -115,6 +115,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static org.junit.Assert.*;
 
@@ -189,8 +191,8 @@ public class RestClientTest extends AbstractRestClientTest {
         assertEquals(source.get("datePretty"), getResponse.getSourceAsMap().get("datePretty"));
     }
 
-    @Test
-    public void testIndexDocExistsOpTypeCreate() throws ExecutionException, InterruptedException {
+    @Test(expected = VersionConflictEngineException.class)
+    public void testIndexDocExistsOpTypeCreate() throws Throwable {
         String id = UUID.randomUUID().toString();
         IndexRequest request = new IndexRequest(index, STATS_TYPE, id);
         Map<String, Object> source = Maps.newHashMap();
@@ -204,11 +206,11 @@ public class RestClientTest extends AbstractRestClientTest {
         request.create(true);
         try {
             IndexResponse indexResponse1 = this.client.index(request).get();
-            fail("Exception expected");
         } catch (InterruptedException e) {
-            // ignore
+            e.printStackTrace();
         } catch (ExecutionException e) {
-            //ignore
+            Throwable cause = e.getCause();
+            throw cause;
         }
     }
 
@@ -314,16 +316,6 @@ public class RestClientTest extends AbstractRestClientTest {
     public void testDocumentMissingException() throws ExecutionException, InterruptedException {
         client.prepareUpdate(index, STATS_TYPE, UUID.randomUUID().toString()).setDoc(Maps.newHashMap()).get();
         fail("Expecting DocumentMissingException");
-    }
-
-    @Test(expected = DocumentAlreadyExistsException.class)
-    public void testDocumentAlreadyExistsException() throws ExecutionException, InterruptedException {
-        IndexRequest indexRequest = newIndexRequest();
-        IndexResponse indexResponse = index(indexRequest);
-        Map<String, Object> sourceMap = indexRequest.sourceAsMap();
-        sourceMap.remove("version");
-        client.prepareIndex(indexRequest.index(), indexRequest.type(), indexRequest.id()).setSource(sourceMap).setVersion(indexResponse.getVersion()).setCreate(true).get();
-        fail("Expecting DocumentAlreadyExistsException");
     }
 
     @Test(expected = VersionConflictEngineException.class)
@@ -1309,10 +1301,11 @@ public class RestClientTest extends AbstractRestClientTest {
             client.prepareSearchScroll(response.getScrollId()).setScroll(scrollKeepAlive).execute().actionGet();
             fail("Should have thrown an exception of SearchPhaseExecutionException");
         }
-        catch (Exception ignore) {
-            // ignore
+        catch (SearchPhaseExecutionException ignore) {
+            // all good
+            return;
         }
-
+        fail("Should have thrown an exception of SearchPhaseExecutionException");
     }
 
     @Test

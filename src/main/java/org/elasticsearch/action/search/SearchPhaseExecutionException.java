@@ -20,6 +20,7 @@
 package org.elasticsearch.action.search;
 
 import org.elasticsearch.ElasticsearchException;
+import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.rest.RestStatus;
 
 /**
@@ -41,6 +42,11 @@ public class SearchPhaseExecutionException extends ElasticsearchException {
         super(buildMessage(phaseName, msg, shardFailures), cause);
         this.phaseName = phaseName;
         this.shardFailures = shardFailures;
+    }
+
+    public SearchPhaseExecutionException(XContentObject in) {
+        super(in);
+        phaseName = in.get("phase");
     }
 
     @Override

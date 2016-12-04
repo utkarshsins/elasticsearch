@@ -20,6 +20,7 @@
 package org.elasticsearch.common.util.concurrent;
 
 import org.elasticsearch.ElasticsearchException;
+import org.elasticsearch.common.xcontent.XContentObject;
 
 /**
  *
@@ -32,5 +33,9 @@ public class UncategorizedExecutionException extends ElasticsearchException {
 
     public UncategorizedExecutionException(String msg, Throwable cause) {
         super(msg, cause);
+    }
+
+    public UncategorizedExecutionException(XContentObject in) {
+        super(in.toJson());
     }
 }

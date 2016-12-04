@@ -354,8 +354,12 @@ public class XContentObjectImpl implements XContentObject {
 
 
     @Override
-    public String toJson() throws IOException {
-        return XContentHelper.convertToJson(internalMap, true);
+    public String toJson()  {
+        try {
+            return XContentHelper.convertToJson(internalMap, true);
+        } catch (IOException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
     }
 
     @Override
