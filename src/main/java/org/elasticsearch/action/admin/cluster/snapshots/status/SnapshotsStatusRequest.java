@@ -19,8 +19,6 @@
 
 package org.elasticsearch.action.admin.cluster.snapshots.status;
 
-import com.sun.javafx.fxml.builder.URLBuilder;
-import org.apache.http.HttpEntity;
 import org.elasticsearch.action.ActionRequestValidationException;
 import org.elasticsearch.action.support.master.MasterNodeOperationRequest;
 import org.elasticsearch.common.Strings;
@@ -30,7 +28,6 @@ import org.elasticsearch.common.util.UriBuilder;
 import org.elasticsearch.rest.RestRequest;
 
 import java.io.IOException;
-import java.util.Map;
 
 import static org.elasticsearch.action.ValidateActions.addValidationError;
 
