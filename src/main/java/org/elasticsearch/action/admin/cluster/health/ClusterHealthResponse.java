@@ -316,8 +316,4 @@ public class ClusterHealthResponse extends ActionResponse implements Iterable<Cl
 
     }
 
-    @Override
-    public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
-        throw new UnsupportedOperationException("Implement me");
-    }
 }

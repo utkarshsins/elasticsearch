@@ -19,7 +19,6 @@
 
 package org.elasticsearch.action.indexedscripts.put;
 
-import com.google.common.collect.Maps;
 import org.elasticsearch.action.ActionResponse;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
@@ -27,7 +26,6 @@ import org.elasticsearch.common.xcontent.*;
 import org.elasticsearch.script.ScriptService;
 
 import java.io.IOException;
-import java.util.Map;
 
 /**
  * A response of an index operation,
@@ -108,17 +106,13 @@ public class PutIndexedScriptResponse extends ActionResponse {
         out.writeBoolean(created);
     }
 
-    enum JsonFields implements XContentParsable<PutIndexedScriptResponse>, XContentObjectParseable<PutIndexedScriptResponse> {
+    enum JsonField implements XContentObjectParseable<PutIndexedScriptResponse> {
         _id {
             @Override
             public void apply(XContentObject in, PutIndexedScriptResponse response) throws IOException {
                 response.id = in.get(this);
             }
 
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, PutIndexedScriptResponse response) throws IOException {
-                response.id = versionedXContentParser.getParser().text();
-            }
         },
         created {
             @Override
@@ -126,10 +120,6 @@ public class PutIndexedScriptResponse extends ActionResponse {
                 response.created = in.getAsBoolean(this);
             }
 
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, PutIndexedScriptResponse response) throws IOException {
-                response.created = versionedXContentParser.getParser().booleanValue();
-            }
         },
         _version {
             @Override
@@ -137,28 +127,11 @@ public class PutIndexedScriptResponse extends ActionResponse {
                 response.version = in.getAsLong(this);
             }
 
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, PutIndexedScriptResponse response) throws IOException {
-                response.version = versionedXContentParser.getParser().longValue();
-            }
-        };
-
-
-        static Map<String, XContentParsable<PutIndexedScriptResponse>> fields = Maps.newLinkedHashMap();
-        static {
-            for (PutIndexedScriptResponse.JsonFields field : values()) {
-                fields.put(field.name(), field);
-            }
         }
     }
 
     @Override
-    public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
-        XContentHelper.populate(versionedXContentParser, JsonFields.fields, this);
-    }
-
-    @Override
     public void readFrom(XContentObject in) throws IOException {
-        XContentHelper.populate(in, JsonFields.values(), this);
+        XContentHelper.populate(in, JsonField.values(), this);
     }
 }

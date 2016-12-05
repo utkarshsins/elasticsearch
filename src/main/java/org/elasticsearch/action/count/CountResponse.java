@@ -19,7 +19,6 @@
 
 package org.elasticsearch.action.count;
 
-import com.google.common.collect.Maps;
 import org.elasticsearch.Version;
 import org.elasticsearch.action.ShardOperationFailedException;
 import org.elasticsearch.action.support.broadcast.BroadcastOperationResponse;
@@ -30,12 +29,11 @@ import org.elasticsearch.rest.RestStatus;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 /**
  * The response of the count action.
  */
-public class CountResponse extends BroadcastOperationResponse implements FromXContent {
+public class CountResponse extends BroadcastOperationResponse implements FromXContentObject {
 
     private boolean terminatedEarly;
     private long count;
@@ -103,45 +101,24 @@ public class CountResponse extends BroadcastOperationResponse implements FromXCo
         }
     }
 
-    enum JsonFields implements XContentParsable<CountResponse>, XContentObjectParseable<CountResponse> {
+    enum JsonField implements XContentObjectParseable<CountResponse> {
         count {
             @Override
             public void apply(XContentObject in, CountResponse response) throws IOException {
                 response.count = in.getAsLong(this);
             }
 
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, CountResponse response) throws IOException {
-                response.count = versionedXContentParser.getParser().longValue();
-            }
         },
         _shards {
             @Override
             public void apply(XContentObject in, CountResponse response) throws IOException {
                 // todo bdk
             }
-
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, CountResponse response) throws IOException {
-                //todo
-            }
-        };
-
-        static Map<String, XContentParsable<CountResponse>> fields = Maps.newLinkedHashMap();
-        static {
-            for (CountResponse.JsonFields field : values()) {
-                fields.put(field.name(), field);
-            }
         }
     }
 
     @Override
-    public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
-        XContentHelper.populate(versionedXContentParser, JsonFields.fields, this);
-    }
-
-    @Override
     public void readFrom(XContentObject in) throws IOException {
-        XContentHelper.populate(in, JsonFields.values(), this);
+        XContentHelper.populate(in, JsonField.values(), this);
     }
 }

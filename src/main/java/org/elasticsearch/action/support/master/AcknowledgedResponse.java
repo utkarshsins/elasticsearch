@@ -18,14 +18,12 @@
  */
 package org.elasticsearch.action.support.master;
 
-import com.google.common.collect.Maps;
 import org.elasticsearch.action.ActionResponse;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.xcontent.*;
 
 import java.io.IOException;
-import java.util.Map;
 
 /**
  * Abstract class that allows to mark action responses that support acknowledgements.
@@ -66,16 +64,11 @@ public abstract class AcknowledgedResponse extends ActionResponse {
     }
 
 
-    enum JsonFields implements XContentParsable<AcknowledgedResponse>, XContentObjectParseable<AcknowledgedResponse> {
+    private enum JsonFields implements XContentObjectParseable<AcknowledgedResponse> {
         acknowledged {
             @Override
             public void apply(XContentObject in, AcknowledgedResponse response) throws IOException {
                 response.acknowledged = in.getAsBoolean(this);
-            }
-
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, AcknowledgedResponse response) throws IOException {
-                response.acknowledged = versionedXContentParser.getParser().booleanValue();
             }
         },
         shards_acknowledged {
@@ -83,21 +76,7 @@ public abstract class AcknowledgedResponse extends ActionResponse {
             public void apply(XContentObject in, AcknowledgedResponse response) throws IOException {
                 // 5.0 results //todo bdk handle
             }
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, AcknowledgedResponse response) throws IOException {
-                // 5.0 results //todo bdk handle
-            }
-        };
-
-        static Map<String, XContentParsable<AcknowledgedResponse>> fields = Maps.newLinkedHashMap();
-        static {
-            for (AcknowledgedResponse.JsonFields field : values()) {
-                fields.put(field.name(), field);
-            }
         }
-    }
-    public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
-        XContentHelper.populate(versionedXContentParser, JsonFields.fields, this);
     }
 
     @Override

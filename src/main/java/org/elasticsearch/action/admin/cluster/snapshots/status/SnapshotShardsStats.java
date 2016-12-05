@@ -28,7 +28,7 @@ import java.util.Collection;
 /**
  * Status of a snapshot shards
  */
-public class SnapshotShardsStats  implements ToXContent, FromXContent {
+public class SnapshotShardsStats  implements ToXContent, FromXContentObject {
 
     private int initializingShards;
     private int startedShards;
@@ -106,11 +106,6 @@ public class SnapshotShardsStats  implements ToXContent, FromXContent {
      */
     public int getTotalShards() {
         return totalShards;
-    }
-
-    @Override
-    public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
-        throw new UnsupportedOperationException();
     }
 
     @Override

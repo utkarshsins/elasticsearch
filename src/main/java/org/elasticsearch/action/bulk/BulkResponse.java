@@ -21,22 +21,17 @@ package org.elasticsearch.action.bulk;
 
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.elasticsearch.action.ActionResponse;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.common.xcontent.VersionedXContentParser;
 import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.common.xcontent.XContentObjectParseable;
-import org.elasticsearch.common.xcontent.XContentParsable;
-import org.elasticsearch.common.xcontent.XContentParser;
 
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 /**
  * A response of a bulk execution. Holding a response for each item responding (in order) of the
@@ -131,7 +126,7 @@ public class BulkResponse extends ActionResponse implements Iterable<BulkItemRes
 
 
 
-    enum JsonFields implements XContentObjectParseable<BulkResponse> {
+    enum JsonField implements XContentObjectParseable<BulkResponse> {
         took {
             @Override
             public void apply(XContentObject in, BulkResponse response) throws IOException {
@@ -162,12 +157,7 @@ public class BulkResponse extends ActionResponse implements Iterable<BulkItemRes
     }
 
     @Override
-    public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
-        XContentHelper.populate(versionedXContentParser.getParser().xContentObject(), JsonFields.values(), this);
-    }
-
-    @Override
     public void readFrom(XContentObject in) throws IOException {
-        XContentHelper.populate(in, JsonFields.values(), this);
+        XContentHelper.populate(in, JsonField.values(), this);
     }
 }

@@ -686,7 +686,7 @@ public class ClusterState implements ToXContent {
             }
             return builder.build();
         }
-
+        
         /**
          * @param in                 input stream
          * @param defaultClusterName this cluster name will be used of receiving a cluster state from a node on version older than 1.1.1
@@ -696,7 +696,12 @@ public class ClusterState implements ToXContent {
             ClusterName clusterName = defaultClusterName;
             Builder builder = new Builder(clusterName);
             builder.version = in.getAsLong("version");
-            builder.metaData = MetaData.Builder.readFrom(in.getAsXContentObject("metadata"));
+
+            XContentObject metadata = in.getAsXContentObject("metadata");
+            if (metadata != null) {
+                builder.metaData = MetaData.Builder.readFrom(metadata);
+            }
+
             builder.routingTable = RoutingTable.Builder.readFrom(in.getAsXContentObject("routing_table"));
             builder.nodes = DiscoveryNodes.Builder.readFrom(in);
             builder.blocks = ClusterBlocks.Builder.readClusterBlocks(in);

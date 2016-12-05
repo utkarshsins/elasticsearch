@@ -61,13 +61,6 @@ public final class SuggestResponse extends BroadcastOperationResponse {
     }
 
     @Override
-    public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
-        XContentObject in = versionedXContentParser.getParser().xContentObject();
-        super.readFrom(in);
-        this.suggest.readFrom(in);
-    }
-
-    @Override
     public void readFrom(XContentObject in) throws IOException {
         super.readFrom(in);
         this.suggest.readFrom(in);

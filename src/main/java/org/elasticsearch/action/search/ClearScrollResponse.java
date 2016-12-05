@@ -19,17 +19,14 @@
 
 package org.elasticsearch.action.search;
 
-import com.google.common.collect.Maps;
 import org.elasticsearch.Version;
 import org.elasticsearch.action.ActionResponse;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
-import org.elasticsearch.common.recycler.Recycler;
 import org.elasticsearch.common.xcontent.*;
 import org.elasticsearch.rest.RestStatus;
 
 import java.io.IOException;
-import java.util.Map;
 
 import static org.elasticsearch.rest.RestStatus.NOT_FOUND;
 import static org.elasticsearch.rest.RestStatus.OK;
@@ -97,41 +94,20 @@ public class ClearScrollResponse extends ActionResponse implements StatusToXCont
         }
     }
 
-    enum JsonFields implements XContentParsable<ClearScrollResponse>, XContentObjectParseable<ClearScrollResponse> {
+    enum JsonField implements XContentObjectParseable<ClearScrollResponse> {
         succeeded {
             @Override
             public void apply(XContentObject in, ClearScrollResponse response) throws IOException {
                 response.succeeded = in.getAsBoolean(this);
             }
 
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, ClearScrollResponse response) throws IOException {
-                response.succeeded = versionedXContentParser.getParser().booleanValue();
-            }
-        };
-
-        static Map<String, XContentParsable<ClearScrollResponse>> fields = Maps.newLinkedHashMap();
-        static {
-            for (ClearScrollResponse.JsonFields field : values()) {
-                fields.put(field.name(), field);
-            }
-        }
-    }
-
-    @Override
-    public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
-        if (versionedXContentParser.getVersion().id  >= Version.V_5_0_0_ID) {
-            XContentHelper.populate(versionedXContentParser, JsonFields.fields, this);
-        }
-        else {
-            this.succeeded = true;
         }
     }
 
     @Override
     public void readFrom(XContentObject in) throws IOException {
         if (in.getVersion().id >= Version.V_5_0_0_ID) {
-            XContentHelper.populate(in, JsonFields.values(), this);
+            XContentHelper.populate(in, JsonField.values(), this);
         }
         else {
             this.succeeded = true;

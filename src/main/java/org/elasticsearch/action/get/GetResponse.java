@@ -156,12 +156,6 @@ public class GetResponse extends ActionResponse implements Iterable<GetField>, T
         return result;
     }
 
-    public static GetResponse readGetResponse(VersionedXContentParser in) throws IOException {
-        GetResponse result = new GetResponse();
-        result.readFrom(in);
-        return result;
-    }
-
     public static GetResponse readGetResponse(XContentObject in) throws IOException {
         GetResponse result = new GetResponse();
         result.readFrom(in);
@@ -183,11 +177,6 @@ public class GetResponse extends ActionResponse implements Iterable<GetField>, T
     public void writeTo(StreamOutput out) throws IOException {
         super.writeTo(out);
         getResult.writeTo(out);
-    }
-
-    @Override
-    public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
-        getResult = GetResult.readGetResult(versionedXContentParser);
     }
 
 }

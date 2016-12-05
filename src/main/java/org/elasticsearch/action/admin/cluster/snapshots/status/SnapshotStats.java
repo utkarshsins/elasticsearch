@@ -29,7 +29,7 @@ import java.io.IOException;
 
 /**
  */
-public class SnapshotStats implements Streamable, ToXContent, FromXContent {
+public class SnapshotStats implements Streamable, ToXContent, FromXContentObject {
     private long startTime;
 
     private long time;
@@ -129,11 +129,6 @@ public class SnapshotStats implements Streamable, ToXContent, FromXContent {
 
         totalSize = in.readVLong();
         processedSize = in.readVLong();
-    }
-
-    @Override
-    public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
-        throw new UnsupportedOperationException();
     }
 
     enum JsonField implements XContentObjectParseable<SnapshotStats> {

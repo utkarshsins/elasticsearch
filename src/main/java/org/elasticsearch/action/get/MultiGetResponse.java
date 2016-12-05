@@ -21,7 +21,6 @@ package org.elasticsearch.action.get;
 
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.elasticsearch.action.ActionResponse;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
@@ -31,7 +30,6 @@ import org.elasticsearch.common.xcontent.*;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 public class MultiGetResponse extends ActionResponse implements Iterable<MultiGetItemResponse>, ToXContent {
 
@@ -105,7 +103,7 @@ public class MultiGetResponse extends ActionResponse implements Iterable<MultiGe
             out.writeString(message);
         }
 
-        enum JsonFields implements XContentObjectParseable<Failure> {
+        enum JsonField implements XContentObjectParseable<Failure> {
             _index {
                 @Override
                 public void apply(XContentObject in, Failure response) throws IOException {
@@ -129,20 +127,12 @@ public class MultiGetResponse extends ActionResponse implements Iterable<MultiGe
                 public void apply(XContentObject in, Failure response) throws IOException {
                     response.message = in.get(this);
                 }
-            };
-
-            static Map<String, XContentObjectParseable<Failure>> fields = Maps.newLinkedHashMap();
-            static {
-                for (JsonFields field : values()) {
-                    fields.put(field.name(), field);
-                }
             }
-
-            }
+        }
 
         private static Failure readFailure(XContentObject in) throws IOException {
             Failure failure = new Failure();
-            XContentHelper.populate(in, JsonFields.values(), failure);
+            XContentHelper.populate(in, JsonField.values(), failure);
             return failure;
         }
     }
@@ -196,7 +186,7 @@ public class MultiGetResponse extends ActionResponse implements Iterable<MultiGe
         static final XContentBuilderString ERROR = new XContentBuilderString("error");
     }
 
-    enum JsonFields implements XContentParsable<MultiGetResponse>, XContentObjectParseable<MultiGetResponse> {
+    enum JsonField implements XContentObjectParseable<MultiGetResponse> {
         docs {
             @Override
             public void apply(XContentObject in, MultiGetResponse response) throws IOException {
@@ -206,7 +196,7 @@ public class MultiGetResponse extends ActionResponse implements Iterable<MultiGe
                     Failure failure = null;
                     GetResponse getResponse = null;
 
-                    if (doc.containsKey(Failure.JsonFields.error)) {
+                    if (doc.containsKey(Failure.JsonField.error)) {
                         failure = Failure.readFailure(doc);
                     }
                     else {
@@ -218,42 +208,12 @@ public class MultiGetResponse extends ActionResponse implements Iterable<MultiGe
                 response.responses = items.toArray(new MultiGetItemResponse[items.size()]);
             }
 
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, MultiGetResponse response) throws IOException {
-                List<MultiGetItemResponse> items = Lists.newArrayList();
-                for (versionedXContentParser.getParser().nextToken(); versionedXContentParser.getParser().currentToken() != XContentParser.Token.END_ARRAY; versionedXContentParser.getParser().nextToken()) {
-                    Failure failure = null;
-                    GetResponse getResponse = null;
-                    XContentObject xContentObject = versionedXContentParser.getParser().xContentObject();
-                    if (xContentObject.containsKey(Failure.JsonFields.error)) {
-                        failure = Failure.readFailure(xContentObject);
-                    }
-                    else {
-                        getResponse = GetResponse.readGetResponse(xContentObject);
-                    }
-                    MultiGetItemResponse item = new MultiGetItemResponse(getResponse, failure);
-                    items.add(item);
-                }
-                response.responses = items.toArray(new MultiGetItemResponse[items.size()]);
-            }
-        };
-
-        static Map<String, XContentParsable<MultiGetResponse>> fields = Maps.newLinkedHashMap();
-        static {
-            for (MultiGetResponse.JsonFields field : values()) {
-                fields.put(field.name(), field);
-            }
         }
     }
 
     @Override
-    public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
-        XContentHelper.populate(versionedXContentParser, JsonFields.fields, this);
-    }
-
-    @Override
     public void readFrom(XContentObject in) throws IOException {
-        XContentHelper.populate(in, JsonFields.values(), this);
+        XContentHelper.populate(in, JsonField.values(), this);
     }
 
     @Override

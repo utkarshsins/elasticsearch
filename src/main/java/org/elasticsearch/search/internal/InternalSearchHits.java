@@ -22,7 +22,6 @@ package org.elasticsearch.search.internal;
 import com.carrotsearch.hppc.IntObjectOpenHashMap;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.xcontent.*;
@@ -31,7 +30,10 @@ import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.SearchShardTarget;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import static org.elasticsearch.search.SearchShardTarget.readSearchShardTarget;
 import static org.elasticsearch.search.internal.InternalSearchHit.readSearchHit;
@@ -198,17 +200,11 @@ public class InternalSearchHits implements SearchHits {
         return hits;
     }
 
-    public static InternalSearchHits readSearchHits(VersionedXContentParser parser) throws IOException {
-        InternalSearchHits hits = new InternalSearchHits();
-        hits.readFrom(parser);
-        return hits;
-    }
     public static InternalSearchHits readSearchHits(XContentObject in) throws IOException {
         InternalSearchHits hits = new InternalSearchHits();
         hits.readFrom(in);
         return hits;
     }
-
 
     @Override
     public void readFrom(StreamInput in) throws IOException {
@@ -216,33 +212,14 @@ public class InternalSearchHits implements SearchHits {
     }
 
 
-    enum JsonFields implements XContentParsable<InternalSearchHits>, XContentObjectParseable<InternalSearchHits> {
+    enum JsonField implements XContentObjectParseable<InternalSearchHits> {
         total {
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, InternalSearchHits hits) throws IOException {
-                hits.totalHits = versionedXContentParser.getParser().longValue();
-            }
             @Override
             public void apply(XContentObject in, InternalSearchHits response) {
                 response.totalHits = in.getAsInt(this);
             }
         },
         hits {
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, InternalSearchHits hits) throws IOException {
-                if (hits.totalHits == 0 ) {
-                    hits.hits = EMPTY;
-                }
-                else {
-                    List<InternalSearchHit> items = Lists.newArrayList();
-                    for (versionedXContentParser.getParser().nextToken(); versionedXContentParser.getParser().currentToken() != XContentParser.Token.END_ARRAY; versionedXContentParser.getParser().nextToken()) {
-                        InternalSearchHit item = new InternalSearchHit();
-                        item.readFrom(versionedXContentParser);
-                        items.add(item);
-                    }
-                    hits.hits = items.toArray(new InternalSearchHit[items.size()]);
-                }
-            }
             @Override
             public void apply(XContentObject in, InternalSearchHits response) throws IOException {
                 List<XContentObject> hitsList = in.getAsXContentObjectsOrEmpty(this);
@@ -261,38 +238,16 @@ public class InternalSearchHits implements SearchHits {
         },
         max_score {
             @Override
-            public void apply(VersionedXContentParser versionedXContentParser, InternalSearchHits hits) throws IOException {
-                if (versionedXContentParser.getParser().currentToken() != XContentParser.Token.VALUE_NULL) {
-                    hits.maxScore = versionedXContentParser.getParser().floatValue();
-                }
-            }
-            @Override
             public void apply(XContentObject in, InternalSearchHits response) {
                 response.maxScore = in.getAsFloat(this, 0F);
-            }
-        };
-        public abstract void apply(XContentObject in, InternalSearchHits response) throws IOException;
-
-        static Map<String, XContentParsable<InternalSearchHits>> fields = Maps.newLinkedHashMap();
-        static {
-            for (InternalSearchHits.JsonFields field : values()) {
-                fields.put(field.name(), field);
             }
         }
     }
 
     public void readFrom(XContentObject in) throws IOException {
-        XContentHelper.populate(in, JsonFields.values(), this);
+        XContentHelper.populate(in, JsonField.values(), this);
 
     }
-
-
-    @Override
-    public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
-        XContentHelper.populate(versionedXContentParser, JsonFields.fields, this);
-    }
-
-
 
     public void readFrom(StreamInput in, StreamContext context) throws IOException {
         totalHits = in.readVLong();

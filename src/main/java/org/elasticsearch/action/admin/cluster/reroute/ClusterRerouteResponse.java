@@ -25,7 +25,6 @@ import org.elasticsearch.cluster.ClusterState;
 import org.elasticsearch.cluster.routing.allocation.RoutingExplanations;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
-import org.elasticsearch.common.xcontent.VersionedXContentParser;
 import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.common.xcontent.XContentObjectParseable;
@@ -83,7 +82,7 @@ public class ClusterRerouteResponse extends AcknowledgedResponse {
         }
     }
 
-    enum JsonField implements XContentObjectParseable<ClusterRerouteResponse> {
+    private enum JsonField implements XContentObjectParseable<ClusterRerouteResponse> {
         state {
             @Override
             public void apply(XContentObject in, ClusterRerouteResponse response) throws IOException {
@@ -99,8 +98,7 @@ public class ClusterRerouteResponse extends AcknowledgedResponse {
     }
 
     @Override
-    public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
-        super.readFrom(versionedXContentParser);
-        XContentHelper.populate(versionedXContentParser.getParser().xContentObject(), JsonField.values(), this);
+    public void readFrom(XContentObject in) throws IOException {
+        XContentHelper.populate(in, JsonField.values(), this);
     }
 }

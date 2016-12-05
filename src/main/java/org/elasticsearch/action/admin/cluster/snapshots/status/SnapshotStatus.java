@@ -40,7 +40,7 @@ import static com.google.common.collect.Sets.newHashSet;
 /**
  * Status of a snapshot
  */
-public class SnapshotStatus implements ToXContent, Streamable, FromXContent {
+public class SnapshotStatus implements ToXContent, Streamable, FromXContentObject {
 
     private SnapshotId snapshotId;
 
@@ -227,11 +227,6 @@ public class SnapshotStatus implements ToXContent, Streamable, FromXContent {
         SnapshotStatus snapshotInfo = new SnapshotStatus();
         snapshotInfo.readFrom(in);
         return snapshotInfo;
-    }
-
-    @Override
-    public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
-        throw new UnsupportedOperationException();
     }
 
     @Override

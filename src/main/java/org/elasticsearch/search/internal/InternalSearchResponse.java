@@ -34,7 +34,7 @@ import org.elasticsearch.search.facet.InternalFacets;
 import org.elasticsearch.search.suggest.Suggest;
 
 import java.io.IOException;
-import java.util.Map;
+
 
 import static org.elasticsearch.search.internal.InternalSearchHits.readSearchHits;
 
@@ -114,10 +114,6 @@ public class InternalSearchResponse implements Streamable, ToXContent {
         InternalSearchResponse response = new InternalSearchResponse();
         response.readFrom(in);
         return response;
-    }
-
-    public void readHits(VersionedXContentParser parser) throws IOException {
-        this.hits = InternalSearchHits.readSearchHits(parser);
     }
 
     public void readHits(XContentObject source) throws IOException {

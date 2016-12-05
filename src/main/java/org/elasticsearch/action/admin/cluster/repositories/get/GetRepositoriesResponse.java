@@ -25,12 +25,10 @@ import org.elasticsearch.cluster.metadata.RepositoryMetaData;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.settings.ImmutableSettings;
-import org.elasticsearch.common.xcontent.VersionedXContentParser;
 import org.elasticsearch.common.xcontent.XContentObject;
 
 import java.io.IOException;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -92,12 +90,6 @@ public class GetRepositoriesResponse extends ActionResponse implements Iterable<
     @Override
     public Iterator<RepositoryMetaData> iterator() {
         return repositories.iterator();
-    }
-
-    @Override
-    public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
-        XContentObject xContentObject = versionedXContentParser.getParser().xContentObject();
-        readFrom(xContentObject);
     }
 
     @Override

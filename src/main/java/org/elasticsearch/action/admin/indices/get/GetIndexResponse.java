@@ -35,7 +35,6 @@ import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.xcontent.VersionedXContentParser;
 import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.search.warmer.IndexWarmersMetaData;
 import org.elasticsearch.search.warmer.IndexWarmersMetaData.Entry;
@@ -262,12 +261,6 @@ public class GetIndexResponse extends ActionResponse {
         settings,
         aliases,
         warmers
-    }
-
-    @Override
-    public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
-        XContentObject xContentObject = versionedXContentParser.getParser().xContentObject();
-        readFrom(xContentObject);
     }
 
     @Override

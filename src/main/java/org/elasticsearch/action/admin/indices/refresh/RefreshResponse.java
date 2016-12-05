@@ -23,7 +23,6 @@ import org.elasticsearch.action.ShardOperationFailedException;
 import org.elasticsearch.action.support.broadcast.BroadcastOperationResponse;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
-import org.elasticsearch.common.xcontent.VersionedXContentParser;
 
 import java.io.IOException;
 import java.util.List;
@@ -53,8 +52,4 @@ public class RefreshResponse extends BroadcastOperationResponse {
         super.writeTo(out);
     }
 
-    @Override
-    public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
-        readFrom(versionedXContentParser.getParser().xContentObject());
-    }
 }

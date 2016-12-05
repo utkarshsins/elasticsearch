@@ -19,7 +19,6 @@
 
 package org.elasticsearch.action.deletebyquery;
 
-import com.google.common.collect.Maps;
 import org.elasticsearch.action.ActionResponse;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
@@ -105,7 +104,7 @@ public class DeleteByQueryResponse extends ActionResponse implements Iterable<In
         }
     }
 
-    enum JsonFields implements XContentParsable<DeleteByQueryResponse>, XContentObjectParseable<DeleteByQueryResponse> {
+    enum JsonField implements XContentObjectParseable<DeleteByQueryResponse> {
         _indices {
             @Override
             public void apply(XContentObject in, DeleteByQueryResponse response) throws IOException {
@@ -119,33 +118,11 @@ public class DeleteByQueryResponse extends ActionResponse implements Iterable<In
                 }
             }
 
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, DeleteByQueryResponse response) throws IOException {
-                XContentObject xIndices = versionedXContentParser.getParser().xContentObject();
-                Set<String> indexNames = xIndices.keySet();
-                for (String indexName : indexNames) {
-                    IndexDeleteByQueryResponse deleteByQueryResponse = new IndexDeleteByQueryResponse();
-                    XContentObject xContentObject = xIndices.getAsXContentObject(indexName);
-                    xContentObject.put("_index", indexName);
-                    deleteByQueryResponse.readFrom(xContentObject);
-                    response.indices.put(indexName, deleteByQueryResponse);
-                }
-            }
-        };
-
-        static Map<String, XContentParsable<DeleteByQueryResponse>> fields = Maps.newLinkedHashMap();
-        static {
-            for (DeleteByQueryResponse.JsonFields field : values()) {
-                fields.put(field.name(), field);
-            }
         }
-    }
-    public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
-        XContentHelper.populate(versionedXContentParser, JsonFields.fields, this);
     }
 
     @Override
     public void readFrom(XContentObject in) throws IOException {
-        XContentHelper.populate(in, JsonFields.values(), this);
+        XContentHelper.populate(in, JsonField.values(), this);
     }
 }

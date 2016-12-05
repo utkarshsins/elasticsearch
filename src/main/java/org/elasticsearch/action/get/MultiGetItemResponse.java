@@ -123,8 +123,4 @@ public class MultiGetItemResponse implements Streamable {
         }
     }
 
-    public void readFrom(VersionedXContentParser parser) throws IOException {
-        SearchResponse searchResponse = new SearchResponse();
-        searchResponse.readFrom(parser);
-    }
 }

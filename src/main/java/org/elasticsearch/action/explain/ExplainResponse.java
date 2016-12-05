@@ -19,7 +19,6 @@
 
 package org.elasticsearch.action.explain;
 
-import com.google.common.collect.Maps;
 import org.apache.lucene.search.Explanation;
 import org.elasticsearch.Version;
 import org.elasticsearch.action.ActionResponse;
@@ -30,7 +29,6 @@ import org.elasticsearch.index.get.GetResult;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 import static org.elasticsearch.common.lucene.Lucene.readExplanation;
 import static org.elasticsearch.common.lucene.Lucene.writeExplanation;
@@ -99,17 +97,13 @@ public class ExplainResponse extends ActionResponse {
         return getResult;
     }
 
-    enum JsonFields implements XContentParsable<ExplainResponse>, XContentObjectParseable<ExplainResponse> {
+    enum JsonField implements XContentObjectParseable<ExplainResponse> {
         _index {
             @Override
             public void apply(XContentObject in, ExplainResponse response) throws IOException {
                 response.index = in.get(this);
             }
 
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, ExplainResponse response) throws IOException {
-                response.index = versionedXContentParser.getParser().text();
-            }
         },
         _type {
             @Override
@@ -117,10 +111,6 @@ public class ExplainResponse extends ActionResponse {
                 response.type = in.get(this);
             }
 
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, ExplainResponse response) throws IOException {
-                response.type = versionedXContentParser.getParser().text();
-            }
         },
         _id {
             @Override
@@ -128,10 +118,6 @@ public class ExplainResponse extends ActionResponse {
                 response.id = in.get(this);
             }
 
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, ExplainResponse response) throws IOException {
-                response.id = versionedXContentParser.getParser().text();
-            }
         },
         matched {
             @Override
@@ -139,21 +125,11 @@ public class ExplainResponse extends ActionResponse {
                 response.exists = in.getAsBoolean(this);
             }
 
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, ExplainResponse response) throws IOException {
-                response.exists = versionedXContentParser.getParser().booleanValue();
-            }
         },
         explanation {
             @Override
             public void apply(XContentObject in, ExplainResponse response) throws IOException {
                 response.explanation = getExplanation(in.getAsXContentObject(this));
-            }
-
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, ExplainResponse response) throws IOException {
-                XContentObject source = versionedXContentParser.getParser().xContentObject();
-                response.explanation = getExplanation(source);
             }
 
             private Explanation getExplanation(XContentObject source) {
@@ -166,26 +142,12 @@ public class ExplainResponse extends ActionResponse {
                 }
                 return explanation;
             }
-        };
-
-
-        static Map<String, XContentParsable<ExplainResponse>> fields = Maps.newLinkedHashMap();
-
-        static {
-            for (JsonFields field : values()) {
-                fields.put(field.name(), field);
-            }
         }
     }
 
     @Override
-    public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
-        XContentHelper.populate(versionedXContentParser, JsonFields.fields, this);
-    }
-
-    @Override
     public void readFrom(XContentObject in) throws IOException {
-        XContentHelper.populate(in, JsonFields.values(), this);
+        XContentHelper.populate(in, JsonField.values(), this);
     }
 
     public void readFrom(StreamInput in) throws IOException {

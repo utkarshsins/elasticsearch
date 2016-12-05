@@ -28,11 +28,10 @@ import org.elasticsearch.index.shard.ShardId;
 import org.elasticsearch.index.snapshots.IndexShardSnapshotStatus;
 
 import java.io.IOException;
-import java.util.Map;
 
 /**
  */
-public class SnapshotIndexShardStatus extends BroadcastShardOperationResponse implements ToXContent, FromXContent {
+public class SnapshotIndexShardStatus extends BroadcastShardOperationResponse implements ToXContent, FromXContentObject {
 
     private SnapshotIndexShardStage stage = SnapshotIndexShardStage.INIT;
 
@@ -138,11 +137,6 @@ public class SnapshotIndexShardStatus extends BroadcastShardOperationResponse im
         stats = SnapshotStats.readSnapshotStats(in);
         nodeId = in.readOptionalString();
         failure = in.readOptionalString();
-    }
-
-    @Override
-    public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
-        throw new UnsupportedOperationException();
     }
 
     enum JsonField implements XContentObjectParseable<SnapshotIndexShardStatus> {

@@ -21,11 +21,8 @@ package org.elasticsearch.common.xcontent;
 import java.io.IOException;
 
 /**
- * @author Brandon Kearby
- *         September 09, 2016
  */
-public interface XContentParsable<T> {
+public interface FromXContentObject {
 
-    void apply(VersionedXContentParser versionedXContentParser, T object) throws IOException;
-
+    void readFrom(XContentObject in) throws IOException;
 }

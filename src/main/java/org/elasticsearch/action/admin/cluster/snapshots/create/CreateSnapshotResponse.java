@@ -100,15 +100,6 @@ public class CreateSnapshotResponse extends ActionResponse implements ToXContent
     }
 
     @Override
-    public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
-        XContentObject xContentObject = versionedXContentParser.getParser().xContentObject();
-        XContentObject xSnapshot = xContentObject.getAsXContentObject("snapshot");
-        if (xSnapshot != null) {
-            snapshotInfo = SnapshotInfo.readSnapshotInfo(xSnapshot);
-        }
-    }
-
-    @Override
     public void readFrom(XContentObject in) throws IOException {
         XContentObject xSnapshot = in.getAsXContentObject("snapshot");
         if (xSnapshot != null) {

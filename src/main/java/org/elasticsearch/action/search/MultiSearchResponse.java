@@ -21,7 +21,6 @@ package org.elasticsearch.action.search;
 
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.elasticsearch.action.ActionResponse;
 import org.elasticsearch.common.Nullable;
 import org.elasticsearch.common.io.stream.StreamInput;
@@ -32,7 +31,6 @@ import org.elasticsearch.common.xcontent.*;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 /**
  * A multi search response.
@@ -181,7 +179,7 @@ public class MultiSearchResponse extends ActionResponse implements Iterable<Mult
         }
     }
 
-    enum JsonFields implements XContentParsable<MultiSearchResponse>, XContentObjectParseable<MultiSearchResponse> {
+    enum JsonField implements XContentObjectParseable<MultiSearchResponse> {
         responses {
             @Override
             public void apply(XContentObject in, MultiSearchResponse response) throws IOException {
@@ -202,42 +200,11 @@ public class MultiSearchResponse extends ActionResponse implements Iterable<Mult
                 response.items = items.toArray(new Item[items.size()]);
             }
 
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, MultiSearchResponse response) throws IOException {
-                List<Item> items = Lists.newArrayList();
-                for (versionedXContentParser.getParser().nextToken(); versionedXContentParser.getParser().currentToken() != XContentParser.Token.END_ARRAY; versionedXContentParser.getParser().nextToken()) {
-                    XContentObject xContentObject = versionedXContentParser.getParser().xContentObject();
-
-                    String failureMessage = null;
-                    SearchResponse searchResponse = null;
-                    if (xContentObject.containsKey("error")) {
-                        failureMessage = xContentObject.get("error");
-                    }
-                    else {
-                        searchResponse = new SearchResponse();
-                        searchResponse.readFrom(xContentObject);
-                    }
-                    items.add(new Item(searchResponse, failureMessage));
-                }
-                response.items = items.toArray(new Item[items.size()]);
-            }
-        };
-
-        static Map<String, XContentParsable<MultiSearchResponse>> fields = Maps.newLinkedHashMap();
-        static {
-            for (MultiSearchResponse.JsonFields field : values()) {
-                fields.put(field.name(), field);
-            }
         }
     }
 
     @Override
-    public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
-        XContentHelper.populate(versionedXContentParser, JsonFields.fields, this);
-    }
-
-    @Override
     public void readFrom(XContentObject in) throws IOException {
-        XContentHelper.populate(in, JsonFields.values(), this);
+        XContentHelper.populate(in, JsonField.values(), this);
     }
 }

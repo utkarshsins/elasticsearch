@@ -104,11 +104,6 @@ public class GetIndexedScriptResponse extends ActionResponse implements Iterable
     }
 
     @Override
-    public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
-        getResponse = GetResponse.readGetResponse(versionedXContentParser);
-    }
-
-    @Override
     public void readFrom(XContentObject in) throws IOException {
         getResponse = GetResponse.readGetResponse(in);
     }

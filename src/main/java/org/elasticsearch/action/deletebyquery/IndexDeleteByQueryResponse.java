@@ -22,12 +22,10 @@ package org.elasticsearch.action.deletebyquery;
 import com.google.common.collect.Maps;
 import org.elasticsearch.action.ActionResponse;
 import org.elasticsearch.action.ShardOperationFailedException;
-import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.support.DefaultShardOperationFailedException;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.xcontent.*;
-import org.elasticsearch.rest.RestStatus;
 
 import java.io.IOException;
 import java.util.List;
@@ -115,7 +113,7 @@ public class IndexDeleteByQueryResponse extends ActionResponse {
         }
     }
 
-    enum JsonFields implements XContentObjectParseable<IndexDeleteByQueryResponse> {
+    enum JsonField implements XContentObjectParseable<IndexDeleteByQueryResponse> {
         _index {
             @Override
             public void apply(XContentObject in, IndexDeleteByQueryResponse response) throws IOException {
@@ -129,17 +127,11 @@ public class IndexDeleteByQueryResponse extends ActionResponse {
                 response.successfulShards = source.getAsInt("successful");
                 response.failedShards = source.getAsInt("failed");
             }
-        };
-
-        static Map<String, XContentObjectParseable<IndexDeleteByQueryResponse>> fields = Maps.newLinkedHashMap();
-        static {
-            for (IndexDeleteByQueryResponse.JsonFields field : values()) {
-                fields.put(field.name(), field);
-            }
         }
     }
 
+    @Override
     public void readFrom(XContentObject in) throws IOException {
-        XContentHelper.populate(in, JsonFields.values(), this);
+        XContentHelper.populate(in, JsonField.values(), this);
     }
 }

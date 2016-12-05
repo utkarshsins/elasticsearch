@@ -19,20 +19,15 @@
 
 package org.elasticsearch.action.delete;
 
-import com.google.common.collect.Maps;
 import org.elasticsearch.action.ActionResponse;
-import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
-import org.elasticsearch.common.xcontent.VersionedXContentParser;
 import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.common.xcontent.XContentObjectParseable;
-import org.elasticsearch.common.xcontent.XContentParsable;
 import org.elasticsearch.rest.RestStatus;
 
 import java.io.IOException;
-import java.util.Map;
 
 /**
  * The response of the delete action.
@@ -120,26 +115,18 @@ public class DeleteResponse extends ActionResponse {
         out.writeBoolean(found);
     }
 
-    enum JsonFields implements XContentParsable<DeleteResponse>, XContentObjectParseable<DeleteResponse> {
+    enum JsonField implements XContentObjectParseable<DeleteResponse> {
         _index {
             @Override
             public void apply(XContentObject in, DeleteResponse response) throws IOException {
                 response.index = in.get(this);
             }
 
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, DeleteResponse response) throws IOException {
-                response.index = versionedXContentParser.getParser().text();
-            }
         },
         _type {
             @Override
             public void apply(XContentObject in, DeleteResponse response) throws IOException {
                 response.type = in.get(this);
-            }
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, DeleteResponse response) throws IOException {
-                response.type = versionedXContentParser.getParser().text();
             }
         },
         _id {
@@ -147,19 +134,11 @@ public class DeleteResponse extends ActionResponse {
             public void apply(XContentObject in, DeleteResponse response) throws IOException {
                 response.id = in.get(this);
             }
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, DeleteResponse response) throws IOException {
-                response.id = versionedXContentParser.getParser().text();
-            }
         },
         _version {
             @Override
             public void apply(XContentObject in, DeleteResponse response) throws IOException {
                 response.version = in.getAsLong(this);
-            }
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, DeleteResponse response) throws IOException {
-                response.version = versionedXContentParser.getParser().intValue();
             }
         },
         status {
@@ -167,19 +146,11 @@ public class DeleteResponse extends ActionResponse {
             public void apply(XContentObject in, DeleteResponse response) throws IOException {
                 response.bulkStatus = RestStatus.valueOf(in.getAsInt(this));
             }
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, DeleteResponse response) throws IOException {
-                response.bulkStatus = RestStatus.valueOf(versionedXContentParser.getParser().intValue());
-            }
         },
         result {
             @Override
             public void apply(XContentObject in, DeleteResponse response) throws IOException {
 
-            }
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, DeleteResponse response) throws IOException {
-                //todo bdk handle 5.0
             }
         },
         _shards {
@@ -187,35 +158,17 @@ public class DeleteResponse extends ActionResponse {
             public void apply(XContentObject in, DeleteResponse response) throws IOException {
 
             }
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, DeleteResponse response) throws IOException {
-                //todo bdk handle 5.0
-            }
         },
         found {
             @Override
             public void apply(XContentObject in, DeleteResponse response) throws IOException {
                 response.found = in.getAsBoolean(this);
             }
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, DeleteResponse response) throws IOException {
-                response.found = versionedXContentParser.getParser().booleanValue();
-            }
-        };
-
-        static Map<String, XContentParsable<DeleteResponse>> fields = Maps.newLinkedHashMap();
-        static {
-            for (DeleteResponse.JsonFields field : values()) {
-                fields.put(field.name(), field);
-            }
         }
-    }
-    public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
-        XContentHelper.populate(versionedXContentParser, JsonFields.fields, this);
     }
 
     @Override
     public void readFrom(XContentObject in) throws IOException {
-        XContentHelper.populate(in, JsonFields.values(), this);
+        XContentHelper.populate(in, JsonField.values(), this);
     }
 }

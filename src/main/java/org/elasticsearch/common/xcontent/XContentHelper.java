@@ -24,7 +24,6 @@ import com.google.common.collect.Maps;
 import org.apache.log4j.Logger;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.ElasticsearchParseException;
-import org.elasticsearch.cluster.metadata.SnapshotId;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.bytes.BytesArray;
 import org.elasticsearch.common.bytes.BytesReference;
@@ -486,35 +485,6 @@ public class XContentHelper {
                 }
             }
         }
-    }
-
-    public static <T> void populate(VersionedXContentParser versionedXContentParser, Map<String, XContentParsable<T>> fields, T o) throws IOException {
-        XContentParser.Token token;
-        if (versionedXContentParser.getParser().currentToken() == null) {
-            token = versionedXContentParser.getParser().nextToken();
-        }
-        while ((token = versionedXContentParser.getParser().nextToken()) != XContentParser.Token.END_OBJECT) {
-            if (token == XContentParser.Token.FIELD_NAME) {
-                String currentFieldName = versionedXContentParser.getParser().currentName();
-                token = versionedXContentParser.getParser().nextToken();
-                XContentParsable xContentParsable = fields.get(currentFieldName);
-                if (xContentParsable != null) {
-                    xContentParsable.apply(versionedXContentParser, o);
-                }
-                else {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Skipping field: " + currentFieldName + " for class: " + o.getClass().getName());
-                    }
-                    if (token == XContentParser.Token.START_OBJECT) {
-                        versionedXContentParser.getParser().skipChildren();
-                    }
-                }
-            }
-            else if (token == null) {
-                throw new IllegalStateException("Read past the end of the stream.");
-            }
-        }
-
     }
 
     public static <T> void populate(XContentObject source, XContentObjectParseable<T>[] fields, T o) throws IOException {

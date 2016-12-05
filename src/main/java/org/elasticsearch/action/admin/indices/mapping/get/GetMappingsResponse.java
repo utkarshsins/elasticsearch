@@ -25,7 +25,6 @@ import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
-import org.elasticsearch.common.xcontent.VersionedXContentParser;
 import org.elasticsearch.common.xcontent.XContentObject;
 
 import java.io.IOException;
@@ -85,12 +84,6 @@ public class GetMappingsResponse extends ActionResponse {
 
     enum JsonField  {
         mappings,
-    }
-
-    @Override
-    public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
-        XContentObject xContentObject = versionedXContentParser.getParser().xContentObject();
-        readFrom(xContentObject);
     }
 
     public void readFrom(XContentObject in) throws IOException {

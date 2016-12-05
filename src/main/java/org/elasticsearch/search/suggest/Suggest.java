@@ -19,7 +19,6 @@
 package org.elasticsearch.search.suggest;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.lucene.util.CollectionUtil;
 import org.elasticsearch.ElasticsearchException;
@@ -42,7 +41,7 @@ import java.util.*;
 /**
  * Top level suggest result, containing the result for each suggestion.
  */
-public class Suggest implements Iterable<Suggest.Suggestion<? extends Entry<? extends Option>>>, Streamable, ToXContent {
+public class Suggest implements Iterable<Suggest.Suggestion<? extends Entry<? extends Option>>>, Streamable, ToXContent, FromXContentObject {
 
 
     private static final Set<String> RESERVED_KEYWORDS = Sets.newHashSet("_shards", "suggest");
@@ -111,28 +110,16 @@ public class Suggest implements Iterable<Suggest.Suggestion<? extends Entry<? ex
         return (T) suggestMap.get(name);
     }
 
-    enum JsonFields implements XContentParsable<Suggest>, XContentObjectParseable<Suggest> {
+    enum JsonField implements XContentObjectParseable<Suggest> {
         suggest {
             @Override
             public void apply(XContentObject in, Suggest response) throws IOException {
             }
 
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, Suggest response) throws IOException {
-            }
         };
-        static Map<String, XContentParsable<Suggest>> fields = Maps.newLinkedHashMap();
-        static {
-            for (Suggest.JsonFields field : values()) {
-                fields.put(field.name(), field);
-            }
-        }
     }
 
-    public void readFrom(VersionedXContentParser parser) throws IOException {
-        XContentHelper.populate(parser, JsonFields.fields, this);
-    }
-
+    @Override
     public void readFrom(XContentObject in) throws IOException {
         Set<String> suggestNames = Sets.difference(in.keySet(), RESERVED_KEYWORDS);
         suggestions = Lists.newArrayListWithExpectedSize(suggestNames.size());
@@ -141,11 +128,9 @@ public class Suggest implements Iterable<Suggest.Suggestion<? extends Entry<? ex
             suggestion.name = suggestName;
             suggestion.readFrom(in.getAsXContentObjects(suggestName));
             suggestions.add(suggestion);
-
-
         }
 
-        XContentHelper.populate(in, JsonFields.values(), this);
+        XContentHelper.populate(in, JsonField.values(), this);
     }
 
 

@@ -24,7 +24,6 @@ import org.elasticsearch.cluster.ClusterName;
 import org.elasticsearch.cluster.ClusterState;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
-import org.elasticsearch.common.xcontent.VersionedXContentParser;
 import org.elasticsearch.common.xcontent.XContentObject;
 
 import java.io.IOException;
@@ -65,13 +64,6 @@ public class ClusterStateResponse extends ActionResponse {
         super.writeTo(out);
         clusterName.writeTo(out);
         ClusterState.Builder.writeTo(clusterState, out);
-    }
-
-    @Override
-    public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
-        XContentObject xContentObject = versionedXContentParser.getParser().xContentObject();
-        this.clusterName = ClusterName.readClusterName(xContentObject);
-        this.clusterState = ClusterState.Builder.readFrom(xContentObject, this.clusterName);
     }
 
     @Override

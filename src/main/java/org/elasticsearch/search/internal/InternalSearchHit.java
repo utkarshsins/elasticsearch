@@ -20,7 +20,6 @@
 package org.elasticsearch.search.internal;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.util.BytesRef;
 import org.elasticsearch.ElasticsearchParseException;
@@ -44,7 +43,6 @@ import org.elasticsearch.search.lookup.SourceLookup;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import static org.elasticsearch.common.lucene.Lucene.readExplanation;
@@ -377,20 +375,16 @@ public class InternalSearchHit implements SearchHit {
     }
 
     public void readFrom(XContentObject in) throws IOException {
-        XContentHelper.populate(in, InternalSearchHit.JsonFields.values(), this);
+        XContentHelper.populate(in, JsonField.values(), this);
     }
 
-    enum JsonFields implements XContentParsable<InternalSearchHit>, XContentObjectParseable<InternalSearchHit> {
+    enum JsonField implements XContentObjectParseable<InternalSearchHit> {
         _index {
             @Override
             public void apply(XContentObject in, InternalSearchHit response) throws IOException {
                 response.shard = SearchShardTarget.readSearchShardTarget(in.get(this));
             }
 
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, InternalSearchHit hit) throws IOException {
-                hit.shard = SearchShardTarget.readSearchShardTarget(versionedXContentParser.getParser().text());
-            }
         },
         _type {
             @Override
@@ -398,10 +392,6 @@ public class InternalSearchHit implements SearchHit {
                 response.type = new StringAndBytesText(in.get(this));
             }
 
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, InternalSearchHit hit) throws IOException {
-                hit.type = new StringAndBytesText(versionedXContentParser.getParser().text());
-            }
         },
         _source {
             @Override
@@ -409,12 +399,6 @@ public class InternalSearchHit implements SearchHit {
                 response.source = new BytesArray(XContentHelper.convertToJson(in.getAsMap(this), false));
             }
 
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, InternalSearchHit hit) throws IOException {
-                XContentBuilder jsonBuilder = XContentFactory.jsonBuilder();
-                jsonBuilder.copyCurrentStructure(versionedXContentParser.getParser());
-                hit.source = jsonBuilder.bytes();
-            }
         },
         _score {
             @Override
@@ -422,12 +406,6 @@ public class InternalSearchHit implements SearchHit {
                 response.score = in.getAsFloat(this, 0F);
             }
 
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, InternalSearchHit hit) throws IOException {
-                if (versionedXContentParser.getParser().currentToken() != XContentParser.Token.VALUE_NULL) {
-                    hit.score = versionedXContentParser.getParser().floatValue();
-                }
-            }
         },
         sort {
             @Override
@@ -436,10 +414,6 @@ public class InternalSearchHit implements SearchHit {
 
             }
 
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, InternalSearchHit hit) throws IOException {
-                hit.sortValues = versionedXContentParser.getParser().array();
-            }
         },
         fields {
             @Override
@@ -452,14 +426,6 @@ public class InternalSearchHit implements SearchHit {
                 }
             }
 
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, InternalSearchHit hit) throws IOException {
-                hit.fields =  new HashMap<>();
-                Map<String, Object> map = versionedXContentParser.getParser().map();
-                for (Map.Entry<String, Object> entry : map.entrySet()) {
-                    hit.fields.put(entry.getKey(), new InternalSearchHitField(entry.getKey(), (List<Object>) entry.getValue()));
-                }
-            }
         },
         _id {
             @Override
@@ -467,24 +433,7 @@ public class InternalSearchHit implements SearchHit {
                 response.id = new StringAndBytesText(in.get(this));
             }
 
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, InternalSearchHit hits) throws IOException {
-                hits.id = new StringAndBytesText(versionedXContentParser.getParser().text());
-            }
-        };
-
-        static Map<String, XContentParsable<InternalSearchHit>> fieldsMap = Maps.newLinkedHashMap();
-
-        static {
-            for (InternalSearchHit.JsonFields field : values()) {
-                fieldsMap.put(field.name(), field);
-            }
         }
-    }
-
-    @Override
-    public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
-        XContentHelper.populate(versionedXContentParser, JsonFields.fieldsMap, this);
     }
 
     public static class Fields {

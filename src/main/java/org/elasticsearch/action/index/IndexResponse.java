@@ -19,19 +19,15 @@
 
 package org.elasticsearch.action.index;
 
-import com.google.common.collect.Maps;
 import org.elasticsearch.action.ActionResponse;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
-import org.elasticsearch.common.xcontent.VersionedXContentParser;
 import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.common.xcontent.XContentObjectParseable;
-import org.elasticsearch.common.xcontent.XContentParsable;
 import org.elasticsearch.rest.RestStatus;
 
 import java.io.IOException;
-import java.util.Map;
 
 /**
  * A response of an index operation,
@@ -119,26 +115,18 @@ public class IndexResponse extends ActionResponse {
         out.writeBoolean(created);
     }
 
-    enum JsonFields implements XContentParsable<IndexResponse>, XContentObjectParseable<IndexResponse> {
+    enum JsonField implements XContentObjectParseable<IndexResponse> {
         _index {
             @Override
             public void apply(XContentObject in, IndexResponse response) throws IOException {
                 response.index = in.get(this);
             }
 
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, IndexResponse response) throws IOException {
-                response.index = versionedXContentParser.getParser().text();
-            }
         },
         _type {
             @Override
             public void apply(XContentObject in, IndexResponse response) throws IOException {
                 response.type = in.get(this);
-            }
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, IndexResponse response) throws IOException {
-                response.type = versionedXContentParser.getParser().text();
             }
         },
         _id {
@@ -147,29 +135,17 @@ public class IndexResponse extends ActionResponse {
                 response.id = in.get(this);
             }
 
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, IndexResponse response) throws IOException {
-                response.id = versionedXContentParser.getParser().text();
-            }
         },
         _version {
             @Override
             public void apply(XContentObject in, IndexResponse response) throws IOException {
                 response.version = in.getAsLong(this);
             }
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, IndexResponse response) throws IOException {
-                response.version = versionedXContentParser.getParser().intValue();
-            }
         },
         status {
             @Override
             public void apply(XContentObject in, IndexResponse response) throws IOException {
                 response.bulkStatus = RestStatus.valueOf(in.getAsInt(this));
-            }
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, IndexResponse response) throws IOException {
-                response.bulkStatus = RestStatus.valueOf(versionedXContentParser.getParser().intValue());
             }
         },
         result {
@@ -178,19 +154,11 @@ public class IndexResponse extends ActionResponse {
                 response.created = "created".equals(in.get(this));
             }
 
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, IndexResponse response) throws IOException {
-                response.created = "created".equals(versionedXContentParser.getParser().text());
-            }
         },
         forced_refresh {
             @Override
             public void apply(XContentObject in, IndexResponse response) throws IOException {
 
-            }
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, IndexResponse response) throws IOException {
-                // 5.0 return value
             }
         },
         _shards {
@@ -198,19 +166,11 @@ public class IndexResponse extends ActionResponse {
             public void apply(XContentObject in, IndexResponse response) throws IOException {
 
             }
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, IndexResponse response) throws IOException {
-                // 5.0 return value
-            }
         },
         total {
             @Override
             public void apply(XContentObject in, IndexResponse response) throws IOException {
 
-            }
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, IndexResponse response) throws IOException {
-                // 5.0 return value
             }
         },
         successful {
@@ -218,19 +178,11 @@ public class IndexResponse extends ActionResponse {
             public void apply(XContentObject in, IndexResponse response) throws IOException {
 
             }
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, IndexResponse response) throws IOException {
-                // 5.0 return value
-            }
         },
         failed {
             @Override
             public void apply(XContentObject in, IndexResponse response) throws IOException {
 
-            }
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, IndexResponse response) throws IOException {
-                // 5.0 return value
             }
         },
         created {
@@ -238,27 +190,11 @@ public class IndexResponse extends ActionResponse {
             public void apply(XContentObject in, IndexResponse response) throws IOException {
                 response.created = in.getAsBoolean(this);
             }
-            @Override
-            public void apply(VersionedXContentParser versionedXContentParser, IndexResponse response) throws IOException {
-                response.created = versionedXContentParser.getParser().booleanValue();
-            }
-        };
-
-        static Map<String, XContentParsable<IndexResponse>> fields = Maps.newLinkedHashMap();
-        static {
-            for (JsonFields field : values()) {
-                fields.put(field.name(), field);
-            }
         }
     }
 
     @Override
-    public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
-        XContentHelper.populate(versionedXContentParser, JsonFields.fields, this);
-    }
-
-    @Override
     public void readFrom(XContentObject in) throws IOException {
-        XContentHelper.populate(in, JsonFields.values(), this);
+        XContentHelper.populate(in, JsonField.values(), this);
     }
 }
