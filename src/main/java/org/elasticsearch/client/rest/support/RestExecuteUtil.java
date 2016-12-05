@@ -91,6 +91,9 @@ public class RestExecuteUtil {
                 ElasticsearchExceptionHandler handler = ElasticsearchExceptionHandler.safeValueOf(type);
                 throw handler.newException(error);
             }
+            else {
+                throw new UncategorizedExecutionException(source.toJson());
+            }
         }
         else {
             String message = source.get("error");
