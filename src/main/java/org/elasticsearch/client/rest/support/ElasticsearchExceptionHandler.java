@@ -277,9 +277,9 @@ public enum ElasticsearchExceptionHandler {
         this.exceptionClass = exceptionClass;
     }
 
-    public static ElasticsearchExceptionHandler valueOfOrNull(String name) {
+    public static ElasticsearchExceptionHandler safeValueOf(String name) {
         if (name == null) {
-            return null;
+            return UNCATEGORIZED_EXECUTION_EXCEPTION;
         }
         else {
             name = name.toUpperCase(Locale.ROOT);
@@ -287,7 +287,10 @@ public enum ElasticsearchExceptionHandler {
         try {
             return valueOf(name);
         } catch (IllegalArgumentException e) {
-            return simpleNameMapping.get(name);
+            if (simpleNameMapping.containsKey(name)) {
+                return simpleNameMapping.get(name);
+            }
+            return UNCATEGORIZED_EXECUTION_EXCEPTION;
         }
     }
 

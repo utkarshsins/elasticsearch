@@ -22,9 +22,7 @@ import com.google.common.collect.Maps;
 import org.elasticsearch.action.ActionResponse;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
-import org.elasticsearch.common.xcontent.VersionedXContentParser;
-import org.elasticsearch.common.xcontent.XContentHelper;
-import org.elasticsearch.common.xcontent.XContentParsable;
+import org.elasticsearch.common.xcontent.*;
 
 import java.io.IOException;
 import java.util.Map;
@@ -68,14 +66,23 @@ public abstract class AcknowledgedResponse extends ActionResponse {
     }
 
 
-    enum JsonFields implements XContentParsable<AcknowledgedResponse> {
+    enum JsonFields implements XContentParsable<AcknowledgedResponse>, XContentObjectParseable<AcknowledgedResponse> {
         acknowledged {
+            @Override
+            public void apply(XContentObject in, AcknowledgedResponse response) throws IOException {
+                response.acknowledged = in.getAsBoolean(this);
+            }
+
             @Override
             public void apply(VersionedXContentParser versionedXContentParser, AcknowledgedResponse response) throws IOException {
                 response.acknowledged = versionedXContentParser.getParser().booleanValue();
             }
         },
         shards_acknowledged {
+            @Override
+            public void apply(XContentObject in, AcknowledgedResponse response) throws IOException {
+                // 5.0 results //todo bdk handle
+            }
             @Override
             public void apply(VersionedXContentParser versionedXContentParser, AcknowledgedResponse response) throws IOException {
                 // 5.0 results //todo bdk handle
@@ -93,4 +100,8 @@ public abstract class AcknowledgedResponse extends ActionResponse {
         XContentHelper.populate(versionedXContentParser, JsonFields.fields, this);
     }
 
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        XContentHelper.populate(in, JsonFields.values(), this);
+    }
 }

@@ -18,6 +18,7 @@
  */
 package org.elasticsearch.action.admin.indices.alias.get;
 
+import org.apache.http.HttpEntity;
 import org.elasticsearch.Version;
 import org.elasticsearch.action.ActionRequestValidationException;
 import org.elasticsearch.action.IndicesRequest;
@@ -39,6 +40,8 @@ public class GetAliasesRequest extends MasterNodeReadOperationRequest<GetAliases
     private String[] aliases = Strings.EMPTY_ARRAY;
 
     private IndicesOptions indicesOptions = IndicesOptions.strictExpandOpen();
+
+    private boolean exists;
 
     public GetAliasesRequest(String[] aliases) {
         this.aliases = aliases;
@@ -64,6 +67,11 @@ public class GetAliasesRequest extends MasterNodeReadOperationRequest<GetAliases
 
     public GetAliasesRequest indicesOptions(IndicesOptions indicesOptions) {
         this.indicesOptions = indicesOptions;
+        return this;
+    }
+
+    public GetAliasesRequest exists(boolean exists) {
+        this.exists = exists;
         return this;
     }
 
@@ -106,6 +114,9 @@ public class GetAliasesRequest extends MasterNodeReadOperationRequest<GetAliases
 
     @Override
     public RestRequest.Method getMethod() {
+        if (exists) {
+            return RestRequest.Method.HEAD;
+        }
         return RestRequest.Method.GET;
     }
 
@@ -115,5 +126,13 @@ public class GetAliasesRequest extends MasterNodeReadOperationRequest<GetAliases
                 .csv(indices())
                 .slash("_alias")
                 .csv(aliases).build();
+    }
+
+    @Override
+    public HttpEntity getEntity() throws IOException {
+        if (exists) {
+            return null;
+        }
+        return super.getEntity();
     }
 }

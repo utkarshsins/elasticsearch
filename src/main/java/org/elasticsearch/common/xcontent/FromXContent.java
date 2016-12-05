@@ -25,4 +25,5 @@ import java.io.IOException;
 public interface FromXContent {
 
     void readFrom(VersionedXContentParser versionedXContentParser) throws IOException;
+    void readFrom(XContentObject in) throws IOException;
 }

@@ -67,27 +67,27 @@ public class InternalStats extends InternalNumericMetricsAggregation.MultiValue 
 
         count {
             @Override
-            public void apply(XContentObject source, InternalStats object) throws IOException {
-                object.count = source.getAsInt(this, 0);
+            public void apply(XContentObject in, InternalStats response) throws IOException {
+                response.count = in.getAsInt(this, 0);
             }
         }, sum {
             @Override
-            public void apply(XContentObject source, InternalStats object) throws IOException {
-                object.sum = source.getAsDouble(this, Double.POSITIVE_INFINITY);
+            public void apply(XContentObject in, InternalStats response) throws IOException {
+                response.sum = in.getAsDouble(this, Double.POSITIVE_INFINITY);
             }
         }, min {
             @Override
-            public void apply(XContentObject source, InternalStats object) throws IOException {
-                object.min = source.getAsDouble(this, Double.POSITIVE_INFINITY);
+            public void apply(XContentObject in, InternalStats response) throws IOException {
+                response.min = in.getAsDouble(this, Double.POSITIVE_INFINITY);
             }
         }, max {
             @Override
-            public void apply(XContentObject source, InternalStats object) throws IOException {
-                object.max = source.getAsDouble(this, Double.POSITIVE_INFINITY);
+            public void apply(XContentObject in, InternalStats response) throws IOException {
+                response.max = in.getAsDouble(this, Double.POSITIVE_INFINITY);
             }
         }, avg {
             @Override
-            public void apply(XContentObject source, InternalStats object) throws IOException {
+            public void apply(XContentObject in, InternalStats response) throws IOException {
                 // derived
             }
         };

@@ -114,7 +114,7 @@ public class Suggest implements Iterable<Suggest.Suggestion<? extends Entry<? ex
     enum JsonFields implements XContentParsable<Suggest>, XContentObjectParseable<Suggest> {
         suggest {
             @Override
-            public void apply(XContentObject source, Suggest object) throws IOException {
+            public void apply(XContentObject in, Suggest response) throws IOException {
             }
 
             @Override

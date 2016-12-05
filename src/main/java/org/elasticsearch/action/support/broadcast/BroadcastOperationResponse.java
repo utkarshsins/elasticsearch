@@ -117,11 +117,11 @@ public abstract class BroadcastOperationResponse extends ActionResponse {
     enum JsonFields implements XContentObjectParseable<BroadcastOperationResponse> {
         _shards {
             @Override
-            public void apply(XContentObject source, BroadcastOperationResponse object) throws IOException {
-                XContentObject shardInfo = source.getAsXContentObject(this);
-                object.totalShards = shardInfo.getAsInt(ShardFields.total);
-                object.successfulShards = shardInfo.getAsInt(ShardFields.successful);
-                object.failedShards = shardInfo.getAsInt(ShardFields.failed);
+            public void apply(XContentObject in, BroadcastOperationResponse response) throws IOException {
+                XContentObject shardInfo = in.getAsXContentObject(this);
+                response.totalShards = shardInfo.getAsInt(ShardFields.total);
+                response.successfulShards = shardInfo.getAsInt(ShardFields.successful);
+                response.failedShards = shardInfo.getAsInt(ShardFields.failed);
             }
         }
     }
@@ -129,5 +129,6 @@ public abstract class BroadcastOperationResponse extends ActionResponse {
     public void readFrom(XContentObject in) throws IOException {
         XContentHelper.populate(in, JsonFields.values(), this);
     }
+
 
 }

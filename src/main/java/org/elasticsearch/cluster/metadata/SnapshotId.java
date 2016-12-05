@@ -19,9 +19,13 @@
 
 package org.elasticsearch.cluster.metadata;
 
+import org.elasticsearch.action.admin.cluster.snapshots.status.SnapshotStatus;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Streamable;
+import org.elasticsearch.common.xcontent.XContentHelper;
+import org.elasticsearch.common.xcontent.XContentObject;
+import org.elasticsearch.common.xcontent.XContentObjectParseable;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -39,6 +43,25 @@ public class SnapshotId implements Serializable, Streamable {
     private int hashCode;
 
     private SnapshotId() {
+    }
+
+    enum JsonField implements XContentObjectParseable<SnapshotId> {
+        repository {
+            @Override
+            public void apply(XContentObject in, SnapshotId response) throws IOException {
+                response.repository = in.get(this);
+            }
+        },
+        snapshot {
+            @Override
+            public void apply(XContentObject in, SnapshotId response) throws IOException {
+                response.snapshot = in.get(this);
+            }
+        }
+    }
+
+    public SnapshotId(XContentObject in) throws IOException {
+        XContentHelper.populate(in, JsonField.values(), this, true);
     }
 
     /**

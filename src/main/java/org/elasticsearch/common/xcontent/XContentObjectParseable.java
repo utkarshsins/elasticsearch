@@ -27,5 +27,5 @@ public interface XContentObjectParseable<T>  {
 
     String name();
 
-    void apply(XContentObject source, T object) throws IOException;
+    void apply(XContentObject in, T response) throws IOException;
 }

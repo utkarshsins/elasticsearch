@@ -209,70 +209,70 @@ public class NodeInfo extends NodeOperationResponse {
 
         version {
             @Override
-            public void apply(XContentObject source, NodeInfo object) throws IOException {
-                object.version = Version.fromString(source.get(this));
+            public void apply(XContentObject in, NodeInfo response) throws IOException {
+                response.version = Version.fromString(in.get(this));
             }
         },
         build {
             @Override
-            public void apply(XContentObject source, NodeInfo object) throws IOException {
-                object.build = Build.readBuild(source.getAsXContentObject(this));
+            public void apply(XContentObject in, NodeInfo response) throws IOException {
+                response.build = Build.readBuild(in.getAsXContentObject(this));
             }
         },
         settings {
             @Override
-            public void apply(XContentObject source, NodeInfo object) throws IOException {
-                object.settings = ImmutableSettings.readSettingsFromStream(source.getAsXContentObject(this));
+            public void apply(XContentObject in, NodeInfo response) throws IOException {
+                response.settings = ImmutableSettings.readSettingsFromStream(in.getAsXContentObject(this));
             }
         },
         os {
             @Override
-            public void apply(XContentObject source, NodeInfo object) throws IOException {
+            public void apply(XContentObject in, NodeInfo response) throws IOException {
                 //todo rest finish
-                object.os = OsInfo.readOsInfo(source.getAsXContentObject(this));
+                response.os = OsInfo.readOsInfo(in.getAsXContentObject(this));
             }
         },
         process {
             @Override
-            public void apply(XContentObject source, NodeInfo object) throws IOException {
+            public void apply(XContentObject in, NodeInfo response) throws IOException {
                 //todo rest finish
-                object.process = ProcessInfo.readProcessInfo(source.getAsXContentObject(this));
+                response.process = ProcessInfo.readProcessInfo(in.getAsXContentObject(this));
             }
         },
         jvm {
             @Override
-            public void apply(XContentObject source, NodeInfo object) throws IOException {
+            public void apply(XContentObject in, NodeInfo response) throws IOException {
                 //todo rest finish
-                object.jvm = JvmInfo.readJvmInfo(source.getAsXContentObject(this));
+                response.jvm = JvmInfo.readJvmInfo(in.getAsXContentObject(this));
             }
         },
         thread_pool {
             @Override
-            public void apply(XContentObject source, NodeInfo object) throws IOException {
+            public void apply(XContentObject in, NodeInfo response) throws IOException {
                 //todo rest finish
             }
         },
         network {
             @Override
-            public void apply(XContentObject source, NodeInfo object) throws IOException {
+            public void apply(XContentObject in, NodeInfo response) throws IOException {
                 //todo rest finish
             }
         },
         transport {
             @Override
-            public void apply(XContentObject source, NodeInfo object) throws IOException {
+            public void apply(XContentObject in, NodeInfo response) throws IOException {
                 //todo rest finish
             }
         },
         http {
             @Override
-            public void apply(XContentObject source, NodeInfo object) throws IOException {
+            public void apply(XContentObject in, NodeInfo response) throws IOException {
                 //todo rest finish
             }
         },
         plugins {
             @Override
-            public void apply(XContentObject source, NodeInfo object) throws IOException {
+            public void apply(XContentObject in, NodeInfo response) throws IOException {
 
             }
         }

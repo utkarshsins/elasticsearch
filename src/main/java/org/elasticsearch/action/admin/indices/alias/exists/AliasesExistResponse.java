@@ -23,9 +23,7 @@ import com.google.common.collect.Maps;
 import org.elasticsearch.action.ActionResponse;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
-import org.elasticsearch.common.xcontent.VersionedXContentParser;
-import org.elasticsearch.common.xcontent.XContentHelper;
-import org.elasticsearch.common.xcontent.XContentParsable;
+import org.elasticsearch.common.xcontent.*;
 
 import java.io.IOException;
 import java.util.Map;
@@ -63,8 +61,13 @@ public class AliasesExistResponse extends ActionResponse {
         out.writeBoolean(exists);
     }
 
-    enum JsonFields implements XContentParsable<AliasesExistResponse> {
+    enum JsonFields implements XContentParsable<AliasesExistResponse>, XContentObjectParseable<AliasesExistResponse> {
         exists {
+            @Override
+            public void apply(XContentObject in, AliasesExistResponse response) throws IOException {
+                response.exists = in.getAsBoolean(this);
+            }
+
             @Override
             public void apply(VersionedXContentParser versionedXContentParser, AliasesExistResponse response) throws IOException {
                 response.exists = versionedXContentParser.getParser().booleanValue();
@@ -84,6 +87,11 @@ public class AliasesExistResponse extends ActionResponse {
     @Override
     public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
         XContentHelper.populate(versionedXContentParser, JsonFields.fields, this);
+    }
+
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        XContentHelper.populate(in, JsonFields.values(), this);
     }
 
 }

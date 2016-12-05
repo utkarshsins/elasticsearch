@@ -23,9 +23,7 @@ import com.google.common.collect.Maps;
 import org.elasticsearch.action.ActionResponse;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
-import org.elasticsearch.common.xcontent.VersionedXContentParser;
-import org.elasticsearch.common.xcontent.XContentHelper;
-import org.elasticsearch.common.xcontent.XContentParsable;
+import org.elasticsearch.common.xcontent.*;
 import org.elasticsearch.script.ScriptService;
 
 import java.io.IOException;
@@ -110,8 +108,13 @@ public class PutIndexedScriptResponse extends ActionResponse {
         out.writeBoolean(created);
     }
 
-    enum JsonFields implements XContentParsable<PutIndexedScriptResponse> {
+    enum JsonFields implements XContentParsable<PutIndexedScriptResponse>, XContentObjectParseable<PutIndexedScriptResponse> {
         _id {
+            @Override
+            public void apply(XContentObject in, PutIndexedScriptResponse response) throws IOException {
+                response.id = in.get(this);
+            }
+
             @Override
             public void apply(VersionedXContentParser versionedXContentParser, PutIndexedScriptResponse response) throws IOException {
                 response.id = versionedXContentParser.getParser().text();
@@ -119,11 +122,21 @@ public class PutIndexedScriptResponse extends ActionResponse {
         },
         created {
             @Override
+            public void apply(XContentObject in, PutIndexedScriptResponse response) throws IOException {
+                response.created = in.getAsBoolean(this);
+            }
+
+            @Override
             public void apply(VersionedXContentParser versionedXContentParser, PutIndexedScriptResponse response) throws IOException {
                 response.created = versionedXContentParser.getParser().booleanValue();
             }
         },
         _version {
+            @Override
+            public void apply(XContentObject in, PutIndexedScriptResponse response) throws IOException {
+                response.version = in.getAsLong(this);
+            }
+
             @Override
             public void apply(VersionedXContentParser versionedXContentParser, PutIndexedScriptResponse response) throws IOException {
                 response.version = versionedXContentParser.getParser().longValue();
@@ -142,5 +155,10 @@ public class PutIndexedScriptResponse extends ActionResponse {
     @Override
     public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
         XContentHelper.populate(versionedXContentParser, JsonFields.fields, this);
+    }
+
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        XContentHelper.populate(in, JsonFields.values(), this);
     }
 }

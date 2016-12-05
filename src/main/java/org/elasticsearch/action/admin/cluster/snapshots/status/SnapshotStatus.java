@@ -26,10 +26,8 @@ import org.elasticsearch.cluster.metadata.SnapshotMetaData.State;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Streamable;
-import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentBuilderString;
-import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.common.xcontent.*;
+import org.elasticsearch.index.shard.ShardId;
 
 import java.io.IOException;
 import java.util.List;
@@ -42,7 +40,7 @@ import static com.google.common.collect.Sets.newHashSet;
 /**
  * Status of a snapshot
  */
-public class SnapshotStatus implements ToXContent, Streamable {
+public class SnapshotStatus implements ToXContent, Streamable, FromXContent {
 
     private SnapshotId snapshotId;
 
@@ -185,6 +183,63 @@ public class SnapshotStatus implements ToXContent, Streamable {
         static final XContentBuilderString STATE = new XContentBuilderString("state");
         static final XContentBuilderString INDICES = new XContentBuilderString("indices");
     }
+
+    enum JsonField implements XContentObjectParseable<SnapshotStatus> {
+        state {
+            @Override
+            public void apply(XContentObject in, SnapshotStatus response) throws IOException {
+                response.state = State.valueOf(in.get(this));
+            }
+        },
+        shards_stats {
+            @Override
+            public void apply(XContentObject in, SnapshotStatus response) throws IOException {
+                response.shardsStats = new SnapshotShardsStats(in.getAsXContentObject(this));
+            }
+        },
+        stats {
+            @Override
+            public void apply(XContentObject in, SnapshotStatus response) throws IOException {
+                response.stats = new SnapshotStats(in.getAsXContentObject(this));
+            }
+        },
+        indices {
+            @Override
+            public void apply(XContentObject in, SnapshotStatus response) throws IOException {
+                Map<String, XContentObject> map = in.getAsXContentObjectsMap(this);
+                ImmutableMap.Builder<String, SnapshotIndexStatus> indicesStatus = ImmutableMap.builder();
+
+                for (Map.Entry<String, XContentObject> entry : map.entrySet()) {
+                    Map<String, XContentObject> shards = entry.getValue().getAsXContentObjectsMap("shards");
+                    ImmutableList.Builder<SnapshotIndexShardStatus> builder = ImmutableList.builder();
+                    for (Map.Entry<String, XContentObject> shardEntry : shards.entrySet()) {
+                        ShardId shardId = new ShardId(entry.getKey(), Integer.parseInt(shardEntry.getKey()));
+                        builder.add(new SnapshotIndexShardStatus(shardId, shardEntry.getValue()));
+                    }
+                    indicesStatus.put(entry.getKey(), new SnapshotIndexStatus(entry.getKey(), builder.build()));
+                }
+                response.indicesStatus = indicesStatus.build();
+            }
+        }
+    }
+
+    public static SnapshotStatus readSnapshotStatus(XContentObject in) throws IOException {
+        SnapshotStatus snapshotInfo = new SnapshotStatus();
+        snapshotInfo.readFrom(in);
+        return snapshotInfo;
+    }
+
+    @Override
+    public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        snapshotId = new SnapshotId(in);
+        XContentHelper.populate(in, JsonField.values(), this, true);
+    }
+
 
     @Override
     public XContentBuilder toXContent(XContentBuilder builder, Params params) throws IOException {

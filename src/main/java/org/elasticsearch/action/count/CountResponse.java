@@ -103,14 +103,24 @@ public class CountResponse extends BroadcastOperationResponse implements FromXCo
         }
     }
 
-    enum JsonFields implements XContentParsable<CountResponse> {
+    enum JsonFields implements XContentParsable<CountResponse>, XContentObjectParseable<CountResponse> {
         count {
+            @Override
+            public void apply(XContentObject in, CountResponse response) throws IOException {
+                response.count = in.getAsLong(this);
+            }
+
             @Override
             public void apply(VersionedXContentParser versionedXContentParser, CountResponse response) throws IOException {
                 response.count = versionedXContentParser.getParser().longValue();
             }
         },
         _shards {
+            @Override
+            public void apply(XContentObject in, CountResponse response) throws IOException {
+                // todo bdk
+            }
+
             @Override
             public void apply(VersionedXContentParser versionedXContentParser, CountResponse response) throws IOException {
                 //todo
@@ -130,4 +140,8 @@ public class CountResponse extends BroadcastOperationResponse implements FromXCo
         XContentHelper.populate(versionedXContentParser, JsonFields.fields, this);
     }
 
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        XContentHelper.populate(in, JsonFields.values(), this);
+    }
 }

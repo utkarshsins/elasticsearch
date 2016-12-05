@@ -98,4 +98,13 @@ public class GetSnapshotsResponse extends ActionResponse implements ToXContent {
         snapshots = builder.build();
     }
 
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        List<XContentObject> xSnapshots = in.getAsXContentObjects("snapshots");
+        ImmutableList.Builder<SnapshotInfo> builder = ImmutableList.builder();
+        for (XContentObject xSnapshot : xSnapshots) {
+            builder.add(SnapshotInfo.readSnapshotInfo(xSnapshot));
+        }
+        snapshots = builder.build();
+    }
 }

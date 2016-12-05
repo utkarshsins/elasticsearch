@@ -73,4 +73,10 @@ public class ClusterStateResponse extends ActionResponse {
         this.clusterName = ClusterName.readClusterName(xContentObject);
         this.clusterState = ClusterState.Builder.readFrom(xContentObject, this.clusterName);
     }
+
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        this.clusterName = ClusterName.readClusterName(in);
+        this.clusterState = ClusterState.Builder.readFrom(in, this.clusterName);
+    }
 }

@@ -21,6 +21,8 @@ package org.elasticsearch.action.support.broadcast;
 
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
+import org.elasticsearch.common.xcontent.FromXContent;
+import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.index.shard.ShardId;
 import org.elasticsearch.transport.TransportResponse;
 
@@ -59,5 +61,9 @@ public abstract class BroadcastShardOperationResponse extends TransportResponse 
     public void writeTo(StreamOutput out) throws IOException {
         super.writeTo(out);
         shardId.writeTo(out);
+    }
+
+    public void readFrom(XContentObject in) throws IOException {
+        XContentObject parent = in.getParent();
     }
 }

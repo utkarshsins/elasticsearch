@@ -122,8 +122,8 @@ public class IndexResponse extends ActionResponse {
     enum JsonFields implements XContentParsable<IndexResponse>, XContentObjectParseable<IndexResponse> {
         _index {
             @Override
-            public void apply(XContentObject source, IndexResponse object) throws IOException {
-                object.index = source.get(this);
+            public void apply(XContentObject in, IndexResponse response) throws IOException {
+                response.index = in.get(this);
             }
 
             @Override
@@ -133,8 +133,8 @@ public class IndexResponse extends ActionResponse {
         },
         _type {
             @Override
-            public void apply(XContentObject source, IndexResponse object) throws IOException {
-                object.type = source.get(this);
+            public void apply(XContentObject in, IndexResponse response) throws IOException {
+                response.type = in.get(this);
             }
             @Override
             public void apply(VersionedXContentParser versionedXContentParser, IndexResponse response) throws IOException {
@@ -143,8 +143,8 @@ public class IndexResponse extends ActionResponse {
         },
         _id {
             @Override
-            public void apply(XContentObject source, IndexResponse object) throws IOException {
-                object.id = source.get(this);
+            public void apply(XContentObject in, IndexResponse response) throws IOException {
+                response.id = in.get(this);
             }
 
             @Override
@@ -154,8 +154,8 @@ public class IndexResponse extends ActionResponse {
         },
         _version {
             @Override
-            public void apply(XContentObject source, IndexResponse object) throws IOException {
-                object.version = source.getAsLong(this);
+            public void apply(XContentObject in, IndexResponse response) throws IOException {
+                response.version = in.getAsLong(this);
             }
             @Override
             public void apply(VersionedXContentParser versionedXContentParser, IndexResponse response) throws IOException {
@@ -164,8 +164,8 @@ public class IndexResponse extends ActionResponse {
         },
         status {
             @Override
-            public void apply(XContentObject source, IndexResponse object) throws IOException {
-                object.bulkStatus = RestStatus.valueOf(source.getAsInt(this));
+            public void apply(XContentObject in, IndexResponse response) throws IOException {
+                response.bulkStatus = RestStatus.valueOf(in.getAsInt(this));
             }
             @Override
             public void apply(VersionedXContentParser versionedXContentParser, IndexResponse response) throws IOException {
@@ -174,8 +174,8 @@ public class IndexResponse extends ActionResponse {
         },
         result {
             @Override
-            public void apply(XContentObject source, IndexResponse object) throws IOException {
-                object.created = "created".equals(source.get(this));
+            public void apply(XContentObject in, IndexResponse response) throws IOException {
+                response.created = "created".equals(in.get(this));
             }
 
             @Override
@@ -185,7 +185,7 @@ public class IndexResponse extends ActionResponse {
         },
         forced_refresh {
             @Override
-            public void apply(XContentObject source, IndexResponse object) throws IOException {
+            public void apply(XContentObject in, IndexResponse response) throws IOException {
 
             }
             @Override
@@ -195,7 +195,7 @@ public class IndexResponse extends ActionResponse {
         },
         _shards {
             @Override
-            public void apply(XContentObject source, IndexResponse object) throws IOException {
+            public void apply(XContentObject in, IndexResponse response) throws IOException {
 
             }
             @Override
@@ -205,7 +205,7 @@ public class IndexResponse extends ActionResponse {
         },
         total {
             @Override
-            public void apply(XContentObject source, IndexResponse object) throws IOException {
+            public void apply(XContentObject in, IndexResponse response) throws IOException {
 
             }
             @Override
@@ -215,7 +215,7 @@ public class IndexResponse extends ActionResponse {
         },
         successful {
             @Override
-            public void apply(XContentObject source, IndexResponse object) throws IOException {
+            public void apply(XContentObject in, IndexResponse response) throws IOException {
 
             }
             @Override
@@ -225,7 +225,7 @@ public class IndexResponse extends ActionResponse {
         },
         failed {
             @Override
-            public void apply(XContentObject source, IndexResponse object) throws IOException {
+            public void apply(XContentObject in, IndexResponse response) throws IOException {
 
             }
             @Override
@@ -235,8 +235,8 @@ public class IndexResponse extends ActionResponse {
         },
         created {
             @Override
-            public void apply(XContentObject source, IndexResponse object) throws IOException {
-                object.created = source.getAsBoolean(this);
+            public void apply(XContentObject in, IndexResponse response) throws IOException {
+                response.created = in.getAsBoolean(this);
             }
             @Override
             public void apply(VersionedXContentParser versionedXContentParser, IndexResponse response) throws IOException {
@@ -258,7 +258,7 @@ public class IndexResponse extends ActionResponse {
     }
 
     @Override
-    public void readFrom(XContentObject source) throws IOException {
-        XContentHelper.populate(source, JsonFields.values(), this);
+    public void readFrom(XContentObject in) throws IOException {
+        XContentHelper.populate(in, JsonFields.values(), this);
     }
 }

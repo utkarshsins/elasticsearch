@@ -22,6 +22,7 @@ package org.elasticsearch.action.delete;
 import org.elasticsearch.action.ActionResponse;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
+import org.elasticsearch.common.xcontent.XContentObject;
 
 import java.io.IOException;
 
@@ -82,5 +83,10 @@ public class IndexDeleteResponse extends ActionResponse {
     @Override
     public void writeTo(StreamOutput out) throws IOException {
         throw new UnsupportedOperationException("IndexDeleteResponse is not supposed to be sent over the transport");
+    }
+
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        throw new UnsupportedOperationException("IndexDeleteResponse is not supposed to be sent over the client");
     }
 }

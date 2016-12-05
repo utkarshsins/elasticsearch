@@ -19,13 +19,18 @@
 
 package org.elasticsearch.action.admin.cluster.snapshots.status;
 
+import com.sun.javafx.fxml.builder.URLBuilder;
+import org.apache.http.HttpEntity;
 import org.elasticsearch.action.ActionRequestValidationException;
 import org.elasticsearch.action.support.master.MasterNodeOperationRequest;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
+import org.elasticsearch.common.util.UriBuilder;
+import org.elasticsearch.rest.RestRequest;
 
 import java.io.IOException;
+import java.util.Map;
 
 import static org.elasticsearch.action.ValidateActions.addValidationError;
 
@@ -126,4 +131,19 @@ public class SnapshotsStatusRequest extends MasterNodeOperationRequest<Snapshots
         out.writeString(repository);
         out.writeStringArray(snapshots);
     }
+
+    @Override
+    public RestRequest.Method getMethod() {
+        return RestRequest.Method.GET;
+    }
+
+    @Override
+    public String getEndPoint() {
+        return UriBuilder.newBuilder()
+                .slash("_snapshot")
+                .slash(repository)
+                .csv(snapshots)
+                .slash("_status").build();
+    }
+
 }

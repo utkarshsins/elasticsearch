@@ -71,6 +71,18 @@ public class NodesInfoResponse extends NodesOperationResponse<NodeInfo> implemen
         }
     }
 
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+//        super.readFrom(source); //todo bdk add back for cluster name
+        XContentObject xNodes = in.getAsXContentObject("nodes");
+        this.nodes = new NodeInfo[xNodes.size()];
+        Set<String> xNodeIds = xNodes.keySet();
+        int i = 0;
+        for (String xNodeId : xNodeIds) {
+            XContentObject xNodeInfo = xNodes.getAsXContentObject(xNodeId);
+            nodes[i++] = NodeInfo.readNodeInfo(xNodeInfo);
+        }
+    }
 
     @Override
     public void writeTo(StreamOutput out) throws IOException {

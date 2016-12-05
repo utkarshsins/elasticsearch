@@ -26,8 +26,10 @@ import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentBuilderString;
+import org.elasticsearch.common.xcontent.XContentObject;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Snapshot status response
@@ -70,6 +72,18 @@ public class SnapshotsStatusResponse extends ActionResponse implements ToXConten
         for (SnapshotStatus snapshotInfo : snapshots) {
             snapshotInfo.writeTo(out);
         }
+    }
+
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        ImmutableList.Builder<SnapshotStatus> builder = ImmutableList.builder();
+        List<XContentObject> xSnapshots = in.getAsXContentObjects("snapshots");
+        for (XContentObject xSnapshot : xSnapshots) {
+            builder.add(SnapshotStatus.readSnapshotStatus(xSnapshot));
+        }
+        this.snapshots = builder.build();
+
+
     }
 
     static final class Fields {

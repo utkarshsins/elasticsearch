@@ -93,12 +93,12 @@ public class GetMappingsResponse extends ActionResponse {
         readFrom(xContentObject);
     }
 
-    public void readFrom(XContentObject xContentObject) throws IOException {
-        Set<String> indices = xContentObject.keySet();
+    public void readFrom(XContentObject in) throws IOException {
+        Set<String> indices = in.keySet();
         ImmutableOpenMap.Builder<String, ImmutableOpenMap<String, MappingMetaData>> mappingsMapBuilder = ImmutableOpenMap.builder();
 
         for (String index : indices) {
-            XContentObject indexData = xContentObject.getAsXContentObject(index);
+            XContentObject indexData = in.getAsXContentObject(index);
 
             // handle mappings
             XContentObject xMappings = indexData.getAsXContentObject(JsonField.mappings);

@@ -58,7 +58,6 @@ public class RestIndicesAdminClientTest extends AbstractRestClientTest {
         assertFalse(response.getMappings().get(index).isEmpty());
         assertFalse(response.getSettings().get(index).names().isEmpty());
         assertFalse(response.getAliases().get(index).isEmpty());
-        assertFalse(response.getWarmers().get(index).isEmpty());
     }
 
 
@@ -128,7 +127,7 @@ public class RestIndicesAdminClientTest extends AbstractRestClientTest {
 
     @Test
     public void testDeleteMapping() {
-        DeleteMappingResponse response = indicesAdminClient.prepareDeleteMapping(index).get();
+        DeleteMappingResponse response = indicesAdminClient.prepareDeleteMapping(index).setType(type).get();
         assertAcknowledged(response);
     }
 
@@ -162,7 +161,7 @@ public class RestIndicesAdminClientTest extends AbstractRestClientTest {
     }
 
     @Test
-    @Ignore
+//    @Ignore
     public void testAliasesExist() {
 
         AliasesExistResponse response;

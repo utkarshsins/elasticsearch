@@ -325,10 +325,10 @@ public class BulkItemResponse implements Streamable, FromXContent {
             }
 
             @Override
-            public void apply(XContentObject source, BulkItemResponse response) throws IOException {
+            public void apply(XContentObject in, BulkItemResponse response) throws IOException {
                 response.response = new IndexResponse();
-                response.response.readFrom(source);
-                handleFailure(source, response, this);
+                response.response.readFrom(in);
+                handleFailure(in, response, this);
             }
         },
         create {
@@ -339,10 +339,10 @@ public class BulkItemResponse implements Streamable, FromXContent {
             }
 
             @Override
-            public void apply(XContentObject source, BulkItemResponse response) throws IOException {
+            public void apply(XContentObject in, BulkItemResponse response) throws IOException {
                 response.response = new IndexResponse();
-                response.response.readFrom(source);
-                handleFailure(source, response, this);
+                response.response.readFrom(in);
+                handleFailure(in, response, this);
             }
 
         },
@@ -354,10 +354,10 @@ public class BulkItemResponse implements Streamable, FromXContent {
             }
 
             @Override
-            public void apply(XContentObject source, BulkItemResponse response) throws IOException {
+            public void apply(XContentObject in, BulkItemResponse response) throws IOException {
                 response.response = new UpdateResponse();
-                response.response.readFrom(source);
-                handleFailure(source, response, this);
+                response.response.readFrom(in);
+                handleFailure(in, response, this);
             }
         },
         delete {
@@ -368,10 +368,10 @@ public class BulkItemResponse implements Streamable, FromXContent {
             }
 
             @Override
-            public void apply(XContentObject source, BulkItemResponse response) throws IOException {
+            public void apply(XContentObject in, BulkItemResponse response) throws IOException {
                 response.response = new DeleteResponse();
-                response.response.readFrom(source);
-                handleFailure(source, response, this);
+                response.response.readFrom(in);
+                handleFailure(in, response, this);
             }
         };
         static Map<String, XContentParsable<BulkItemResponse>> fields = Maps.newLinkedHashMap();
@@ -394,8 +394,8 @@ public class BulkItemResponse implements Streamable, FromXContent {
         XContentHelper.populate(versionedXContentParser,  JsonField.fields, this);
     }
 
-    public void readFrom(XContentObject xItem) throws IOException {
-        XContentHelper.populate(xItem, JsonField.values(), this);
+    public void readFrom(XContentObject in) throws IOException {
+        XContentHelper.populate(in, JsonField.values(), this);
     }
 
 }

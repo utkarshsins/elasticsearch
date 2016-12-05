@@ -123,8 +123,8 @@ public class DeleteResponse extends ActionResponse {
     enum JsonFields implements XContentParsable<DeleteResponse>, XContentObjectParseable<DeleteResponse> {
         _index {
             @Override
-            public void apply(XContentObject source, DeleteResponse object) throws IOException {
-                object.index = source.get(this);
+            public void apply(XContentObject in, DeleteResponse response) throws IOException {
+                response.index = in.get(this);
             }
 
             @Override
@@ -134,8 +134,8 @@ public class DeleteResponse extends ActionResponse {
         },
         _type {
             @Override
-            public void apply(XContentObject source, DeleteResponse object) throws IOException {
-                object.type = source.get(this);
+            public void apply(XContentObject in, DeleteResponse response) throws IOException {
+                response.type = in.get(this);
             }
             @Override
             public void apply(VersionedXContentParser versionedXContentParser, DeleteResponse response) throws IOException {
@@ -144,8 +144,8 @@ public class DeleteResponse extends ActionResponse {
         },
         _id {
             @Override
-            public void apply(XContentObject source, DeleteResponse object) throws IOException {
-                object.id = source.get(this);
+            public void apply(XContentObject in, DeleteResponse response) throws IOException {
+                response.id = in.get(this);
             }
             @Override
             public void apply(VersionedXContentParser versionedXContentParser, DeleteResponse response) throws IOException {
@@ -154,8 +154,8 @@ public class DeleteResponse extends ActionResponse {
         },
         _version {
             @Override
-            public void apply(XContentObject source, DeleteResponse object) throws IOException {
-                object.version = source.getAsLong(this);
+            public void apply(XContentObject in, DeleteResponse response) throws IOException {
+                response.version = in.getAsLong(this);
             }
             @Override
             public void apply(VersionedXContentParser versionedXContentParser, DeleteResponse response) throws IOException {
@@ -164,8 +164,8 @@ public class DeleteResponse extends ActionResponse {
         },
         status {
             @Override
-            public void apply(XContentObject source, DeleteResponse object) throws IOException {
-                object.bulkStatus = RestStatus.valueOf(source.getAsInt(this));
+            public void apply(XContentObject in, DeleteResponse response) throws IOException {
+                response.bulkStatus = RestStatus.valueOf(in.getAsInt(this));
             }
             @Override
             public void apply(VersionedXContentParser versionedXContentParser, DeleteResponse response) throws IOException {
@@ -174,7 +174,7 @@ public class DeleteResponse extends ActionResponse {
         },
         result {
             @Override
-            public void apply(XContentObject source, DeleteResponse object) throws IOException {
+            public void apply(XContentObject in, DeleteResponse response) throws IOException {
 
             }
             @Override
@@ -184,7 +184,7 @@ public class DeleteResponse extends ActionResponse {
         },
         _shards {
             @Override
-            public void apply(XContentObject source, DeleteResponse object) throws IOException {
+            public void apply(XContentObject in, DeleteResponse response) throws IOException {
 
             }
             @Override
@@ -194,8 +194,8 @@ public class DeleteResponse extends ActionResponse {
         },
         found {
             @Override
-            public void apply(XContentObject source, DeleteResponse object) throws IOException {
-                object.found = source.getAsBoolean(this);
+            public void apply(XContentObject in, DeleteResponse response) throws IOException {
+                response.found = in.getAsBoolean(this);
             }
             @Override
             public void apply(VersionedXContentParser versionedXContentParser, DeleteResponse response) throws IOException {
@@ -215,7 +215,7 @@ public class DeleteResponse extends ActionResponse {
     }
 
     @Override
-    public void readFrom(XContentObject source) throws IOException {
-        XContentHelper.populate(source, JsonFields.values(), this);
+    public void readFrom(XContentObject in) throws IOException {
+        XContentHelper.populate(in, JsonFields.values(), this);
     }
 }

@@ -19,6 +19,7 @@
 
 package org.elasticsearch.common.xcontent;
 
+import org.elasticsearch.Version;
 import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.text.Text;
 import org.joda.time.DateTime;
@@ -33,6 +34,12 @@ import java.util.Set;
  *         September 14, 2016
  */
 public interface XContentObject {
+
+    /**
+     * Returns the server's version for this content
+     * @return the server's version
+     */
+    Version getVersion();
 
     /**
      * Returns the value associated with the key.

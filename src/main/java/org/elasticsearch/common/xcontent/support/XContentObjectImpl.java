@@ -22,6 +22,7 @@ package org.elasticsearch.common.xcontent.support;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.elasticsearch.Version;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.bytes.BytesArray;
 import org.elasticsearch.common.bytes.BytesReference;
@@ -40,28 +41,34 @@ import java.util.*;
  *
  */
 public class XContentObjectImpl implements XContentObject {
-    public static final Function<Map<String, Object>, XContentObject> MAP_TO_XCONTENT_OBJECT_TRANSFORMER = new Function<Map<String, Object>, XContentObject>() {
-        @Override
-        public XContentObject apply(Map<String, Object> o) {
-            return new XContentObjectImpl(o);
-        }
-    };
-    public static final Function<String, BytesReference> STRING_TO_BYTES_REFERENCE_TRANSFORMER = new Function<String, BytesReference>() {
+    private static final Function<String, BytesReference> STRING_TO_BYTES_REFERENCE_TRANSFORMER = new Function<String, BytesReference>() {
         @Override
         public BytesReference apply(String s) {
             return new BytesArray(s);
         }
     };
+
     private final Map<String, Object> internalMap;
+    private Version version;
     private XContentObjectImpl parent;
 
-    public XContentObjectImpl(Map<String, Object> map) {
+    XContentObjectImpl(Map<String, Object> map) {
         this.internalMap = map;
     }
 
-    public XContentObjectImpl(XContentObjectImpl parent, Map<String, Object> map) {
+    public XContentObjectImpl(Map<String, Object> map, Version version) {
+        this(null, map, version);
+    }
+
+    private XContentObjectImpl(XContentObjectImpl parent, Map<String, Object> map, Version version) {
         this.internalMap = map;
         this.parent = parent;
+        this.version = version;
+    }
+
+    @Override
+    public Version getVersion() {
+        return version;
     }
 
     @Override
@@ -229,11 +236,12 @@ public class XContentObjectImpl implements XContentObject {
     public XContentObject getAsXContentObject(String key) {
         Object value = internalMap.get(key);
         try {
+            //noinspection unchecked
             Map<String, Object> map = (Map<String, Object>) value;
             if (map == null) {
                 return null;
             }
-            return new XContentObjectImpl(this, map);
+            return new XContentObjectImpl(this, map, version);
         } catch (ClassCastException e) {
             throw new XContentObjectValueException(Map.class, key, value, e);
         }
@@ -331,9 +339,9 @@ public class XContentObjectImpl implements XContentObject {
                 String[] valueAsArray = (String[]) value;
                 return Arrays.asList(valueAsArray);
             }
+            //noinspection unchecked
             return (List<String>) value;
-        }
-        catch (ClassCastException e) {
+        } catch (ClassCastException e) {
             throw new XContentObjectValueException(String[].class, key, value);
         }
     }
@@ -345,6 +353,7 @@ public class XContentObjectImpl implements XContentObject {
                 Object[] valueAsArray = (Object[]) value;
                 return Arrays.asList(valueAsArray);
             }
+            //noinspection unchecked
             return (List<Object>) value;
         }
         catch (ClassCastException e) {
@@ -428,7 +437,7 @@ public class XContentObjectImpl implements XContentObject {
             results = Maps.newLinkedHashMap();
             for (Map.Entry<T, Map> entry : map.entrySet()) {
                 //noinspection unchecked
-                results.put(entry.getKey(), new XContentObjectImpl(entry.getValue()));
+                results.put(entry.getKey(), new XContentObjectImpl(this, entry.getValue(), version));
             }
         }
         catch (ClassCastException e) {
@@ -482,7 +491,13 @@ public class XContentObjectImpl implements XContentObject {
         try {
             @SuppressWarnings("unchecked")
             List<Map<String, Object>> list = (List<Map<String, Object>>) value;
-            return Lists.transform(list, MAP_TO_XCONTENT_OBJECT_TRANSFORMER);
+            return Lists.transform(list, new Function<Map<String, Object>, XContentObject>() {
+                @Override
+                public XContentObject apply(Map<String, Object> map) {
+                    XContentObjectImpl parent = XContentObjectImpl.this;
+                    return new XContentObjectImpl(parent, map, parent.version);
+                }
+            });
         }
         catch (ClassCastException e) {
             throw new XContentObjectValueException(List.class, key,  value, e);

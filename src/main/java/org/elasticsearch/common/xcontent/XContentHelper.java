@@ -24,6 +24,7 @@ import com.google.common.collect.Maps;
 import org.apache.log4j.Logger;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.ElasticsearchParseException;
+import org.elasticsearch.cluster.metadata.SnapshotId;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.bytes.BytesArray;
 import org.elasticsearch.common.bytes.BytesReference;
@@ -517,13 +518,17 @@ public class XContentHelper {
     }
 
     public static <T> void populate(XContentObject source, XContentObjectParseable<T>[] fields, T o) throws IOException {
+        populate(source, fields, o, false);
+    }
+
+    public static <T> void populate(XContentObject source, XContentObjectParseable<T>[] fields, T o, boolean partialDocument) throws IOException {
         Set<String> keys = source.keySet();
         for (XContentObjectParseable<T> field : fields) {
             if (keys.contains(field.name())) {
                 field.apply(source, o);
             }
             else {
-                if (log.isDebugEnabled()) {
+                if (log.isDebugEnabled() && !partialDocument) {
                     log.debug("Skipping field: " + field.name() + " for class: " + o.getClass().getName());
                 }
             }
@@ -538,4 +543,5 @@ public class XContentHelper {
         Map<String, Object> map = parser.mapOrderedAndClose();
         return map;
     }
+
 }

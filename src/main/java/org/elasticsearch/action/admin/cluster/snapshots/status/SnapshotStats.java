@@ -22,16 +22,14 @@ package org.elasticsearch.action.admin.cluster.snapshots.status;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Streamable;
-import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentBuilderString;
+import org.elasticsearch.common.xcontent.*;
 import org.elasticsearch.index.snapshots.IndexShardSnapshotStatus;
 
 import java.io.IOException;
 
 /**
  */
-public class SnapshotStats implements Streamable, ToXContent {
+public class SnapshotStats implements Streamable, ToXContent, FromXContent {
     private long startTime;
 
     private long time;
@@ -54,6 +52,10 @@ public class SnapshotStats implements Streamable, ToXContent {
         processedFiles = indexShardStatus.processedFiles();
         totalSize = indexShardStatus.totalSize();
         processedSize = indexShardStatus.processedSize();
+    }
+
+    SnapshotStats(XContentObject in) throws IOException {
+        readFrom(in);
     }
 
     /**
@@ -127,6 +129,54 @@ public class SnapshotStats implements Streamable, ToXContent {
 
         totalSize = in.readVLong();
         processedSize = in.readVLong();
+    }
+
+    @Override
+    public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    enum JsonField implements XContentObjectParseable<SnapshotStats> {
+        number_of_files {
+            @Override
+            public void apply(XContentObject in, SnapshotStats response) throws IOException {
+                response.numberOfFiles = in.getAsInt(this);
+            }
+        },
+        processed_files {
+            @Override
+            public void apply(XContentObject in, SnapshotStats response) throws IOException {
+                response.processedFiles = in.getAsInt(this);
+            }
+        },
+        total_size_in_bytes {
+            @Override
+            public void apply(XContentObject in, SnapshotStats response) throws IOException {
+                response.totalSize = in.getAsLong(this);
+            }
+        },
+        processed_size_in_bytes {
+            @Override
+            public void apply(XContentObject in, SnapshotStats response) throws IOException {
+                response.processedSize = in.getAsLong(this);
+            }
+        },
+        start_time_in_millis {
+            @Override
+            public void apply(XContentObject in, SnapshotStats response) throws IOException {
+                response.startTime = in.getAsLong(this);
+            }
+        },
+        time_in_millis {
+            @Override
+            public void apply(XContentObject in, SnapshotStats response) throws IOException {
+                response.time = in.getAsLong(this);
+            }
+        }
+    }
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        XContentHelper.populate(in, JsonField.values(), this);
     }
 
     static final class Fields {

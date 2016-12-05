@@ -57,4 +57,5 @@ public class ClearIndicesCacheResponse extends BroadcastOperationResponse {
     public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
         super.readFrom(versionedXContentParser.getParser().xContentObject());
     }
+
 }

@@ -227,6 +227,7 @@ public abstract class AbstractIndicesAdminClient implements IndicesAdminClient {
 
     @Override
     public void aliasesExist(GetAliasesRequest request, ActionListener<AliasesExistResponse> listener) {
+        request.exists(true);
         execute(AliasesExistAction.INSTANCE, request, listener);
     }
 

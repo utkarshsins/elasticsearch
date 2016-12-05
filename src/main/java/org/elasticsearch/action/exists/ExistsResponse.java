@@ -24,10 +24,7 @@ import org.elasticsearch.action.ShardOperationFailedException;
 import org.elasticsearch.action.support.broadcast.BroadcastOperationResponse;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
-import org.elasticsearch.common.xcontent.VersionedXContentParser;
-import org.elasticsearch.common.xcontent.XContentHelper;
-import org.elasticsearch.common.xcontent.XContentParsable;
-import org.elasticsearch.common.xcontent.XContentParser;
+import org.elasticsearch.common.xcontent.*;
 
 import java.io.IOException;
 import java.util.List;
@@ -65,9 +62,14 @@ public class ExistsResponse extends BroadcastOperationResponse {
         out.writeBoolean(exists);
     }
 
-    enum JsonFields implements XContentParsable<ExistsResponse> {
+    enum JsonFields implements XContentParsable<ExistsResponse>, XContentObjectParseable<ExistsResponse> {
         // bdk version 5.0
         hits {
+            @Override
+            public void apply(XContentObject in, ExistsResponse response) throws IOException {
+                response.exists = in.getAsXContentObject(this).getAsLong("total") > 0;
+            }
+
             @Override
             public void apply(VersionedXContentParser versionedXContentParser, ExistsResponse response) throws IOException {
                 XContentParser parser = versionedXContentParser.getParser();
@@ -75,6 +77,11 @@ public class ExistsResponse extends BroadcastOperationResponse {
             }
         },
         exists {
+            @Override
+            public void apply(XContentObject in, ExistsResponse response) throws IOException {
+                response.exists = in.getAsBoolean(this);
+            }
+
             @Override
             public void apply(VersionedXContentParser versionedXContentParser, ExistsResponse response) throws IOException {
                 response.exists = versionedXContentParser.getParser().booleanValue();
@@ -96,4 +103,8 @@ public class ExistsResponse extends BroadcastOperationResponse {
         XContentHelper.populate(versionedXContentParser, JsonFields.fields, this);
     }
 
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        XContentHelper.populate(in, JsonFields.values(), this);
+    }
 }

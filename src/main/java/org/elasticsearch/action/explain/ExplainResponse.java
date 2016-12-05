@@ -99,8 +99,13 @@ public class ExplainResponse extends ActionResponse {
         return getResult;
     }
 
-    enum JsonFields implements XContentParsable<ExplainResponse> {
+    enum JsonFields implements XContentParsable<ExplainResponse>, XContentObjectParseable<ExplainResponse> {
         _index {
+            @Override
+            public void apply(XContentObject in, ExplainResponse response) throws IOException {
+                response.index = in.get(this);
+            }
+
             @Override
             public void apply(VersionedXContentParser versionedXContentParser, ExplainResponse response) throws IOException {
                 response.index = versionedXContentParser.getParser().text();
@@ -108,11 +113,21 @@ public class ExplainResponse extends ActionResponse {
         },
         _type {
             @Override
+            public void apply(XContentObject in, ExplainResponse response) throws IOException {
+                response.type = in.get(this);
+            }
+
+            @Override
             public void apply(VersionedXContentParser versionedXContentParser, ExplainResponse response) throws IOException {
                 response.type = versionedXContentParser.getParser().text();
             }
         },
         _id {
+            @Override
+            public void apply(XContentObject in, ExplainResponse response) throws IOException {
+                response.id = in.get(this);
+            }
+
             @Override
             public void apply(VersionedXContentParser versionedXContentParser, ExplainResponse response) throws IOException {
                 response.id = versionedXContentParser.getParser().text();
@@ -120,11 +135,21 @@ public class ExplainResponse extends ActionResponse {
         },
         matched {
             @Override
+            public void apply(XContentObject in, ExplainResponse response) throws IOException {
+                response.exists = in.getAsBoolean(this);
+            }
+
+            @Override
             public void apply(VersionedXContentParser versionedXContentParser, ExplainResponse response) throws IOException {
                 response.exists = versionedXContentParser.getParser().booleanValue();
             }
         },
         explanation {
+            @Override
+            public void apply(XContentObject in, ExplainResponse response) throws IOException {
+                response.explanation = getExplanation(in.getAsXContentObject(this));
+            }
+
             @Override
             public void apply(VersionedXContentParser versionedXContentParser, ExplainResponse response) throws IOException {
                 XContentObject source = versionedXContentParser.getParser().xContentObject();
@@ -156,6 +181,11 @@ public class ExplainResponse extends ActionResponse {
     @Override
     public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
         XContentHelper.populate(versionedXContentParser, JsonFields.fields, this);
+    }
+
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        XContentHelper.populate(in, JsonFields.values(), this);
     }
 
     public void readFrom(StreamInput in) throws IOException {

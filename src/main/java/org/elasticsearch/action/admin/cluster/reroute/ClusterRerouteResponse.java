@@ -86,14 +86,14 @@ public class ClusterRerouteResponse extends AcknowledgedResponse {
     enum JsonField implements XContentObjectParseable<ClusterRerouteResponse> {
         state {
             @Override
-            public void apply(XContentObject source, ClusterRerouteResponse object) throws IOException {
-                object.state = ClusterState.Builder.readFrom(source.getAsXContentObject(this), null);
+            public void apply(XContentObject in, ClusterRerouteResponse response) throws IOException {
+                response.state = ClusterState.Builder.readFrom(in.getAsXContentObject(this), null);
             }
         },
         explanations {
             @Override
-            public void apply(XContentObject source, ClusterRerouteResponse object) throws IOException {
-                object.explanations = RoutingExplanations.readFrom(source.getAsXContentObjects(this));
+            public void apply(XContentObject in, ClusterRerouteResponse response) throws IOException {
+                response.explanations = RoutingExplanations.readFrom(in.getAsXContentObjects(this));
             }
         }
     }

@@ -67,52 +67,52 @@ public class InternalExtendedStats extends InternalStats implements ExtendedStat
 
         count {
             @Override
-            public void apply(XContentObject source, InternalExtendedStats object) throws IOException {
-                object.count = source.getAsInt(this, 0);
+            public void apply(XContentObject in, InternalExtendedStats response) throws IOException {
+                response.count = in.getAsInt(this, 0);
             }
         }, sum {
             @Override
-            public void apply(XContentObject source, InternalExtendedStats object) throws IOException {
-                object.sum = source.getAsDouble(this, 0D);
+            public void apply(XContentObject in, InternalExtendedStats response) throws IOException {
+                response.sum = in.getAsDouble(this, 0D);
             }
         }, min {
             @Override
-            public void apply(XContentObject source, InternalExtendedStats object) throws IOException {
-                object.min = source.getAsDouble(this, 0D);
+            public void apply(XContentObject in, InternalExtendedStats response) throws IOException {
+                response.min = in.getAsDouble(this, 0D);
             }
         }, max {
             @Override
-            public void apply(XContentObject source, InternalExtendedStats object) throws IOException {
-                object.max = source.getAsDouble(this, 0D);
+            public void apply(XContentObject in, InternalExtendedStats response) throws IOException {
+                response.max = in.getAsDouble(this, 0D);
             }
         }, avg {
             @Override
-            public void apply(XContentObject source, InternalExtendedStats object) throws IOException {
+            public void apply(XContentObject in, InternalExtendedStats response) throws IOException {
                 // derived
             }
         }, sum_of_squares {
             @Override
-            public void apply(XContentObject source, InternalExtendedStats object) throws IOException {
-                object.sumOfSqrs = source.getAsDouble(this, 0D);
+            public void apply(XContentObject in, InternalExtendedStats response) throws IOException {
+                response.sumOfSqrs = in.getAsDouble(this, 0D);
             }
         }, variance {
             @Override
-            public void apply(XContentObject source, InternalExtendedStats object) throws IOException {
+            public void apply(XContentObject in, InternalExtendedStats response) throws IOException {
                 // derived
             }
         }, std_deviation {
             @Override
-            public void apply(XContentObject source, InternalExtendedStats object) throws IOException {
+            public void apply(XContentObject in, InternalExtendedStats response) throws IOException {
                 // derived
             }
         }, std_upper {
             @Override
-            public void apply(XContentObject source, InternalExtendedStats object) throws IOException {
+            public void apply(XContentObject in, InternalExtendedStats response) throws IOException {
                 // derived
             }
         }, std_lower {
             @Override
-            public void apply(XContentObject source, InternalExtendedStats object) throws IOException {
+            public void apply(XContentObject in, InternalExtendedStats response) throws IOException {
                 // derived
             }
         };

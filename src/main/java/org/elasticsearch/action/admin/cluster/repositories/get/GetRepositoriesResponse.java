@@ -97,10 +97,15 @@ public class GetRepositoriesResponse extends ActionResponse implements Iterable<
     @Override
     public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
         XContentObject xContentObject = versionedXContentParser.getParser().xContentObject();
-        Set<String> repositoryNames = xContentObject.keySet();
+        readFrom(xContentObject);
+    }
+
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        Set<String> repositoryNames = in.keySet();
         ImmutableList.Builder<RepositoryMetaData> repositoryListBuilder = ImmutableList.builder();
         for (String repositoryName : repositoryNames) {
-            XContentObject repository = xContentObject.getAsXContentObject(repositoryName);
+            XContentObject repository = in.getAsXContentObject(repositoryName);
             repository.put("name", repositoryName);
             RepositoryMetaData metaData = RepositoryMetaData.readFrom(repository);
             repositoryListBuilder.add(metaData);

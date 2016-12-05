@@ -20,9 +20,7 @@
 package org.elasticsearch.action.admin.cluster.snapshots.status;
 
 import org.elasticsearch.ElasticsearchIllegalArgumentException;
-import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentBuilderString;
+import org.elasticsearch.common.xcontent.*;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -30,7 +28,7 @@ import java.util.Collection;
 /**
  * Status of a snapshot shards
  */
-public class SnapshotShardsStats  implements ToXContent {
+public class SnapshotShardsStats  implements ToXContent, FromXContent {
 
     private int initializingShards;
     private int startedShards;
@@ -38,6 +36,10 @@ public class SnapshotShardsStats  implements ToXContent {
     private int doneShards;
     private int failedShards;
     private int totalShards;
+
+    SnapshotShardsStats(XContentObject in) throws IOException {
+        readFrom(in);
+    }
 
     SnapshotShardsStats(Collection<SnapshotIndexShardStatus> shards) {
         for (SnapshotIndexShardStatus shard : shards) {
@@ -106,6 +108,16 @@ public class SnapshotShardsStats  implements ToXContent {
         return totalShards;
     }
 
+    @Override
+    public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        XContentHelper.populate(in, JsonField.values(), this);
+    }
+
     static final class Fields {
         static final XContentBuilderString SHARDS_STATS = new XContentBuilderString("shards_stats");
         static final XContentBuilderString INITIALIZING = new XContentBuilderString("initializing");
@@ -127,6 +139,45 @@ public class SnapshotShardsStats  implements ToXContent {
         builder.field(Fields.TOTAL, getTotalShards());
         builder.endObject();
         return builder;
+    }
+
+    enum JsonField implements XContentObjectParseable<SnapshotShardsStats> {
+        initializing {
+            @Override
+            public void apply(XContentObject in, SnapshotShardsStats response) throws IOException {
+                response.initializingShards = in.getAsInt(this);
+            }
+        },
+        started {
+            @Override
+            public void apply(XContentObject in, SnapshotShardsStats response) throws IOException {
+                response.startedShards = in.getAsInt(this);
+            }
+        },
+        finalizing {
+            @Override
+            public void apply(XContentObject in, SnapshotShardsStats response) throws IOException {
+                response.finalizingShards = in.getAsInt(this);
+            }
+        },
+        done {
+            @Override
+            public void apply(XContentObject in, SnapshotShardsStats response) throws IOException {
+                response.doneShards = in.getAsInt(this);
+            }
+        },
+        failed {
+            @Override
+            public void apply(XContentObject in, SnapshotShardsStats response) throws IOException {
+                response.failedShards = in.getAsInt(this);
+            }
+        },
+        total {
+            @Override
+            public void apply(XContentObject in, SnapshotShardsStats response) throws IOException {
+                response.totalShards = in.getAsInt(this);
+            }
+        }
     }
 
 }

@@ -134,28 +134,28 @@ public class BulkResponse extends ActionResponse implements Iterable<BulkItemRes
     enum JsonFields implements XContentObjectParseable<BulkResponse> {
         took {
             @Override
-            public void apply(XContentObject source, BulkResponse object) throws IOException {
-                object.tookInMillis = source.getAsLong(this);
+            public void apply(XContentObject in, BulkResponse response) throws IOException {
+                response.tookInMillis = in.getAsLong(this);
             }
         },
         errors {
             @Override
-            public void apply(XContentObject source, BulkResponse object) throws IOException {
-                object.errors = source.getAsBoolean(this);
+            public void apply(XContentObject in, BulkResponse response) throws IOException {
+                response.errors = in.getAsBoolean(this);
             }
         },
         items {
             @Override
-            public void apply(XContentObject source, BulkResponse object) throws IOException {
+            public void apply(XContentObject in, BulkResponse response) throws IOException {
                 List<BulkItemResponse> items = Lists.newArrayList();
-                List<XContentObject> xItems = source.getAsXContentObjects(this);
+                List<XContentObject> xItems = in.getAsXContentObjects(this);
                 for (XContentObject xItem : xItems) {
                     BulkItemResponse item = new BulkItemResponse();
                     item.readFrom(xItem);
                     items.add(item);
 
                 }
-                object.responses = items.toArray(new BulkItemResponse[items.size()]);
+                response.responses = items.toArray(new BulkItemResponse[items.size()]);
             }
         };
 
@@ -166,4 +166,8 @@ public class BulkResponse extends ActionResponse implements Iterable<BulkItemRes
         XContentHelper.populate(versionedXContentParser.getParser().xContentObject(), JsonFields.values(), this);
     }
 
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        XContentHelper.populate(in, JsonFields.values(), this);
+    }
 }

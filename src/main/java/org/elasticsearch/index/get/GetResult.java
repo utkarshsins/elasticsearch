@@ -287,8 +287,8 @@ public class GetResult implements Streamable, Iterable<GetField>, ToXContent {
     enum JsonFields implements XContentParsable<GetResult>, XContentObjectParseable<GetResult> {
         _index {
             @Override
-            public void apply(XContentObject source, GetResult object) throws IOException {
-                object.index = source.get(this);
+            public void apply(XContentObject in, GetResult response) throws IOException {
+                response.index = in.get(this);
             }
 
             @Override
@@ -298,8 +298,8 @@ public class GetResult implements Streamable, Iterable<GetField>, ToXContent {
         },
         _type {
             @Override
-            public void apply(XContentObject source, GetResult object) throws IOException {
-                object.type = source.get(this);
+            public void apply(XContentObject in, GetResult response) throws IOException {
+                response.type = in.get(this);
             }
 
             @Override
@@ -309,8 +309,8 @@ public class GetResult implements Streamable, Iterable<GetField>, ToXContent {
         },
         _id {
             @Override
-            public void apply(XContentObject source, GetResult object) throws IOException {
-                object.id = source.get(this);
+            public void apply(XContentObject in, GetResult response) throws IOException {
+                response.id = in.get(this);
             }
 
             @Override
@@ -320,8 +320,8 @@ public class GetResult implements Streamable, Iterable<GetField>, ToXContent {
         },
         _version {
             @Override
-            public void apply(XContentObject source, GetResult object) throws IOException {
-                object.version = source.getAsInt(this);
+            public void apply(XContentObject in, GetResult response) throws IOException {
+                response.version = in.getAsInt(this);
             }
 
             @Override
@@ -331,8 +331,8 @@ public class GetResult implements Streamable, Iterable<GetField>, ToXContent {
         },
         found {
             @Override
-            public void apply(XContentObject source, GetResult object) throws IOException {
-                object.exists = source.getAsBoolean(this);
+            public void apply(XContentObject in, GetResult response) throws IOException {
+                response.exists = in.getAsBoolean(this);
             }
 
             @Override
@@ -342,8 +342,8 @@ public class GetResult implements Streamable, Iterable<GetField>, ToXContent {
         },
         _source {
             @Override
-            public void apply(XContentObject source, GetResult object) throws IOException {
-                object.source = new StringAndBytesText(XContentHelper.convertToJson(source.getAsMap(this), false)).bytes();
+            public void apply(XContentObject in, GetResult response) throws IOException {
+                response.source = new StringAndBytesText(XContentHelper.convertToJson(in.getAsMap(this), false)).bytes();
             }
 
             @Override
@@ -355,10 +355,10 @@ public class GetResult implements Streamable, Iterable<GetField>, ToXContent {
         },
         script {
             @Override
-            public void apply(XContentObject source, GetResult object) throws IOException {
-                _source.apply(source, object);
-                if (object.source != null && object.source.length() > 0) {
-                    object.exists = true;
+            public void apply(XContentObject in, GetResult response) throws IOException {
+                _source.apply(in, response);
+                if (response.source != null && response.source.length() > 0) {
+                    response.exists = true;
                 }
             }
 

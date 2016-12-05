@@ -105,8 +105,20 @@ public class DeleteByQueryResponse extends ActionResponse implements Iterable<In
         }
     }
 
-    enum JsonFields implements XContentParsable<DeleteByQueryResponse> {
+    enum JsonFields implements XContentParsable<DeleteByQueryResponse>, XContentObjectParseable<DeleteByQueryResponse> {
         _indices {
+            @Override
+            public void apply(XContentObject in, DeleteByQueryResponse response) throws IOException {
+                Set<String> indexNames = in.keySet();
+                for (String indexName : indexNames) {
+                    IndexDeleteByQueryResponse deleteByQueryResponse = new IndexDeleteByQueryResponse();
+                    XContentObject xContentObject = in.getAsXContentObject(indexName);
+                    xContentObject.put("_index", indexName);
+                    deleteByQueryResponse.readFrom(xContentObject);
+                    response.indices.put(indexName, deleteByQueryResponse);
+                }
+            }
+
             @Override
             public void apply(VersionedXContentParser versionedXContentParser, DeleteByQueryResponse response) throws IOException {
                 XContentObject xIndices = versionedXContentParser.getParser().xContentObject();
@@ -130,5 +142,10 @@ public class DeleteByQueryResponse extends ActionResponse implements Iterable<In
     }
     public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
         XContentHelper.populate(versionedXContentParser, JsonFields.fields, this);
+    }
+
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        XContentHelper.populate(in, JsonFields.values(), this);
     }
 }

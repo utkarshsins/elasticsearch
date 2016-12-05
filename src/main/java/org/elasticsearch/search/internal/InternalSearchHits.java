@@ -223,8 +223,8 @@ public class InternalSearchHits implements SearchHits {
                 hits.totalHits = versionedXContentParser.getParser().longValue();
             }
             @Override
-            public void apply(XContentObject object, InternalSearchHits hits) {
-                hits.totalHits = object.getAsInt(this);
+            public void apply(XContentObject in, InternalSearchHits response) {
+                response.totalHits = in.getAsInt(this);
             }
         },
         hits {
@@ -244,10 +244,10 @@ public class InternalSearchHits implements SearchHits {
                 }
             }
             @Override
-            public void apply(XContentObject object, InternalSearchHits hits) throws IOException {
-                List<XContentObject> hitsList = object.getAsXContentObjectsOrEmpty(this);
+            public void apply(XContentObject in, InternalSearchHits response) throws IOException {
+                List<XContentObject> hitsList = in.getAsXContentObjectsOrEmpty(this);
                 if (hitsList.isEmpty()) {
-                    hits.hits = EMPTY;
+                    response.hits = EMPTY;
                 } else {
                     List<InternalSearchHit> items = Lists.newArrayListWithCapacity(hitsList.size());
                     for (XContentObject xContentObject : hitsList) {
@@ -255,7 +255,7 @@ public class InternalSearchHits implements SearchHits {
                         item.readFrom(xContentObject);
                         items.add(item);
                     }
-                    hits.hits = items.toArray(new InternalSearchHit[items.size()]);
+                    response.hits = items.toArray(new InternalSearchHit[items.size()]);
                 }
             }
         },
@@ -267,11 +267,11 @@ public class InternalSearchHits implements SearchHits {
                 }
             }
             @Override
-            public void apply(XContentObject object, InternalSearchHits hits) {
-                hits.maxScore = object.getAsFloat(this, 0F);
+            public void apply(XContentObject in, InternalSearchHits response) {
+                response.maxScore = in.getAsFloat(this, 0F);
             }
         };
-        public abstract void apply(XContentObject object, InternalSearchHits hits) throws IOException;
+        public abstract void apply(XContentObject in, InternalSearchHits response) throws IOException;
 
         static Map<String, XContentParsable<InternalSearchHits>> fields = Maps.newLinkedHashMap();
         static {

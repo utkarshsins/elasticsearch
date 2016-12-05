@@ -24,6 +24,7 @@ import org.elasticsearch.Version;
 import org.elasticsearch.action.ActionResponse;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
+import org.elasticsearch.common.recycler.Recycler;
 import org.elasticsearch.common.xcontent.*;
 import org.elasticsearch.rest.RestStatus;
 
@@ -96,8 +97,13 @@ public class ClearScrollResponse extends ActionResponse implements StatusToXCont
         }
     }
 
-    enum JsonFields implements XContentParsable<ClearScrollResponse> {
+    enum JsonFields implements XContentParsable<ClearScrollResponse>, XContentObjectParseable<ClearScrollResponse> {
         succeeded {
+            @Override
+            public void apply(XContentObject in, ClearScrollResponse response) throws IOException {
+                response.succeeded = in.getAsBoolean(this);
+            }
+
             @Override
             public void apply(VersionedXContentParser versionedXContentParser, ClearScrollResponse response) throws IOException {
                 response.succeeded = versionedXContentParser.getParser().booleanValue();
@@ -122,4 +128,13 @@ public class ClearScrollResponse extends ActionResponse implements StatusToXCont
         }
     }
 
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        if (in.getVersion().id >= Version.V_5_0_0_ID) {
+            XContentHelper.populate(in, JsonFields.values(), this);
+        }
+        else {
+            this.succeeded = true;
+        }
+    }
 }

@@ -376,15 +376,15 @@ public class InternalSearchHit implements SearchHit {
         return this.matchedQueries;
     }
 
-    public void readFrom(XContentObject xContentObject) throws IOException {
-        XContentHelper.populate(xContentObject, InternalSearchHit.JsonFields.values(), this);
+    public void readFrom(XContentObject in) throws IOException {
+        XContentHelper.populate(in, InternalSearchHit.JsonFields.values(), this);
     }
 
     enum JsonFields implements XContentParsable<InternalSearchHit>, XContentObjectParseable<InternalSearchHit> {
         _index {
             @Override
-            public void apply(XContentObject source, InternalSearchHit hit) throws IOException {
-                hit.shard = SearchShardTarget.readSearchShardTarget(source.get(this));
+            public void apply(XContentObject in, InternalSearchHit response) throws IOException {
+                response.shard = SearchShardTarget.readSearchShardTarget(in.get(this));
             }
 
             @Override
@@ -394,8 +394,8 @@ public class InternalSearchHit implements SearchHit {
         },
         _type {
             @Override
-            public void apply(XContentObject source, InternalSearchHit hit) throws IOException {
-                hit.type = new StringAndBytesText(source.get(this));
+            public void apply(XContentObject in, InternalSearchHit response) throws IOException {
+                response.type = new StringAndBytesText(in.get(this));
             }
 
             @Override
@@ -405,8 +405,8 @@ public class InternalSearchHit implements SearchHit {
         },
         _source {
             @Override
-            public void apply(XContentObject source, InternalSearchHit hit) throws IOException {
-                hit.source = new BytesArray(XContentHelper.convertToJson(source.getAsMap(this), false));
+            public void apply(XContentObject in, InternalSearchHit response) throws IOException {
+                response.source = new BytesArray(XContentHelper.convertToJson(in.getAsMap(this), false));
             }
 
             @Override
@@ -418,8 +418,8 @@ public class InternalSearchHit implements SearchHit {
         },
         _score {
             @Override
-            public void apply(XContentObject source, InternalSearchHit hit) throws IOException {
-                hit.score = source.getAsFloat(this, 0F);
+            public void apply(XContentObject in, InternalSearchHit response) throws IOException {
+                response.score = in.getAsFloat(this, 0F);
             }
 
             @Override
@@ -431,8 +431,8 @@ public class InternalSearchHit implements SearchHit {
         },
         sort {
             @Override
-            public void apply(XContentObject source, InternalSearchHit hit) throws IOException {
-                hit.sortValues = null;
+            public void apply(XContentObject in, InternalSearchHit response) throws IOException {
+                response.sortValues = null;
 
             }
 
@@ -443,12 +443,12 @@ public class InternalSearchHit implements SearchHit {
         },
         fields {
             @Override
-            public void apply(XContentObject source, InternalSearchHit hit) throws IOException {
-                XContentObject xFields = source.getAsXContentObject(this);
-                hit.fields =  new HashMap<>(xFields.size());
+            public void apply(XContentObject in, InternalSearchHit response) throws IOException {
+                XContentObject xFields = in.getAsXContentObject(this);
+                response.fields =  new HashMap<>(xFields.size());
                 for (String fieldName : xFields.keySet()) {
                     SearchHitField searchHitField = InternalSearchHitField.readSearchHitField(fieldName, xFields);
-                    hit.fields.put(fieldName, searchHitField);
+                    response.fields.put(fieldName, searchHitField);
                 }
             }
 
@@ -463,8 +463,8 @@ public class InternalSearchHit implements SearchHit {
         },
         _id {
             @Override
-            public void apply(XContentObject source, InternalSearchHit hit) throws IOException {
-                hit.id = new StringAndBytesText(source.get(this));
+            public void apply(XContentObject in, InternalSearchHit response) throws IOException {
+                response.id = new StringAndBytesText(in.get(this));
             }
 
             @Override

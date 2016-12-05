@@ -267,7 +267,12 @@ public class GetIndexResponse extends ActionResponse {
     @Override
     public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
         XContentObject xContentObject = versionedXContentParser.getParser().xContentObject();
-        Set<String> indices = xContentObject.keySet();
+        readFrom(xContentObject);
+    }
+
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        Set<String> indices = in.keySet();
         this.indices = indices.toArray(new String[indices.size()]);
         ImmutableOpenMap.Builder<String, Settings> settingsMapBuilder = ImmutableOpenMap.builder();
         ImmutableOpenMap.Builder<String, ImmutableOpenMap<String, MappingMetaData>> mappingsMapBuilder = ImmutableOpenMap.builder();
@@ -275,7 +280,7 @@ public class GetIndexResponse extends ActionResponse {
         ImmutableOpenMap.Builder<String, ImmutableList<IndexWarmersMetaData.Entry>> warmersMapBuilder = ImmutableOpenMap.builder();
 
         for (String index : indices) {
-            XContentObject indexData = xContentObject.getAsXContentObject(index);
+            XContentObject indexData = in.getAsXContentObject(index);
 
             // handle mappings
             XContentObject xMappings = indexData.getAsXContentObject(JsonField.mappings);

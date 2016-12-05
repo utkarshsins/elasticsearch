@@ -108,26 +108,26 @@ public class MultiGetResponse extends ActionResponse implements Iterable<MultiGe
         enum JsonFields implements XContentObjectParseable<Failure> {
             _index {
                 @Override
-                public void apply(XContentObject source, Failure object) throws IOException {
-                    object.index = source.get(this);
+                public void apply(XContentObject in, Failure response) throws IOException {
+                    response.index = in.get(this);
                 }
             },
             _type {
                 @Override
-                public void apply(XContentObject source, Failure object) throws IOException {
-                    object.type = source.get(this);
+                public void apply(XContentObject in, Failure response) throws IOException {
+                    response.type = in.get(this);
                 }
             },
             _id {
                 @Override
-                public void apply(XContentObject source, Failure object) throws IOException {
-                    object.id = source.get(this);
+                public void apply(XContentObject in, Failure response) throws IOException {
+                    response.id = in.get(this);
                 }
             },
             error {
                 @Override
-                public void apply(XContentObject source, Failure object) throws IOException {
-                    object.message = source.get(this);
+                public void apply(XContentObject in, Failure response) throws IOException {
+                    response.message = in.get(this);
                 }
             };
 
@@ -196,8 +196,28 @@ public class MultiGetResponse extends ActionResponse implements Iterable<MultiGe
         static final XContentBuilderString ERROR = new XContentBuilderString("error");
     }
 
-    enum JsonFields implements XContentParsable<MultiGetResponse> {
+    enum JsonFields implements XContentParsable<MultiGetResponse>, XContentObjectParseable<MultiGetResponse> {
         docs {
+            @Override
+            public void apply(XContentObject in, MultiGetResponse response) throws IOException {
+                List<XContentObject> docs = in.getAsXContentObjects(this);
+                List<MultiGetItemResponse> items = Lists.newArrayListWithCapacity(docs.size());
+                for (XContentObject doc : docs) {
+                    Failure failure = null;
+                    GetResponse getResponse = null;
+
+                    if (doc.containsKey(Failure.JsonFields.error)) {
+                        failure = Failure.readFailure(doc);
+                    }
+                    else {
+                        getResponse = GetResponse.readGetResponse(doc);
+                    }
+                    MultiGetItemResponse item = new MultiGetItemResponse(getResponse, failure);
+                    items.add(item);
+                }
+                response.responses = items.toArray(new MultiGetItemResponse[items.size()]);
+            }
+
             @Override
             public void apply(VersionedXContentParser versionedXContentParser, MultiGetResponse response) throws IOException {
                 List<MultiGetItemResponse> items = Lists.newArrayList();
@@ -229,6 +249,11 @@ public class MultiGetResponse extends ActionResponse implements Iterable<MultiGe
     @Override
     public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
         XContentHelper.populate(versionedXContentParser, JsonFields.fields, this);
+    }
+
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        XContentHelper.populate(in, JsonFields.values(), this);
     }
 
     @Override

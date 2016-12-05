@@ -168,6 +168,7 @@ public class GetResponse extends ActionResponse implements Iterable<GetField>, T
         return result;
     }
 
+    @Override
     public void readFrom(XContentObject in) throws IOException {
         getResult = GetResult.readGetResult(in);
     }

@@ -23,17 +23,16 @@ import org.elasticsearch.ElasticsearchIllegalArgumentException;
 import org.elasticsearch.action.support.broadcast.BroadcastShardOperationResponse;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
-import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentBuilderString;
+import org.elasticsearch.common.xcontent.*;
 import org.elasticsearch.index.shard.ShardId;
 import org.elasticsearch.index.snapshots.IndexShardSnapshotStatus;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  */
-public class SnapshotIndexShardStatus extends BroadcastShardOperationResponse implements ToXContent {
+public class SnapshotIndexShardStatus extends BroadcastShardOperationResponse implements ToXContent, FromXContent {
 
     private SnapshotIndexShardStage stage = SnapshotIndexShardStage.INIT;
 
@@ -51,6 +50,12 @@ public class SnapshotIndexShardStatus extends BroadcastShardOperationResponse im
         this.stage = stage;
         this.stats = new SnapshotStats();
     }
+
+    SnapshotIndexShardStatus(ShardId shardId, XContentObject value) throws IOException {
+        super(shardId);
+        readFrom(value);
+    }
+
 
     SnapshotIndexShardStatus(ShardId shardId, IndexShardSnapshotStatus indexShardStatus) {
         this(shardId, indexShardStatus, null);
@@ -133,6 +138,44 @@ public class SnapshotIndexShardStatus extends BroadcastShardOperationResponse im
         stats = SnapshotStats.readSnapshotStats(in);
         nodeId = in.readOptionalString();
         failure = in.readOptionalString();
+    }
+
+    @Override
+    public void readFrom(VersionedXContentParser versionedXContentParser) throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    enum JsonField implements XContentObjectParseable<SnapshotIndexShardStatus> {
+        stage {
+            @Override
+            public void apply(XContentObject in, SnapshotIndexShardStatus response) throws IOException {
+                response.stage = SnapshotIndexShardStage.valueOf(in.get(this));
+            }
+        },
+        reason {
+            @Override
+            public void apply(XContentObject in, SnapshotIndexShardStatus response) throws IOException {
+                response.failure = in.get(this);
+            }
+        },
+        node {
+            @Override
+            public void apply(XContentObject in, SnapshotIndexShardStatus response) throws IOException {
+                response.nodeId = in.get(this);
+            }
+        },
+        stats {
+            @Override
+            public void apply(XContentObject in, SnapshotIndexShardStatus response) throws IOException {
+                response.stats = new SnapshotStats(in);
+            }
+        }
+    }
+
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        super.readFrom(in);
+        XContentHelper.populate(in, JsonField.values(), this);
     }
 
     static final class Fields {

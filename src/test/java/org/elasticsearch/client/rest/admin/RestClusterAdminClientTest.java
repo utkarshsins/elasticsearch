@@ -29,6 +29,9 @@ import org.elasticsearch.action.admin.cluster.reroute.ClusterRerouteResponse;
 import org.elasticsearch.action.admin.cluster.snapshots.create.CreateSnapshotResponse;
 import org.elasticsearch.action.admin.cluster.snapshots.delete.DeleteSnapshotResponse;
 import org.elasticsearch.action.admin.cluster.snapshots.get.GetSnapshotsResponse;
+import org.elasticsearch.action.admin.cluster.snapshots.status.SnapshotIndexStatus;
+import org.elasticsearch.action.admin.cluster.snapshots.status.SnapshotsStatusRequest;
+import org.elasticsearch.action.admin.cluster.snapshots.status.SnapshotsStatusResponse;
 import org.elasticsearch.action.admin.cluster.state.ClusterStateResponse;
 import org.elasticsearch.action.admin.cluster.stats.ClusterStatsResponse;
 import org.elasticsearch.client.rest.AbstractRestClientTest;
@@ -36,6 +39,7 @@ import org.elasticsearch.cluster.ClusterName;
 import org.elasticsearch.cluster.ClusterState;
 import org.elasticsearch.cluster.metadata.IndexMetaData;
 import org.elasticsearch.cluster.metadata.RepositoryMetaData;
+import org.elasticsearch.cluster.metadata.SnapshotMetaData;
 import org.elasticsearch.cluster.routing.allocation.RoutingExplanations;
 import org.elasticsearch.cluster.routing.allocation.command.MoveAllocationCommand;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
@@ -49,6 +53,7 @@ import org.junit.Test;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 import static org.junit.Assert.*;
 
@@ -105,7 +110,8 @@ public class RestClusterAdminClientTest extends AbstractRestClientTest {
     }
 
     @Test
-    public void testCrudSnapshots() {
+    public void testCrudSnapshotsWaitForCompletion() throws InterruptedException, ExecutionException {
+        indexDocument(1000);
         String repoName = "repo-" + UUID.randomUUID().toString();
         Map<String, Object> settings = Maps.newLinkedHashMap();
         settings.put("location", "/tmp/" + repoName);
@@ -126,9 +132,46 @@ public class RestClusterAdminClientTest extends AbstractRestClientTest {
         assertEquals(snapshotName, snapshotInfo.name());
         assertFalse(snapshotInfo.indices().isEmpty());
 
-        GetSnapshotsResponse getSnapshotsResponse = clusterAdminClient.prepareGetSnapshots(repoName).get();
-        getSnapshotsResponse.getSnapshots().asList().contains(snapshotInfo.name());
+        DeleteSnapshotResponse deleteSnapshotResponse = clusterAdminClient.prepareDeleteSnapshot(repoName, snapshotName).get();
+        assertAcknowledged(deleteSnapshotResponse);
+    }
 
+    @Test(timeout = 20000)
+    public void testCrudSnapshotsAsync() throws InterruptedException, ExecutionException {
+        indexDocument(1000);
+        String repoName = "repo-" + UUID.randomUUID().toString();
+        Map<String, Object> settings = Maps.newLinkedHashMap();
+        settings.put("location", "/tmp/" + repoName);
+        PutRepositoryResponse putResponse = clusterAdminClient.preparePutRepository(repoName)
+                .setType("fs")
+                .setSettings(settings)
+                .get();
+        assertAcknowledged(putResponse);
+
+        String snapshotName = "snapshot-" + UUID.randomUUID().toString();
+        CreateSnapshotResponse snapshotResponse;
+        snapshotResponse = clusterAdminClient.prepareCreateSnapshot(repoName, snapshotName)
+                .setIndices(index)
+                .setWaitForCompletion(false)
+                .get();
+
+        SnapshotsStatusResponse snapshotsStatusResponse;
+        snapshotsStatusResponse = clusterAdminClient.snapshotsStatus(new SnapshotsStatusRequest(repoName)).actionGet();
+        assertEquals(1, snapshotsStatusResponse.getSnapshots().size());
+        Map<String, SnapshotIndexStatus> indices = snapshotsStatusResponse.getSnapshots().get(0).getIndices();
+        assertEquals(1, indices.size());
+        SnapshotIndexStatus snapshotIndexShardStatuses = indices.get(index);
+        assertNotNull(snapshotIndexShardStatuses);
+
+        for (;;) {
+            SnapshotsStatusResponse response = clusterAdminClient.snapshotsStatus(new SnapshotsStatusRequest(repoName)).actionGet();
+            if (response.getSnapshots().isEmpty()) {
+                break;
+            }
+            if (response.getSnapshots().get(0).getState() == SnapshotMetaData.State.SUCCESS) {
+                break;
+            }
+        }
 
         DeleteSnapshotResponse deleteSnapshotResponse = clusterAdminClient.prepareDeleteSnapshot(repoName, snapshotName).get();
         assertAcknowledged(deleteSnapshotResponse);

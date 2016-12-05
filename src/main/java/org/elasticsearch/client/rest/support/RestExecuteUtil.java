@@ -19,15 +19,17 @@
 package org.elasticsearch.client.rest.support;
 
 import org.apache.http.HttpEntity;
-import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.Version;
 import org.elasticsearch.action.*;
 import org.elasticsearch.common.bytes.BytesArray;
-import org.elasticsearch.common.xcontent.VersionedXContentParser;
+import org.elasticsearch.common.util.concurrent.UncategorizedExecutionException;
 import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.common.xcontent.XContentParser;
+import org.elasticsearch.common.xcontent.support.XContentObjectImpl;
 import org.elasticsearch.rest.RestRequest;
+
+import java.util.Map;
 
 /**
  */
@@ -66,12 +68,9 @@ public class RestExecuteUtil {
                 assert entity != null;
                 String content = HttpUtils.readUtf8(entity);
                 XContentParser parser = XContentHelper.createParser(new BytesArray(content));
-                if (content.startsWith("{\"error\":")) {
-                    throwException(version, parser);
-                }
-                else {
-                    response.readFrom(VersionedXContentParser.newInstance(version, parser));
-                }
+                XContentObject source = new XContentObjectImpl(parser.mapOrderedAndClose(), version);
+                validate(source);
+                response.readFrom(source);
             }
             listener.onResponse(response);
 
@@ -80,32 +79,22 @@ public class RestExecuteUtil {
         }
     }
 
-    private static void throwException(Version version, XContentParser parser) throws Exception {
-        XContentObject map = parser.xContentObject();
-        if (version.id >= Version.V_5_0_0_ID) {
-            if (map.containsKey("error")) {
-                XContentObject error = map.getAsXContentObject("error");
-                if (error.containsKey("root_cause")) {
-                    error.getAsXContentObjects("root_cause").get(0);
-                    if (error.containsKey("type")) {
-                        String type = error.get("type");
-                        ElasticsearchExceptionHandler handler = ElasticsearchExceptionHandler.valueOfOrNull(type);
-                        Exception responseException = null;
-                        if (handler != null) {
-                            responseException = handler.newException(error);
-                        }
-                        if (responseException != null) {
-                            throw responseException;
-                        }
-                    }
-                }
+    private static void validate(XContentObject source) throws Exception {
+        if (!source.containsKey("error")) {
+            return;
+        }
+        if (source.getAsObject("error") instanceof Map) {
+            XContentObject error = source.getAsXContentObject("error");
+            if (error.containsKey("root_cause")) {
+                error.getAsXContentObjects("root_cause").get(0);
+                String type = error.get("type");
+                ElasticsearchExceptionHandler handler = ElasticsearchExceptionHandler.safeValueOf(type);
+                throw handler.newException(error);
             }
         }
         else {
-            if (map.containsKey("error")) {
-                String message = map.get("error");
-                throw new ElasticsearchException(message);
-            }
+            String message = source.get("error");
+            throw new UncategorizedExecutionException(message);
         }
     }
 }

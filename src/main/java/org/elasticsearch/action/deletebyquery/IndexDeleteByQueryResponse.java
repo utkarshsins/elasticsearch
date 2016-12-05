@@ -118,8 +118,8 @@ public class IndexDeleteByQueryResponse extends ActionResponse {
     enum JsonFields implements XContentObjectParseable<IndexDeleteByQueryResponse> {
         _index {
             @Override
-            public void apply(XContentObject source, IndexDeleteByQueryResponse response) throws IOException {
-                response.index = source.get(this);
+            public void apply(XContentObject in, IndexDeleteByQueryResponse response) throws IOException {
+                response.index = in.get(this);
             }
         },
         _shards {
@@ -139,7 +139,7 @@ public class IndexDeleteByQueryResponse extends ActionResponse {
         }
     }
 
-    public void readFrom(XContentObject xContentObject) throws IOException {
-        XContentHelper.populate(xContentObject, JsonFields.values(), this);
+    public void readFrom(XContentObject in) throws IOException {
+        XContentHelper.populate(in, JsonFields.values(), this);
     }
 }

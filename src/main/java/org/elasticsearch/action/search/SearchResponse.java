@@ -291,8 +291,8 @@ public class SearchResponse extends ActionResponse implements StatusToXContent {
     enum JsonFields implements XContentParsable<SearchResponse>, XContentObjectParseable<SearchResponse> {
         error {
             @Override
-            public void apply(XContentObject source, SearchResponse object) throws IOException {
-                throw new RuntimeException(source.get(this));
+            public void apply(XContentObject in, SearchResponse response) throws IOException {
+                throw new RuntimeException(in.get(this));
             }
 
             @Override
@@ -302,8 +302,8 @@ public class SearchResponse extends ActionResponse implements StatusToXContent {
         },
         _scroll_id {
             @Override
-            public void apply(XContentObject source, SearchResponse object) throws IOException {
-                object.scrollId = source.get(this);
+            public void apply(XContentObject in, SearchResponse response) throws IOException {
+                response.scrollId = in.get(this);
             }
 
             @Override
@@ -313,8 +313,8 @@ public class SearchResponse extends ActionResponse implements StatusToXContent {
         },
         took {
             @Override
-            public void apply(XContentObject source, SearchResponse object) throws IOException {
-                object.tookInMillis = source.getAsLong(this);
+            public void apply(XContentObject in, SearchResponse response) throws IOException {
+                response.tookInMillis = in.getAsLong(this);
             }
 
             @Override
@@ -324,8 +324,8 @@ public class SearchResponse extends ActionResponse implements StatusToXContent {
         },
         timed_out {
             @Override
-            public void apply(XContentObject source, SearchResponse object) throws IOException {
-                object.internalResponse = newInternalSearchResponse(source.getAsBoolean(this));
+            public void apply(XContentObject in, SearchResponse response) throws IOException {
+                response.internalResponse = newInternalSearchResponse(in.getAsBoolean(this));
             }
 
             @Override
@@ -336,8 +336,8 @@ public class SearchResponse extends ActionResponse implements StatusToXContent {
         },
         hits {
             @Override
-            public void apply(XContentObject source, SearchResponse object) throws IOException {
-                object.internalResponse.readHits(source.getAsXContentObject(this));
+            public void apply(XContentObject in, SearchResponse response) throws IOException {
+                response.internalResponse.readHits(in.getAsXContentObject(this));
             }
 
             @Override
@@ -348,8 +348,8 @@ public class SearchResponse extends ActionResponse implements StatusToXContent {
         },
         aggregations {
             @Override
-            public void apply(XContentObject source, SearchResponse object) throws IOException {
-                object.internalResponse.readAggregations(source.getAsXContentObject(this));
+            public void apply(XContentObject in, SearchResponse response) throws IOException {
+                response.internalResponse.readAggregations(in.getAsXContentObject(this));
             }
 
             @Override
@@ -360,10 +360,10 @@ public class SearchResponse extends ActionResponse implements StatusToXContent {
         },
         _shards {
             @Override
-            public void apply(XContentObject source, SearchResponse object) throws IOException {
-                XContentObject shardInfo = source.getAsXContentObject(this);
-                object.totalShards = shardInfo.getAsInt("total");
-                object.successfulShards = shardInfo.getAsInt("successful");
+            public void apply(XContentObject in, SearchResponse response) throws IOException {
+                XContentObject shardInfo = in.getAsXContentObject(this);
+                response.totalShards = shardInfo.getAsInt("total");
+                response.successfulShards = shardInfo.getAsInt("successful");
             }
 
             @Override

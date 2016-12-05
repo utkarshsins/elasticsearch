@@ -68,6 +68,12 @@ public final class SuggestResponse extends BroadcastOperationResponse {
     }
 
     @Override
+    public void readFrom(XContentObject in) throws IOException {
+        super.readFrom(in);
+        this.suggest.readFrom(in);
+    }
+
+    @Override
     public void writeTo(StreamOutput out) throws IOException {
         super.writeTo(out);
         this.suggest.writeTo(out);

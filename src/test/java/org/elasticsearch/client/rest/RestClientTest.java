@@ -123,31 +123,6 @@ import static org.junit.Assert.*;
 /**
  */
 public class RestClientTest extends AbstractRestClientTest {
-    public static final String POSTS_INDEX = "posts";
-    public static final String POST_TYPE = "post";
-    public static final String COMMENT_TYPE = "comment";
-    public static final String STATS_TYPE = "stats";
-
-    enum Color {
-        red,
-        green,
-        blue,
-        orange,
-        black,
-        white,
-        purple,
-        brown,
-        silver,
-        gold
-    }
-
-    enum Genre {
-        comedy,
-        horror,
-        drama,
-        action,
-        documentary
-    }
 
   @Before
     public void setUp() {
@@ -1507,123 +1482,10 @@ public class RestClientTest extends AbstractRestClientTest {
     }
 
 
-    private List<IndexResponse> indexDocument(int numberOfDocs) throws InterruptedException, ExecutionException {
-        List<IndexResponse> responses = Lists.newArrayList();
-        for (int i =0; i < numberOfDocs; i++) {
-            responses.add(indexDocument());
-        }
-        return responses;
-    }
-
-    private IndexResponse indexDocument() throws InterruptedException, ExecutionException {
-        IndexRequest request = newIndexRequest();
-        IndexResponse indexResponse = this.client.index(request).get();
-        assertTrue(indexResponse.isCreated());
-
-        return indexResponse;
-    }
-
-
     private IndexResponse index(IndexRequest request) throws ExecutionException, InterruptedException {
         IndexResponse indexResponse = this.client.index(request).get();
         assertTrue(indexResponse.isCreated());
         return indexResponse;
     }
 
-    private IndexRequest newPost() {
-        IndexRequest request = newCommentOrPost(POST_TYPE);
-        return request;
-    }
-
-    private IndexRequest newComment(String postId) {
-        assert Strings.isNotEmpty(postId);
-        IndexRequest indexRequest = newCommentOrPost(COMMENT_TYPE);
-        indexRequest.parent(postId);
-        return indexRequest;
-    }
-
-
-    private IndexRequest newCommentOrPost(String type) {
-        String id = UUID.randomUUID().toString();
-        IndexRequest request = new IndexRequest(POSTS_INDEX, type, id);
-        Map<String, Object> source = Maps.newHashMap();
-        source.put("title", randomName() + " " + randomName());
-        source.put("description", randomName() + " " + randomName() + " " + randomName() + " " + randomName());
-        source.put("dateCreated", new DateTime());
-        request.source(source);
-        return request;
-    }
-
-    private IndexRequest newIndexRequest() {
-        String id = UUID.randomUUID().toString();
-        IndexRequest request = new IndexRequest(index, STATS_TYPE, id);
-        Map<String, Object> source = Maps.newHashMap();
-        source.put("datePretty", new DateTime().minusDays(Math.abs(new Random().nextInt() % 500)));
-        source.put("sentiment", Math.abs(new Random().nextInt() % 10));
-        source.put("color", randomColor().name());
-        source.put("genre", randomGenre().name());
-        source.put("amount", Math.abs(new Random().nextDouble()));
-        Map<String, Object> reach = Maps.newHashMap();
-        reach.put("type", "point");
-        reach.put("coordinates", Arrays.asList(-1 * Math.abs(new Random().nextDouble() % 90), Math.abs(new Random().nextDouble() % 180)));
-        source.put("reach", reach);
-
-        Map<String, Object> latLon = Maps.newLinkedHashMap();
-        latLon.put("lat", -1 * Math.abs(new Random().nextInt() % 90));
-        latLon.put("lon", Math.abs(new Random().nextInt() % 180));
-        source.put("currentLocation", latLon);
-        source.put("ipAddress", Joiner.on('.').join(Math.abs(new Random().nextInt() % 255), Math.abs(new Random().nextInt() % 255), Math.abs(new Random().nextInt() % 255), Math.abs(new Random().nextInt() % 255)));
-
-        Map<String, Object> author = Maps.newHashMap();
-        author.put("name", randomName());
-        List<Map<String, Object>> books = Lists.newArrayList();
-        for (int i = Math.abs(new Random().nextInt()) % 15; i >= 0; i--) {
-            Map<String, Object> book = Maps.newHashMap();
-            book.put("title", randomName());
-            book.put("genre", randomGenre());
-            book.put("price", Math.abs(new Random().nextFloat()));
-            books.add(book);
-        }
-        author.put("books", books);
-        source.put("author", author);
-
-        request.source(source);
-        request.refresh(true);
-        return request;
-    }
-
-    private List<String> names;
-    private String randomName() {
-        if (names == null) {
-            names = Lists.newArrayList();
-            InputStream in = this.getClass().getResourceAsStream("/config/names.txt");
-            BufferedReader reader = new BufferedReader(new InputStreamReader(in, Charsets.UTF_8));
-            String name;
-            try {
-                while( (name=reader.readLine()) != null) {
-                    names.add(name);
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e.getMessage(), e);
-            }
-            finally {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    throw new RuntimeException(e.getMessage(), e);
-                }
-            }
-        }
-        assert names.size() > 0;
-        return names.get(Math.abs(new Random().nextInt()) % names.size());
-
-    }
-
-    private Color randomColor() {
-        return Color.values()[Math.abs(new Random().nextInt()) % Color.values().length];
-    }
-
-    private Genre randomGenre() {
-        return Genre.values()[Math.abs(new Random().nextInt()) % Genre.values().length];
-    }
 }
