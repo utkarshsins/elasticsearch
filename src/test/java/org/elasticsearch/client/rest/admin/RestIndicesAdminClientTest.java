@@ -21,6 +21,7 @@ package org.elasticsearch.client.rest.admin;
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesResponse;
 import org.elasticsearch.action.admin.indices.alias.exists.AliasesExistRequestBuilder;
 import org.elasticsearch.action.admin.indices.alias.exists.AliasesExistResponse;
+import org.elasticsearch.action.admin.indices.alias.get.GetAliasesResponse;
 import org.elasticsearch.action.admin.indices.cache.clear.ClearIndicesCacheResponse;
 import org.elasticsearch.action.admin.indices.close.CloseIndexResponse;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsResponse;
@@ -36,6 +37,7 @@ import org.elasticsearch.action.admin.indices.template.delete.DeleteIndexTemplat
 import org.elasticsearch.action.admin.indices.template.get.GetIndexTemplatesResponse;
 import org.elasticsearch.action.admin.indices.template.put.PutIndexTemplateResponse;
 import org.elasticsearch.client.rest.AbstractRestClientTest;
+import org.elasticsearch.cluster.metadata.AliasMetaData;
 import org.elasticsearch.cluster.metadata.IndexTemplateMetaData;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
@@ -190,6 +192,20 @@ public class RestIndicesAdminClientTest extends AbstractRestClientTest {
         assertEquals("logs_template", indexTemplateMetaData.getName());
         assertEquals("logs_*", indexTemplateMetaData.getTemplate());
         assertEquals(0, indexTemplateMetaData.getOrder());
+    }
+
+    @Test
+    public void getAliases() {
+        GetAliasesResponse response = indicesAdminClient.prepareGetAliases().get();
+        ImmutableOpenMap<String, List<AliasMetaData>> aliases = response.getAliases();
+        assertNotNull(aliases);
+        assertFalse(aliases.isEmpty());
+
+        List<AliasMetaData> meta = aliases.get(index);
+        assertNotNull(meta);
+        assertTrue(meta.size() > 0);
+        assertEquals("alias_1", meta.get(0).alias());
+
     }
 
     @Test

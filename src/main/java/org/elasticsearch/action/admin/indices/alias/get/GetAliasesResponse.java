@@ -27,10 +27,13 @@ import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.xcontent.XContentObject;
+import org.elasticsearch.common.xcontent.XContentParser;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  */
@@ -48,6 +51,24 @@ public class GetAliasesResponse extends ActionResponse {
 
     public ImmutableOpenMap<String, List<AliasMetaData>> getAliases() {
         return aliases;
+    }
+
+    @Override
+    public void readFrom(XContentObject source) throws IOException {
+        ImmutableOpenMap.Builder<String, List<AliasMetaData>> aliasesBuilder = ImmutableOpenMap.builder();
+        Set<String> indices = source.keySet();
+        for (String index : indices) {
+            Map<String, XContentObject> aliases = source.getAsXContentObject(index).getAsXContentObjectsMap("aliases");
+            Set<String> aliasNames = aliases.keySet();
+            List<AliasMetaData> value = new ArrayList<>();
+            for (String aliasName : aliasNames) {
+                XContentObject alias = aliases.get(aliasName);
+                alias.put("_alias", aliasName);
+                value.add(AliasMetaData.Builder.readFrom(alias));
+            }
+            aliasesBuilder.put(index, ImmutableList.copyOf(value));
+        }
+        this.aliases = aliasesBuilder.build();
     }
 
     @Override
