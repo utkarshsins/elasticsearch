@@ -403,4 +403,6 @@ public interface XContentObject {
     List<Object> getAsObjects(String key);
 
     XContentObject getParent();
+
+    Map<String, Object> flattenMap();
 }

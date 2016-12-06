@@ -90,18 +90,22 @@ public abstract class AbstractRestClientTest {
         documentary
     }
 
+    private static final boolean USE_REST = true;
 
     @Before
     public void setUp() {
-/*
-        TransportClient transportClient = new TransportClient();
-        transportClient.addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
-        client = transportClient;
-*/
-        client = RestClient.builder("localhost")
-                .setMaxRetryTimeout(new TimeValue(60, TimeUnit.SECONDS))
-                .setMaxResponseSize(new ByteSizeValue(1, ByteSizeUnit.GB))
-                .build();
+        if (USE_REST) {
+            client = RestClient.builder("localhost")
+                    .setMaxRetryTimeout(new TimeValue(60, TimeUnit.SECONDS))
+                    .setMaxResponseSize(new ByteSizeValue(1, ByteSizeUnit.GB))
+                    .build();
+        }
+        else {
+            TransportClient transportClient = new TransportClient();
+            transportClient.addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
+            client = transportClient;
+        }
+
         this.indicesAdminClient = client.admin().indices();
         this.clusterAdminClient = client.admin().cluster();
         this.index = createIndex();

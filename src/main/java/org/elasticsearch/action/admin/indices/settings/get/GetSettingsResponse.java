@@ -26,8 +26,10 @@ import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.xcontent.XContentObject;
 
 import java.io.IOException;
+import java.util.Set;
 
 /**
  */
@@ -74,5 +76,17 @@ public class GetSettingsResponse extends ActionResponse {
             out.writeString(cursor.key);
             ImmutableSettings.writeSettingsToStream(cursor.value, out);
         }
+    }
+
+    @Override
+    public void readFrom(XContentObject source) throws IOException {
+        ImmutableOpenMap.Builder<String, Settings> builder = ImmutableOpenMap.builder();
+        Set<String> indices = source.keySet();
+        for (String index : indices) {
+            XContentObject setting = source.getAsXContentObject(index).getAsXContentObject("settings");
+            builder.put(index, ImmutableSettings.readSettingsFromStream(setting));
+        }
+        indexToSettings = builder.build();
+
     }
 }

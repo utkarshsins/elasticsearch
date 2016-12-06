@@ -19,6 +19,7 @@
 
 package org.elasticsearch.action.admin.indices.settings.get;
 
+import org.apache.http.HttpEntity;
 import org.elasticsearch.Version;
 import org.elasticsearch.action.ActionRequestValidationException;
 import org.elasticsearch.action.IndicesRequest;
@@ -28,8 +29,11 @@ import org.elasticsearch.action.support.master.MasterNodeReadOperationRequest;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
+import org.elasticsearch.common.util.UriBuilder;
+import org.elasticsearch.rest.RestRequest;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  */
@@ -95,4 +99,17 @@ public class GetSettingsRequest extends MasterNodeReadOperationRequest<GetSettin
         out.writeStringArray(names);
         writeLocal(out, Version.V_1_0_0_RC2);
     }
+
+    @Override
+    public RestRequest.Method getMethod() {
+        return RestRequest.Method.GET;
+    }
+
+    @Override
+    public String getEndPoint() {
+        return UriBuilder.newBuilder()
+                .csv(indices).slash("_settings")
+                .csv(names).build();
+    }
+
 }

@@ -22,6 +22,7 @@ package org.elasticsearch.action.bulk;
 import org.elasticsearch.action.ActionResponse;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
+import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.index.shard.ShardId;
 
 import java.io.IOException;

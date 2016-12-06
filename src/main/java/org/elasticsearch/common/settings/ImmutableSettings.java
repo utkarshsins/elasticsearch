@@ -614,10 +614,8 @@ public class ImmutableSettings implements Settings {
     }
 
     public static Settings readSettingsFromStream(XContentObject in) {
-        Builder builder = new Builder();
-        for (String key : in.keySet()){
-            builder.put(key, in.get(key));
-        }
+        ImmutableSettings.Builder builder;
+        builder = ImmutableSettings.builder().put(in.flattenMap());
         return builder.build();
     }
 

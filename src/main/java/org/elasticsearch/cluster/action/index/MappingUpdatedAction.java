@@ -46,6 +46,7 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.util.concurrent.ConcurrentCollections;
 import org.elasticsearch.common.util.concurrent.EsExecutors;
+import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.index.mapper.DocumentMapper;
 import org.elasticsearch.index.mapper.MapperService;
 import org.elasticsearch.node.settings.NodeSettingsService;
@@ -165,6 +166,11 @@ public class MappingUpdatedAction extends TransportMasterNodeOperationAction<Map
         @Override
         public void writeTo(StreamOutput out) throws IOException {
             super.writeTo(out);
+        }
+
+        @Override
+        public void readFrom(XContentObject source) throws IOException {
+            throw new UnsupportedOperationException("Should not be called from the rest client");
         }
     }
 

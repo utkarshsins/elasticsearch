@@ -538,4 +538,31 @@ public class XContentObjectImpl implements XContentObject {
     public XContentObject getParent() {
         return parent;
     }
+
+    @Override
+    public Map<String, Object> flattenMap() {
+        Map<String, Object> flattenMap = new HashMap<>(internalMap.size());
+        iterableCrawl("", null, internalMap.entrySet(), flattenMap);
+        return flattenMap;
+    }
+
+    private <T> void iterableCrawl(String prefix, String suffix, Iterable<T> iterable, Map<String, Object> flattenMap) {
+        int key = 0;
+        for (T t : iterable) {
+            if (suffix!=null)
+                crawl(t, prefix+(key++)+suffix, flattenMap);
+            else
+                crawl(((Map.Entry<String, Object>) t).getValue(), prefix+((Map.Entry<String, Object>) t).getKey(), flattenMap);
+        }
+    }
+
+    private void crawl(Object object, String key, Map<String, Object> flattenMap) {
+        if (object instanceof ArrayList)
+            iterableCrawl(key+"[", "]", (ArrayList<Object>)object, flattenMap);
+        else if (object instanceof Map)
+            iterableCrawl(key+".", null, ((Map<String, Object>)object).entrySet(), flattenMap);
+        else
+            flattenMap.put(key, object);
+    }
 }
+

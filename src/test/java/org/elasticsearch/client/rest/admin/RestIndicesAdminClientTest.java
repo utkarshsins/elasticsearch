@@ -31,11 +31,13 @@ import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.admin.indices.open.OpenIndexResponse;
 import org.elasticsearch.action.admin.indices.refresh.RefreshResponse;
+import org.elasticsearch.action.admin.indices.settings.get.GetSettingsResponse;
 import org.elasticsearch.action.admin.indices.template.delete.DeleteIndexTemplateResponse;
 import org.elasticsearch.action.admin.indices.template.put.PutIndexTemplateResponse;
 import org.elasticsearch.client.rest.AbstractRestClientTest;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.index.query.FilterBuilders;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -161,7 +163,18 @@ public class RestIndicesAdminClientTest extends AbstractRestClientTest {
     }
 
     @Test
-//    @Ignore
+    public void testGetSettings() {
+        GetSettingsResponse response = indicesAdminClient.prepareGetSettings(index).get();
+        ImmutableOpenMap<String, Settings> indexToSettings = response.getIndexToSettings();
+        assertFalse(indexToSettings.isEmpty());
+        Settings settings = indexToSettings.get(index);
+        assertNotNull(settings);
+        assertNotNull(settings.get("index.creation_date"));
+        assertEquals(1, settings.getAsInt("index.number_of_shards", -1).intValue());
+        assertEquals(0, settings.getAsInt("index.number_of_replicas", -1).intValue());
+    }
+
+    @Test
     public void testAliasesExist() {
 
         AliasesExistResponse response;
