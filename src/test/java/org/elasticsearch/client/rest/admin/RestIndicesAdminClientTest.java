@@ -33,8 +33,10 @@ import org.elasticsearch.action.admin.indices.open.OpenIndexResponse;
 import org.elasticsearch.action.admin.indices.refresh.RefreshResponse;
 import org.elasticsearch.action.admin.indices.settings.get.GetSettingsResponse;
 import org.elasticsearch.action.admin.indices.template.delete.DeleteIndexTemplateResponse;
+import org.elasticsearch.action.admin.indices.template.get.GetIndexTemplatesResponse;
 import org.elasticsearch.action.admin.indices.template.put.PutIndexTemplateResponse;
 import org.elasticsearch.client.rest.AbstractRestClientTest;
+import org.elasticsearch.cluster.metadata.IndexTemplateMetaData;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.common.settings.Settings;
@@ -43,6 +45,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.Assert.*;
@@ -172,6 +175,21 @@ public class RestIndicesAdminClientTest extends AbstractRestClientTest {
         assertNotNull(settings.get("index.creation_date"));
         assertEquals(1, settings.getAsInt("index.number_of_shards", -1).intValue());
         assertEquals(0, settings.getAsInt("index.number_of_replicas", -1).intValue());
+    }
+
+    @Test
+    public void testGetIndexTemplates() {
+        PutIndexTemplateResponse putIndexTemplateResponse = indicesAdminClient.preparePutTemplate("logs_template").setSource(loadTestIndexTemplate()).get();
+        assertAcknowledged(putIndexTemplateResponse);
+        GetIndexTemplatesResponse response = indicesAdminClient.prepareGetTemplates().get();
+        List<IndexTemplateMetaData> indexTemplates = response.getIndexTemplates();
+        assertNotNull(indexTemplates);
+
+        assertTrue(indexTemplates.size() > 0);
+        IndexTemplateMetaData indexTemplateMetaData = indexTemplates.get(0);
+        assertEquals("logs_template", indexTemplateMetaData.getName());
+        assertEquals("logs_*", indexTemplateMetaData.getTemplate());
+        assertEquals(0, indexTemplateMetaData.getOrder());
     }
 
     @Test

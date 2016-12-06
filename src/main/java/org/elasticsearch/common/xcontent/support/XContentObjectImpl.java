@@ -304,6 +304,14 @@ public class XContentObjectImpl implements XContentObject {
     }
 
     @Override
+    public String getAsJsonEntry(String key) throws IOException {
+        Map<String, Object> value = getAsMap(key);
+        Map<String, Object> entry = new HashMap<>(value.size() + 1);
+        entry.put(key, value);
+        return XContentFactory.jsonBuilder().map(entry).string();
+    }
+
+    @Override
     public String getAsJson(Enum key) throws IOException {
         return getAsJson(key.name());
     }
@@ -311,6 +319,16 @@ public class XContentObjectImpl implements XContentObject {
     @Override
     public XContentParser getAsXContentParser(String key) throws IOException {
         return XContentHelper.createParser(new StringAndBytesText(getAsJson(key)).bytes());
+    }
+
+    @Override
+    public XContentParser getAsXContentParserEntry(String key) throws IOException {
+        return XContentHelper.createParser(new StringAndBytesText(getAsJsonEntry(key)).bytes());
+    }
+
+    @Override
+    public XContentParser getAsXContentParser() throws IOException {
+        return XContentHelper.createParser(new StringAndBytesText(toJson()).bytes());
     }
 
     @Override

@@ -388,9 +388,25 @@ public interface XContentObject {
     Map<String,Object> getInternalMap();
 
     String getAsJson(String key) throws IOException;
+
+    String getAsJsonEntry(String key) throws IOException;
+
     String getAsJson(Enum key) throws IOException;
 
+    /**
+     * Returns a parser for the value of the given key
+     */
     XContentParser getAsXContentParser(String key) throws IOException;
+
+    /**
+     * Returns a parser for the given {key:{value}}
+     */
+    XContentParser getAsXContentParserEntry(String key) throws IOException;
+
+    /**
+     * Returns a parser for the entire object
+     */
+    XContentParser getAsXContentParser() throws IOException;
 
     DateTime getAsDate(String key);
 

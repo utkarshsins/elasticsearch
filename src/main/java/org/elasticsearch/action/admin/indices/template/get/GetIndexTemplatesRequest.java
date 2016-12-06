@@ -24,6 +24,8 @@ import org.elasticsearch.action.support.master.MasterNodeReadOperationRequest;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
+import org.elasticsearch.common.util.UriBuilder;
+import org.elasticsearch.rest.RestRequest;
 
 import java.io.IOException;
 
@@ -86,4 +88,17 @@ public class GetIndexTemplatesRequest extends MasterNodeReadOperationRequest<Get
         out.writeStringArray(names);
         writeLocal(out, Version.V_1_0_0_RC2);
     }
+
+    @Override
+    public RestRequest.Method getMethod() {
+        return RestRequest.Method.GET;
+    }
+
+    @Override
+    public String getEndPoint() {
+        return UriBuilder.newBuilder()
+                .slash("_template")
+                .csv(names).build();
+    }
+
 }
