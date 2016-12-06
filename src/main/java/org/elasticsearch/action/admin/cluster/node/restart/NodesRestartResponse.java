@@ -59,6 +59,11 @@ public class NodesRestartResponse extends NodesOperationResponse<NodesRestartRes
         }
     }
 
+    @Override
+    public void readFrom(XContentObject source) throws IOException {
+        throw new UnsupportedOperationException("Disabled for security reasons");
+    }
+
     public static class NodeRestartResponse extends NodeOperationResponse {
 
         NodeRestartResponse() {

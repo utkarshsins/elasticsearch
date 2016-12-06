@@ -205,7 +205,6 @@ public class RestIndicesAdminClientTest extends AbstractRestClientTest {
         assertNotNull(meta);
         assertTrue(meta.size() > 0);
         assertEquals("alias_1", meta.get(0).alias());
-
     }
 
     @Test

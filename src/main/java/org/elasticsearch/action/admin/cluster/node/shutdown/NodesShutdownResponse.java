@@ -24,6 +24,7 @@ import org.elasticsearch.cluster.ClusterName;
 import org.elasticsearch.cluster.node.DiscoveryNode;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
+import org.elasticsearch.common.xcontent.XContentObject;
 
 import java.io.IOException;
 
@@ -69,5 +70,10 @@ public class NodesShutdownResponse extends ActionResponse {
         for (DiscoveryNode node : nodes) {
             node.writeTo(out);
         }
+    }
+
+    @Override
+    public void readFrom(XContentObject source) throws IOException {
+        throw new UnsupportedOperationException("Disabled for security reasons");
     }
 }

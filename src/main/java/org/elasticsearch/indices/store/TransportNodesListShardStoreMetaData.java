@@ -38,6 +38,7 @@ import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Streamable;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.env.NodeEnvironment;
 import org.elasticsearch.index.service.IndexService;
 import org.elasticsearch.index.shard.ShardId;
@@ -328,6 +329,11 @@ public class TransportNodesListShardStoreMetaData extends TransportNodesOperatio
             for (NodeStoreFilesMetaData response : nodes) {
                 response.writeTo(out);
             }
+        }
+
+        @Override
+        public void readFrom(XContentObject source) throws IOException {
+            throw new UnsupportedOperationException("Not supported for transport client");
         }
     }
 

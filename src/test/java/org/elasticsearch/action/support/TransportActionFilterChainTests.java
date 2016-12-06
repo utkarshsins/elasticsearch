@@ -26,10 +26,12 @@ import org.elasticsearch.action.ActionRequest;
 import org.elasticsearch.action.ActionRequestValidationException;
 import org.elasticsearch.action.ActionResponse;
 import org.elasticsearch.common.settings.ImmutableSettings;
+import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.test.ElasticsearchTestCase;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
@@ -452,5 +454,9 @@ public class TransportActionFilterChainTests extends ElasticsearchTestCase {
 
     private static class TestResponse extends ActionResponse {
 
+        @Override
+        public void readFrom(XContentObject source) throws IOException {
+            throw new UnsupportedOperationException("Not supported for transport client");
+        }
     }
 }

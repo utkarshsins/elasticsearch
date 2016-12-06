@@ -37,6 +37,7 @@ import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.text.StringText;
 import org.elasticsearch.common.text.Text;
+import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.index.shard.ShardId;
 import org.elasticsearch.percolator.PercolatorService;
 import org.elasticsearch.threadpool.ThreadPool;
@@ -234,6 +235,11 @@ public class TransportShardMultiPercolateAction extends TransportShardSingleOper
                     out.writeText(item.error);
                 }
             }
+        }
+
+        @Override
+        public void readFrom(XContentObject source) throws IOException {
+            throw new UnsupportedOperationException("Not supported for transport client");
         }
 
         @Override
