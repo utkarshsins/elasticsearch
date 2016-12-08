@@ -57,7 +57,7 @@ public class ElasticsearchException extends RuntimeException {
     }
 
     public ElasticsearchException(XContentObject in) {
-        this(in.get("reason", ""));
+        this(in.toJson());
     }
 
     /**

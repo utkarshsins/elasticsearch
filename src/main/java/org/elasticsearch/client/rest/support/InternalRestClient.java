@@ -356,15 +356,23 @@ public class InternalRestClient implements Closeable {
                             XContentParser parser = XContentHelper.createParser(new BytesArray(EntityUtils.toString(entity)));
                             XContentObject map = parser.xContentObject();
                             if (map.containsKey("error")) {
-                                XContentObject error = map.getAsXContentObject("error").getAsXContentObjects("root_cause").get(0);
-                                if (error.containsKey("type")) {
+                                ElasticsearchExceptionHandler handler;
+                                if (version.id >= Version.V_5_0_0_ID) {
+                                    XContentObject error;
+                                    error = map.getAsXContentObject("error").getAsXContentObjects("root_cause").get(0);
                                     String type = error.get("type");
-                                    ElasticsearchExceptionHandler handler = ElasticsearchExceptionHandler.safeValueOf(type);
-                                    if (handler != null) {
-                                        ElasticsearchException elasticsearchException = handler.newException(error);
-                                        if (elasticsearchException != null) {
-                                            responseException = elasticsearchException;
-                                        }
+                                    handler = ElasticsearchExceptionHandler.safeValueOf(type);
+                                    ElasticsearchException elasticsearchException = handler.newException(error);
+                                    if (elasticsearchException != null) {
+                                        responseException = elasticsearchException;
+                                    }
+                                }
+                                else {
+                                    String errorClassName = map.get("error").replaceAll("\\[.*","");
+                                    handler = ElasticsearchExceptionHandler.safeValueOf(errorClassName);
+                                    ElasticsearchException elasticsearchException = handler.newException(map);
+                                    if (elasticsearchException != null) {
+                                        responseException = elasticsearchException;
                                     }
                                 }
                             }

@@ -20,6 +20,7 @@
 package org.elasticsearch.action;
 
 import org.elasticsearch.ElasticsearchIllegalArgumentException;
+import org.elasticsearch.common.xcontent.XContentObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,8 +32,13 @@ public class ActionRequestValidationException extends ElasticsearchIllegalArgume
 
     private final List<String> validationErrors = new ArrayList<>();
 
+
     public ActionRequestValidationException() {
-        super(null);
+        super((String)null);
+    }
+
+    public ActionRequestValidationException(XContentObject in) {
+        super(in);
     }
 
     public void addValidationError(String error) {
@@ -51,12 +57,15 @@ public class ActionRequestValidationException extends ElasticsearchIllegalArgume
 
     @Override
     public String getMessage() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Validation Failed: ");
-        int index = 0;
-        for (String error : validationErrors) {
-            sb.append(++index).append(": ").append(error).append(";");
+        if (!validationErrors.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("Validation Failed: ");
+            int index = 0;
+            for (String error : validationErrors) {
+                sb.append(++index).append(": ").append(error).append(";");
+            }
+            return sb.toString();
         }
-        return sb.toString();
+        return super.getMessage();
     }
 }

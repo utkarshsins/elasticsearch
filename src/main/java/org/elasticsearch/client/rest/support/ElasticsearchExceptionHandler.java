@@ -20,6 +20,7 @@ package org.elasticsearch.client.rest.support;
 
 import com.google.common.collect.Maps;
 import org.elasticsearch.ElasticsearchException;
+import org.elasticsearch.action.ActionRequestValidationException;
 import org.elasticsearch.common.util.concurrent.UncategorizedExecutionException;
 import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.indices.IndexMissingException;
@@ -260,7 +261,9 @@ public enum ElasticsearchExceptionHandler {
     ),
     TYPE_MISSING_EXCEPTION(org.elasticsearch.indices.TypeMissingException.class
     ),
-    SCRIPT_EXCEPTION(org.elasticsearch.script.ScriptException.class);
+    SCRIPT_EXCEPTION(org.elasticsearch.script.ScriptException.class),
+    ACTION_REQUEST_VALIDATION_EXCEPTION(ActionRequestValidationException.class);
+
 
 
     static Map<String, ElasticsearchExceptionHandler> simpleNameMapping = Maps.newHashMap();
@@ -281,11 +284,8 @@ public enum ElasticsearchExceptionHandler {
         if (name == null) {
             return UNCATEGORIZED_EXECUTION_EXCEPTION;
         }
-        else {
-            name = name.toUpperCase(Locale.ROOT);
-        }
         try {
-            return valueOf(name);
+            return valueOf(name.toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
             if (simpleNameMapping.containsKey(name)) {
                 return simpleNameMapping.get(name);

@@ -19,6 +19,7 @@
 
 package org.elasticsearch;
 
+import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.rest.RestStatus;
 
 /**
@@ -36,6 +37,10 @@ public class ElasticsearchIllegalArgumentException extends ElasticsearchExceptio
 
     public ElasticsearchIllegalArgumentException(String msg, Throwable cause) {
         super(msg, cause);
+    }
+
+    public ElasticsearchIllegalArgumentException(XContentObject in) {
+        super(in);
     }
 
     @Override
