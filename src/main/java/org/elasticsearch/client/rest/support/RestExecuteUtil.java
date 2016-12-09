@@ -89,7 +89,7 @@ public class RestExecuteUtil {
                 error.getAsXContentObjects("root_cause").get(0);
                 String type = error.get("type");
                 ElasticsearchExceptionHandler handler = ElasticsearchExceptionHandler.safeValueOf(type);
-                throw handler.newException(error);
+                throw handler.newException(source);
             }
             else {
                 throw new UncategorizedExecutionException(source.toJson());

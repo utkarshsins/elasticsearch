@@ -19,8 +19,11 @@
 package org.elasticsearch.client.rest;
 
 import com.google.common.collect.Maps;
+import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.ActionFuture;
 import org.elasticsearch.action.ActionResponse;
+import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
+import org.elasticsearch.action.admin.indices.template.put.PutIndexTemplateResponse;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkProcessor;
 import org.elasticsearch.action.bulk.BulkRequest;
@@ -50,6 +53,7 @@ import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.common.unit.DistanceUnit;
 import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.index.engine.DocumentMissingException;
 import org.elasticsearch.index.engine.VersionConflictEngineException;
 import org.elasticsearch.index.query.FilterBuilders;
@@ -103,6 +107,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
@@ -112,7 +117,7 @@ import static org.junit.Assert.*;
  */
 public class RestClientTest extends AbstractRestClientTest {
 
-  @Before
+    @Before
     public void setUp() {
         super.setUp();
     }
@@ -242,10 +247,10 @@ public class RestClientTest extends AbstractRestClientTest {
     @Test
     public void testBulkIndexWithOptTypeCreate() throws ExecutionException, InterruptedException {
         BulkRequest request = new BulkRequest();
-            IndexRequest request1 = newIndexRequest();
-            request.add(request1);
-            request1.create(true);
-            request.add(request1);
+        IndexRequest request1 = newIndexRequest();
+        request.add(request1);
+        request1.create(true);
+        request.add(request1);
 
         BulkResponse bulkItemResponse = client.bulk(request).get();
         BulkItemResponse[] items = bulkItemResponse.getItems();
@@ -375,6 +380,7 @@ public class RestClientTest extends AbstractRestClientTest {
             return responseMap;
         }
     }
+
     @Test
     public void testBulkWithErrors() throws ExecutionException, InterruptedException {
         BulkRequest request = new BulkRequest();
@@ -400,6 +406,7 @@ public class RestClientTest extends AbstractRestClientTest {
         return countResponse.getCount();
 
     }
+
     @Test
     public void testCount() throws ExecutionException, InterruptedException {
         IndexResponse indexResponse = indexDocument();
@@ -647,7 +654,6 @@ public class RestClientTest extends AbstractRestClientTest {
         String name = "agg";
 
 
-
         search.addAggregation(AggregationBuilders.missing(name).field("MyFakeField"));
         search.setSize(0); // no hits please
 
@@ -677,7 +683,7 @@ public class RestClientTest extends AbstractRestClientTest {
         String genere_count_agg = "genere_count";
         String avg_price_agg = "avg_price";
         nestedBuilder.subAggregation(AggregationBuilders.terms(genere_count_agg).field("author.books.genre"))
-                      .subAggregation(AggregationBuilders.avg(avg_price_agg).field("author.books.price"));
+                .subAggregation(AggregationBuilders.avg(avg_price_agg).field("author.books.price"));
         search.addAggregation(nestedBuilder);
         search.setSize(0); // no hits please
 
@@ -805,7 +811,7 @@ public class RestClientTest extends AbstractRestClientTest {
 
         SearchRequestBuilder search = client.prepareSearch(index);
         String name = "agg";
-        search.addAggregation(AggregationBuilders.percentiles(name).field("amount").percentiles(.9D,.8D,.7D));
+        search.addAggregation(AggregationBuilders.percentiles(name).field("amount").percentiles(.9D, .8D, .7D));
         search.setSize(0); // no hits please
 
         SearchResponse response = client.search(search.request()).get();
@@ -837,7 +843,7 @@ public class RestClientTest extends AbstractRestClientTest {
 
         SearchRequestBuilder search = client.prepareSearch(index);
         String name = "agg";
-        search.addAggregation(AggregationBuilders.percentileRanks(name).field("amount").percentiles(.9D,.8D,.7D));
+        search.addAggregation(AggregationBuilders.percentileRanks(name).field("amount").percentiles(.9D, .8D, .7D));
         search.setSize(0); // no hits please
 
         SearchResponse response = client.search(search.request()).get();
@@ -1101,6 +1107,7 @@ public class RestClientTest extends AbstractRestClientTest {
 
 
     }
+
     @Test
     public void testSearchWithDateHistogramAggregation() throws ExecutionException, InterruptedException {
         indexDocument(100);
@@ -1197,6 +1204,7 @@ public class RestClientTest extends AbstractRestClientTest {
         validate(filters.getBuckets());
 
     }
+
     @Test
     public void testSearchWithScriptedMetricAggregation() throws ExecutionException, InterruptedException {
         indexDocument(100);
@@ -1241,7 +1249,7 @@ public class RestClientTest extends AbstractRestClientTest {
 
         int recordsRead = 0;
         recordsRead += response.getHits().hits().length;
-        for (;;) {
+        for (; ; ) {
             response = client.prepareSearchScroll(response.getScrollId()).setScroll(scrollKeepAlive).execute().actionGet();
             if (response.getHits().hits().length == 0) {
                 break;
@@ -1263,8 +1271,7 @@ public class RestClientTest extends AbstractRestClientTest {
         try {
             client.prepareSearchScroll(response.getScrollId()).setScroll(scrollKeepAlive).execute().actionGet();
             fail("Should have thrown an exception of SearchPhaseExecutionException");
-        }
-        catch (SearchPhaseExecutionException ignore) {
+        } catch (SearchPhaseExecutionException ignore) {
             // all good
             return;
         }
@@ -1276,8 +1283,8 @@ public class RestClientTest extends AbstractRestClientTest {
         indexDocument(100);
         DeleteByQueryResponse response;
         response = client.prepareDeleteByQuery(index)
-                    .setTypes(STATS_TYPE)
-                    .setQuery(QueryBuilders.termQuery("color", Color.red)).get();
+                .setTypes(STATS_TYPE)
+                .setQuery(QueryBuilders.termQuery("color", Color.red)).get();
         for (IndexDeleteByQueryResponse queryResponse : response) {
             assertEquals(index, queryResponse.getIndex());
         }
@@ -1400,6 +1407,41 @@ public class RestClientTest extends AbstractRestClientTest {
     }
 
     @Test
+    @Ignore
+    public void testDateZeroValue() throws IOException {
+        String template = loadTemplate("/org/elasticsearch/client/rest/test-index-dynamic2.json");
+        String source = loadTemplate("/org/elasticsearch/client/rest/data3.json");
+        String dummyDoc = loadTemplate("/org/elasticsearch/client/rest/data5.json");
+        PutIndexTemplateResponse templateResponse = indicesAdminClient.preparePutTemplate("dyn_template").setSource(template).get();
+        assertAcknowledged(templateResponse);
+
+        String indexName = "auto_1";
+        try {
+            indicesAdminClient.prepareDelete(indexName).get();
+        } catch (ElasticsearchException e) {
+            //ignore
+        }
+        CreateIndexResponse response = indicesAdminClient.prepareCreate(indexName).get();
+        assertAcknowledged(response);
+
+        IndexResponse response1 = client.prepareIndex(indexName, "stat", UUID.randomUUID().toString())
+                .setSource(dummyDoc)
+                .setRefresh(true)
+                .setReplicationType(ReplicationType.ASYNC)
+                .get();
+        client.prepareDelete(indexName, "stat", response1.getId()).get();
+
+        IndexResponse response2 = client.prepareIndex(indexName, "stat", UUID.randomUUID().toString())
+                .setSource(source)
+                .setRefresh(true)
+                .setReplicationType(ReplicationType.ASYNC)
+                .get();
+        assert response2.isCreated();
+
+
+    }
+
+    @Test
     public void testSuggestSearch() throws ExecutionException, InterruptedException {
         List<IndexResponse> indexResponses = indexDocument(3);
 
@@ -1437,7 +1479,6 @@ public class RestClientTest extends AbstractRestClientTest {
     public void testValidate() throws ExecutionException, InterruptedException {
         //todo bdk implement
     }
-
 
 
     private void validateScrollResponse(SearchResponse response) {

@@ -37,7 +37,7 @@ public class EngineException extends IndexShardException {
     }
 
     public EngineException(XContentObject in) {
-        this(ShardId.readShardId(in), in.get("reason", ""));
+        this(ShardId.readShardId(in.getAsXContentObject("error")), in.toJson());
     }
 
 }

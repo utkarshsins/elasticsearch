@@ -20,6 +20,7 @@
 package org.elasticsearch.index.mapper;
 
 import org.elasticsearch.ElasticsearchException;
+import org.elasticsearch.common.xcontent.XContentObject;
 
 /**
  *
@@ -32,5 +33,9 @@ public class MapperException extends ElasticsearchException {
 
     public MapperException(String message, Throwable cause) {
         super(message, cause);
+    }
+
+    public MapperException(XContentObject in) {
+        super(in);
     }
 }

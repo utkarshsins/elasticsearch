@@ -98,6 +98,7 @@ public abstract class AbstractRestClientTest {
             client = RestClient.builder("localhost")
                     .setMaxRetryTimeout(new TimeValue(60, TimeUnit.SECONDS))
                     .setMaxResponseSize(new ByteSizeValue(1, ByteSizeUnit.GB))
+                    .setSocketTimeout(new TimeValue(60, TimeUnit.SECONDS))
                     .build();
         }
         else {
@@ -231,18 +232,20 @@ public abstract class AbstractRestClientTest {
     }
 
     protected String loadTestIndex() {
-        InputStream in = this.getClass().getResourceAsStream("/org/elasticsearch/client/rest/test-index.json");
-        return Strings.valueOf(in);
+        return loadTemplate("/org/elasticsearch/client/rest/test-index.json");
     }
 
     protected String loadTestIndexTemplate() {
-        InputStream in = this.getClass().getResourceAsStream("/org/elasticsearch/client/rest/test-index-template.json");
+        return loadTemplate("/org/elasticsearch/client/rest/test-index-template.json");
+    }
+
+    protected String loadTemplate(String name) {
+        InputStream in = this.getClass().getResourceAsStream(name);
         return Strings.valueOf(in);
     }
 
     protected String loadTestIndexPutMapping() {
-        InputStream in = this.getClass().getResourceAsStream("/org/elasticsearch/client/rest/test-index-put-mapping.json");
-        return Strings.valueOf(in);
+        return loadTemplate("/org/elasticsearch/client/rest/test-index-put-mapping.json");
     }
 
     protected void deleteIndex(String index) {

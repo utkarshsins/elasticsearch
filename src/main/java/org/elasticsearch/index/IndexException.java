@@ -44,7 +44,12 @@ public class IndexException extends ElasticsearchException {
 
     public IndexException(XContentObject in) {
         super(in);
-        this.index = new Index(in.get("index"));
+        XContentObject error = in.getAsXContentObject("error");
+        if (error.containsKey("index")) {
+            this.index = new Index(error.get("index"));
+        } else {
+            this.index = null;
+        }
     }
 
     public Index index() {

@@ -19,6 +19,7 @@
 
 package org.elasticsearch.index.mapper;
 
+import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.rest.RestStatus;
 
 /**
@@ -34,6 +35,9 @@ public class MapperParsingException extends MapperException {
         super(message, cause);
     }
 
+    public MapperParsingException(XContentObject in) {
+        super(in);
+    }
 
     @Override
     public RestStatus status() {

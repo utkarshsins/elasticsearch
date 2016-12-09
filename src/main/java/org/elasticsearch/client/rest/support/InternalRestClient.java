@@ -358,11 +358,11 @@ public class InternalRestClient implements Closeable {
                             if (map.containsKey("error")) {
                                 ElasticsearchExceptionHandler handler;
                                 if (version.id >= Version.V_5_0_0_ID) {
-                                    XContentObject error;
-                                    error = map.getAsXContentObject("error").getAsXContentObjects("root_cause").get(0);
-                                    String type = error.get("type");
+                                    XContentObject rootCause;
+                                    rootCause = map.getAsXContentObject("error").getAsXContentObjects("root_cause").get(0);
+                                    String type = rootCause.get("type");
                                     handler = ElasticsearchExceptionHandler.safeValueOf(type);
-                                    ElasticsearchException elasticsearchException = handler.newException(error);
+                                    ElasticsearchException elasticsearchException = handler.newException(map);
                                     if (elasticsearchException != null) {
                                         responseException = elasticsearchException;
                                     }

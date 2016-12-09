@@ -23,6 +23,7 @@ import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.ActionRequestValidationException;
 import org.elasticsearch.common.util.concurrent.UncategorizedExecutionException;
 import org.elasticsearch.common.xcontent.XContentObject;
+import org.elasticsearch.index.mapper.MapperParsingException;
 import org.elasticsearch.indices.IndexMissingException;
 
 import java.util.Locale;
@@ -98,8 +99,7 @@ public enum ElasticsearchExceptionHandler {
     ),
     SEARCH_EXCEPTION(org.elasticsearch.search.SearchException.class
     ),
-    MAPPER_EXCEPTION(org.elasticsearch.index.mapper.MapperException.class
-    ),
+    MAPPER_EXCEPTION(org.elasticsearch.index.mapper.MapperException.class),
     INVALID_TYPE_NAME_EXCEPTION(org.elasticsearch.indices.InvalidTypeNameException.class
     ),
     SNAPSHOT_RESTORE_EXCEPTION(org.elasticsearch.snapshots.SnapshotRestoreException.class
