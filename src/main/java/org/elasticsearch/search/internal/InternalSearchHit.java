@@ -396,7 +396,8 @@ public class InternalSearchHit implements SearchHit {
         _source {
             @Override
             public void apply(XContentObject in, InternalSearchHit response) throws IOException {
-                response.source = new BytesArray(XContentHelper.convertToJson(in.getAsMap(this), false));
+                String json = in.getAsJson(this);
+                response.source = new BytesArray(json);
             }
 
         },

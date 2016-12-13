@@ -108,7 +108,7 @@ public class BulkItemResponse implements Streamable, FromXContentObject {
             return new Failure(in.get("index"),
                         in.get("type"),
                         in.getParent().get("_id"),
-                        in.get("reason"),
+                        in.toJson(),
                         RestStatus.valueOf(in.getParent().getAsInt("status")));
         }
     }

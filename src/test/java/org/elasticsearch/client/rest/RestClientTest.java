@@ -1407,8 +1407,7 @@ public class RestClientTest extends AbstractRestClientTest {
     }
 
     @Test
-    @Ignore
-    public void testDateZeroValue() throws IOException {
+    public void testDateZeroValue() throws IOException, ExecutionException, InterruptedException {
         String template = loadTemplate("/org/elasticsearch/client/rest/test-index-dynamic2.json");
         String source = loadTemplate("/org/elasticsearch/client/rest/data3.json");
         String dummyDoc = loadTemplate("/org/elasticsearch/client/rest/data5.json");
@@ -1431,14 +1430,17 @@ public class RestClientTest extends AbstractRestClientTest {
                 .get();
         client.prepareDelete(indexName, "stat", response1.getId()).get();
 
-        IndexResponse response2 = client.prepareIndex(indexName, "stat", UUID.randomUUID().toString())
+
+        IndexRequest request1 = client.prepareIndex(indexName, "stat", UUID.randomUUID().toString())
                 .setSource(source)
                 .setRefresh(true)
-                .setReplicationType(ReplicationType.ASYNC)
-                .get();
-        assert response2.isCreated();
-
-
+                .setReplicationType(ReplicationType.ASYNC).request();
+        BulkRequest request = new BulkRequest();
+        request.add(request1);
+        BulkResponse bulkItemResponse = client.bulk(request).get();
+        for (BulkItemResponse itemResponse : bulkItemResponse.getItems()) {
+            assertTrue("Item failed to index", itemResponse.isFailed());
+        }
     }
 
     @Test
