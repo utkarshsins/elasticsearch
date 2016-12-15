@@ -788,6 +788,16 @@ public class UpdateRequest extends InstanceShardOperationRequest<UpdateRequest> 
         if (this.upsertRequest != null) {
             payload.put("upsert", this.upsertRequest.sourceAsMap());
         }
+        if (this.scriptLang != null) {
+            payload.put("lang", this.scriptLang);
+        }
+
+        if (this.scriptParams != null) {
+            for (Map.Entry<String, Object> entry : scriptParams.entrySet()) {
+                payload.put("sp_" + entry.getKey(), entry.getValue());
+            }
+        }
+
         if (payload.isEmpty()) {
             throw new IllegalStateException("Nothing to update. No doc, script or upsert provided");
         }
