@@ -34,6 +34,7 @@ import org.elasticsearch.common.xcontent.XContentObjectParseable;
 import org.elasticsearch.rest.RestStatus;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * Represents a single item response for an action executed as part of the bulk API. Holds the index/type/id
@@ -105,11 +106,11 @@ public class BulkItemResponse implements Streamable, FromXContentObject {
         }
 
         public static Failure readFrom(XContentObject in) {
-            return new Failure(in.get("index"),
-                        in.get("type"),
-                        in.getParent().get("_id"),
+            return new Failure(in.get("_index", in.get("index")),
+                        in.get("_type", in.get("type")),
+                        in.get("_id", in.getParent().get("_id")),
                         in.toJson(),
-                        RestStatus.valueOf(in.getParent().getAsInt("status")));
+                        RestStatus.valueOf(in.getAsInt("status", in.getParent().getAsInt("status"))));
         }
     }
 
@@ -350,7 +351,7 @@ public class BulkItemResponse implements Streamable, FromXContentObject {
         private static void handleFailure(XContentObject source, BulkItemResponse response, JsonField jsonField) {
             XContentObject xContentObject = source.getAsXContentObject(jsonField);
             if (xContentObject.containsKey("error")) {
-                response.failure = Failure.readFrom(xContentObject.getAsXContentObject("error"));
+                response.failure = Failure.readFrom(xContentObject);
             }
         }
     }

@@ -24,10 +24,7 @@ import org.elasticsearch.action.ActionFuture;
 import org.elasticsearch.action.ActionResponse;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.template.put.PutIndexTemplateResponse;
-import org.elasticsearch.action.bulk.BulkItemResponse;
-import org.elasticsearch.action.bulk.BulkProcessor;
-import org.elasticsearch.action.bulk.BulkRequest;
-import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.bulk.*;
 import org.elasticsearch.action.count.CountRequest;
 import org.elasticsearch.action.count.CountResponse;
 import org.elasticsearch.action.delete.DeleteRequest;
@@ -49,6 +46,7 @@ import org.elasticsearch.action.suggest.SuggestResponse;
 import org.elasticsearch.action.support.QuerySourceBuilder;
 import org.elasticsearch.action.support.replication.ReplicationType;
 import org.elasticsearch.action.update.UpdateRequest;
+import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.common.unit.DistanceUnit;
@@ -60,6 +58,7 @@ import org.elasticsearch.index.query.FilterBuilders;
 import org.elasticsearch.index.query.IdsQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.indices.IndexAlreadyExistsException;
+import org.elasticsearch.script.ScriptService;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.aggregations.Aggregation;
@@ -1317,6 +1316,19 @@ public class RestClientTest extends AbstractRestClientTest {
         assertNotNull(deleteIndexedScriptResponse);
         assertEquals(id, deleteIndexedScriptResponse.getId());
     }
+
+    @Test
+    public void testUpdateScriptWithBulkProcessor() throws ExecutionException, InterruptedException {
+        List<IndexResponse> indexResponses = indexDocument(100);
+        BulkRequestBuilder bulk = client.prepareBulk();
+        UpdateRequest updateRequest = client.prepareUpdate(index, type, indexResponses.get(0).getId())
+                .addScriptParam("color", "red")
+                .setScript("ctx._source.color = color", ScriptService.ScriptType.INLINE).request();
+        bulk.add(updateRequest);
+        BulkResponse bulkItemResponses = bulk.get();
+        assertFalse(bulkItemResponses.hasFailures());
+    }
+
 
     @Test
     public void testExistsRequest() throws ExecutionException, InterruptedException {

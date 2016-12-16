@@ -34,6 +34,7 @@ import org.elasticsearch.common.Nullable;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.bytes.BytesArray;
 import org.elasticsearch.common.bytes.BytesReference;
+import org.elasticsearch.common.collect.MapBuilder;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.lucene.uid.Versions;
@@ -45,6 +46,8 @@ import org.elasticsearch.script.ScriptService;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import static org.elasticsearch.action.ValidateActions.addValidationError;
@@ -757,19 +760,21 @@ public class UpdateRequest extends InstanceShardOperationRequest<UpdateRequest> 
         payload.put(BULK_TYPE, actionMetadata);
         String json = XContentHelper.convertToJson(payload, false);
 
-        String fullPayload = Strings.join(json, "\n", XContentHelper.convertToJson(getPayload(), false), "\n");
+        String payloadJson = XContentHelper.convertToJson(getPayload(), false);
+        String fullPayload = Strings.join(json, "\n", payloadJson, "\n");
         return new NStringEntity(fullPayload, StandardCharsets.UTF_8);
     }
 
     @Override
     public HttpEntity getEntity() throws IOException {
         Map<String, Object> payload = getPayload();
-        return new NStringEntity(XContentHelper.convertToJson(payload, false), StandardCharsets.UTF_8);
+        String json = XContentHelper.convertToJson(payload, false);
+        return new NStringEntity(json, StandardCharsets.UTF_8);
 
     }
 
     private Map<String, Object> getPayload() {
-        Map<String, Object>  payload = Maps.newLinkedHashMap();
+        MapBuilder<String, Object> payload = MapBuilder.newMapBuilder();
         if (this.doc != null) {
             payload.put("doc", this.doc.sourceAsMap());
             if (this.docAsUpsert) {
@@ -780,27 +785,18 @@ public class UpdateRequest extends InstanceShardOperationRequest<UpdateRequest> 
             }
         }
         else if (Strings.hasLength(script)) {
-            if (this.scriptedUpsert) {
-                payload.put("scripted_upsert", Boolean.TRUE);
-            }
+            payload.putIfNotNull("lang", this.scriptLang);
+            payload.putIf("scripted_upsert", Boolean.TRUE, this.scriptedUpsert);
             payload.put("script", this.script);
+            payload.put("params", scriptParams);
         }
         if (this.upsertRequest != null) {
             payload.put("upsert", this.upsertRequest.sourceAsMap());
-        }
-        if (this.scriptLang != null) {
-            payload.put("lang", this.scriptLang);
-        }
-
-        if (this.scriptParams != null) {
-            for (Map.Entry<String, Object> entry : scriptParams.entrySet()) {
-                payload.put("sp_" + entry.getKey(), entry.getValue());
-            }
         }
 
         if (payload.isEmpty()) {
             throw new IllegalStateException("Nothing to update. No doc, script or upsert provided");
         }
-        return payload;
+        return payload.map();
     }
 }
