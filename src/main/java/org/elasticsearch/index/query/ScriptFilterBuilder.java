@@ -25,6 +25,7 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.script.ScriptService;
 
 import java.io.IOException;
+import java.util.Locale;
 import java.util.Map;
 
 import static com.google.common.collect.Maps.newHashMap;
@@ -110,7 +111,7 @@ public class ScriptFilterBuilder extends BaseFilterBuilder {
         if (version.onOrAfter(Version.V_5_0_0)) {
             builder.startObject(ScriptFilterParser.NAME);
             builder.startObject("script");
-            builder.field(this.scriptType.name().toLowerCase(), script);
+            builder.field(this.scriptType.name().toLowerCase(Locale.ROOT), script);
 
             if (this.lang != null) {
                 builder.field("lang", lang);
