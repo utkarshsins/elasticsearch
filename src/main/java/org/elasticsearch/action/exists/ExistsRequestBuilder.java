@@ -31,7 +31,7 @@ public class ExistsRequestBuilder extends BroadcastOperationRequestBuilder<Exist
     private QuerySourceBuilder sourceBuilder;
 
     public ExistsRequestBuilder(Client client) {
-        super(client, new ExistsRequest());
+        super(client, new ExistsRequest().targetClusterVersion(client.getClusterVersion()));
     }
 
     /**

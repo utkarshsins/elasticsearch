@@ -19,7 +19,10 @@
 
 package org.elasticsearch.index.query;
 
+import org.elasticsearch.Version;
+import org.elasticsearch.common.xcontent.ToXContentUtils;
 import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.script.ScriptService;
 
 import java.io.IOException;
 import java.util.Map;
@@ -34,6 +37,8 @@ public class ScriptFilterBuilder extends BaseFilterBuilder {
     private final String script;
 
     private Map<String, Object> params;
+
+    private ScriptService.ScriptType scriptType = ScriptService.ScriptType.INLINE;
 
     private String lang;
 
@@ -60,6 +65,11 @@ public class ScriptFilterBuilder extends BaseFilterBuilder {
         } else {
             this.params.putAll(params);
         }
+        return this;
+    }
+
+    public ScriptFilterBuilder scriptType(ScriptService.ScriptType scriptType) {
+        this.scriptType = scriptType;
         return this;
     }
 
@@ -94,23 +104,44 @@ public class ScriptFilterBuilder extends BaseFilterBuilder {
 
     @Override
     protected void doXContent(XContentBuilder builder, Params params) throws IOException {
-        builder.startObject(ScriptFilterParser.NAME);
-        builder.field("script", script);
-        if (this.params != null) {
-            builder.field("params", this.params);
+
+        Version version = ToXContentUtils.getVersionFromParams(params);
+
+        if (version.onOrAfter(Version.V_5_0_0)) {
+            builder.startObject(ScriptFilterParser.NAME);
+            builder.startObject("script");
+            builder.field(this.scriptType.name().toLowerCase(), script);
+
+            if (this.lang != null) {
+                builder.field("lang", lang);
+            }
+
+            if (this.params != null) {
+                builder.field("params", this.params);
+            }
+
+            builder.endObject();
+
+            builder.endObject();
+        } else {
+            builder.startObject(ScriptFilterParser.NAME);
+            builder.field("script", script);
+            if (this.params != null) {
+                builder.field("params", this.params);
+            }
+            if (this.lang != null) {
+                builder.field("lang", lang);
+            }
+            if (filterName != null) {
+                builder.field("_name", filterName);
+            }
+            if (cache != null) {
+                builder.field("_cache", cache);
+            }
+            if (cacheKey != null) {
+                builder.field("_cache_key", cacheKey);
+            }
+            builder.endObject();
         }
-        if (this.lang != null) {
-            builder.field("lang", lang);
-        }
-        if (filterName != null) {
-            builder.field("_name", filterName);
-        }
-        if (cache != null) {
-            builder.field("_cache", cache);
-        }
-        if (cacheKey != null) {
-            builder.field("_cache_key", cacheKey);
-        }
-        builder.endObject();
     }
 }

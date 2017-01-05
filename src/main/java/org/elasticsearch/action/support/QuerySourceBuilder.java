@@ -19,12 +19,11 @@
 
 package org.elasticsearch.action.support;
 
+import org.elasticsearch.Version;
 import org.elasticsearch.common.bytes.BytesReference;
-import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentFactory;
-import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.common.xcontent.*;
 import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilderException;
 
 import java.io.IOException;
@@ -64,10 +63,14 @@ public class QuerySourceBuilder implements ToXContent {
         return builder;
     }
 
-    public BytesReference buildAsBytes(XContentType contentType) throws SearchSourceBuilderException {
+    public BytesReference buildAsBytes(XContentType contentType) throws SearchSourceBuilderException{
+        return buildAsBytes(contentType, Version.CURRENT);
+    }
+
+    public BytesReference buildAsBytes(XContentType contentType, Version version) throws SearchSourceBuilderException {
         try {
             XContentBuilder builder = XContentFactory.contentBuilder(contentType);
-            toXContent(builder, ToXContent.EMPTY_PARAMS);
+            toXContent(builder, ToXContentUtils.createParamsWithTargetClusterVersion(version));
             return builder.bytes();
         } catch (Exception e) {
             throw new SearchSourceBuilderException("Failed to build search source", e);

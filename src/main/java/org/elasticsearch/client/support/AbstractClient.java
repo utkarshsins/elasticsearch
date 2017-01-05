@@ -19,6 +19,7 @@
 
 package org.elasticsearch.client.support;
 
+import org.elasticsearch.Version;
 import org.elasticsearch.action.*;
 import org.elasticsearch.action.bulk.BulkAction;
 import org.elasticsearch.action.bulk.BulkRequest;
@@ -522,5 +523,10 @@ public abstract class AbstractClient implements Client {
     @Override
     public ClearScrollRequestBuilder prepareClearScroll() {
         return new ClearScrollRequestBuilder(this);
+    }
+
+    @Override
+    public Version getClusterVersion() {
+        return Version.CURRENT;
     }
 }

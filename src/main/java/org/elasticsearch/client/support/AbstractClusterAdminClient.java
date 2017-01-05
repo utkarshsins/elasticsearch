@@ -19,6 +19,7 @@
 
 package org.elasticsearch.client.support;
 
+import org.elasticsearch.Version;
 import org.elasticsearch.action.*;
 import org.elasticsearch.action.admin.cluster.ClusterAction;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthAction;
@@ -442,5 +443,10 @@ public abstract class AbstractClusterAdminClient implements ClusterAdminClient {
     @Override
     public SnapshotsStatusRequestBuilder prepareSnapshotStatus() {
         return new SnapshotsStatusRequestBuilder(this);
+    }
+
+    @Override
+    public Version getClusterVersion() {
+        return Version.CURRENT;
     }
 }

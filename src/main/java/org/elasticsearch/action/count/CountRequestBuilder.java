@@ -34,7 +34,7 @@ public class CountRequestBuilder extends BroadcastOperationRequestBuilder<CountR
     private QuerySourceBuilder sourceBuilder;
 
     public CountRequestBuilder(Client client) {
-        super(client, new CountRequest());
+        super(client, new CountRequest().targetClusterVersion(client.getClusterVersion()));
     }
 
     /**

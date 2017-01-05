@@ -37,11 +37,11 @@ public class ExplainRequestBuilder extends SingleShardOperationRequestBuilder<Ex
     private QuerySourceBuilder sourceBuilder;
 
     ExplainRequestBuilder(Client client) {
-        super(client, new ExplainRequest());
+        super(client, new ExplainRequest().targetClusterVersion(client.getClusterVersion()));
     }
 
     public ExplainRequestBuilder(Client client, String index, String type, String id) {
-        super(client, new ExplainRequest().index(index).type(type).id(id));
+        super(client, new ExplainRequest().index(index).type(type).id(id).targetClusterVersion(client.getClusterVersion()));
     }
 
     /**

@@ -20,6 +20,7 @@
 package org.elasticsearch.client;
 
 
+import org.elasticsearch.Version;
 import org.elasticsearch.action.*;
 import org.elasticsearch.threadpool.ThreadPool;
 
@@ -65,4 +66,5 @@ public interface ElasticsearchClient<Client extends ElasticsearchClient> {
      */
     ThreadPool threadPool();
 
+    Version getClusterVersion();
 }

@@ -20,6 +20,7 @@
 package org.elasticsearch.action;
 
 import org.elasticsearch.ElasticsearchException;
+import org.elasticsearch.Version;
 import org.elasticsearch.action.support.PlainListenableActionFuture;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.ClusterAdminClient;

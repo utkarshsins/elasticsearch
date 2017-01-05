@@ -34,7 +34,7 @@ public class ValidateQueryRequestBuilder extends BroadcastOperationRequestBuilde
     private QuerySourceBuilder sourceBuilder;
 
     public ValidateQueryRequestBuilder(IndicesAdminClient client) {
-        super(client, new ValidateQueryRequest());
+        super(client, new ValidateQueryRequest().targetClusterVersion(client.getClusterVersion()));
     }
 
     /**

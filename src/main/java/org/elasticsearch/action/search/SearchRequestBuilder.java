@@ -1118,7 +1118,7 @@ public class SearchRequestBuilder extends ActionRequestBuilder<SearchRequest, Se
 
     private SearchSourceBuilder sourceBuilder() {
         if (sourceBuilder == null) {
-            sourceBuilder = new SearchSourceBuilder();
+            sourceBuilder = new SearchSourceBuilder().targetClusterVersion(client.getClusterVersion());
         }
         return sourceBuilder;
     }

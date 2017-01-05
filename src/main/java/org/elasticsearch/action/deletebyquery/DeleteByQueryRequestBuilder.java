@@ -39,7 +39,7 @@ public class DeleteByQueryRequestBuilder extends IndicesReplicationOperationRequ
     private QuerySourceBuilder sourceBuilder;
 
     public DeleteByQueryRequestBuilder(Client client) {
-        super(client, new DeleteByQueryRequest());
+        super(client, new DeleteByQueryRequest().targetClusterVersion(client.getClusterVersion()));
     }
 
     /**
