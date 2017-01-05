@@ -298,7 +298,7 @@ public class CountRequest extends BroadcastOperationRequest<CountRequest> {
     @Override
     public String getEndPoint() {
         return UriBuilder.newBuilder()
-                .csv(this.indices())
+                .csvOrDefault("_all", this.indices())
                 .csv(this.types())
                 .slash("_count").build();
     }

@@ -141,7 +141,9 @@ public class ClearIndicesCacheRequest extends BroadcastOperationRequest<ClearInd
 
     @Override
     public String getEndPoint() {
-        return UriBuilder.newBuilder().csv(this.indices()).slash("_cache", "clear").build();
+        return UriBuilder.newBuilder()
+                .csvOrDefault("_all", this.indices())
+                .slash("_cache", "clear").build();
     }
 
     @Override

@@ -267,7 +267,7 @@ public class DeleteByQueryRequest extends IndicesReplicationOperationRequest<Del
         @Override
         public String getEndPoint() {
             UriBuilder uriBuilder = UriBuilder.newBuilder()
-                    .csv(request.indices())
+                    .csvOrDefault("_all", request.indices())
                     .csv(request.types())
                     .slash("_query");
             return uriBuilder.build();
@@ -305,7 +305,7 @@ public class DeleteByQueryRequest extends IndicesReplicationOperationRequest<Del
         @Override
         public String getEndPoint() {
             UriBuilder uriBuilder = UriBuilder.newBuilder()
-                    .csv(request.indices())
+                    .csvOrDefault("_all", request.indices())
                     .csv(request.types())
                     .slash("_delete_by_query");
             return uriBuilder.build();

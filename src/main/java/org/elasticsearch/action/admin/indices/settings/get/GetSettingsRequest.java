@@ -108,7 +108,8 @@ public class GetSettingsRequest extends MasterNodeReadOperationRequest<GetSettin
     @Override
     public String getEndPoint() {
         return UriBuilder.newBuilder()
-                .csv(indices).slash("_settings")
+                .csvOrDefault("_all", indices)
+                .slash("_settings")
                 .csv(names).build();
     }
 

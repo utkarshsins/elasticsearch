@@ -122,7 +122,7 @@ public class OpenIndexRequest extends AcknowledgedRequest<OpenIndexRequest> impl
 
     @Override
     public String getEndPoint() {
-        return UriBuilder.newBuilder().csv(this.indices()).slash("_open").build();
+        return UriBuilder.newBuilder().csvOrDefault("_all", this.indices()).slash("_open").build();
     }
 
     @Override

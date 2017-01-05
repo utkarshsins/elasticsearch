@@ -43,7 +43,6 @@ import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.index.query.FilterBuilders;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -79,6 +78,17 @@ public class RestIndicesAdminClientTest extends AbstractRestClientTest {
     @Test
     public void testCloseIndex() {
         closeIndex();
+    }
+
+    @Test
+    public void testCloseAllIndices() {
+        CloseIndexResponse response = indicesAdminClient.prepareClose().get();
+        assertAcknowledged(response);
+    }
+    @Test
+    public void testOpenAllIndices() {
+        CloseIndexResponse response = indicesAdminClient.prepareClose().get();
+        assertAcknowledged(response);
     }
 
     @Test

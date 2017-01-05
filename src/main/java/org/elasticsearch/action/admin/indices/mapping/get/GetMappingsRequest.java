@@ -42,7 +42,7 @@ public class GetMappingsRequest extends ClusterInfoRequest<GetMappingsRequest> {
     @Override
     public String getEndPoint() {
         return UriBuilder.newBuilder()
-                .csv(this.indices())
+                .csvOrDefault("_all", this.indices())
                 .csv(types())
                 .slash("_mappings").build();
     }

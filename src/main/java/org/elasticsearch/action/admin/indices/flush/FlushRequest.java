@@ -140,7 +140,9 @@ public class FlushRequest extends BroadcastOperationRequest<FlushRequest> {
 
     @Override
     public String getEndPoint() {
-        return UriBuilder.newBuilder().csv(this.indices()).slash("_flush").build();
+        return UriBuilder.newBuilder()
+                .csvOrDefault("_all", this.indices())
+                .slash("_flush").build();
     }
 
     @Override

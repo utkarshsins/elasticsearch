@@ -84,7 +84,7 @@ public class RefreshRequest extends BroadcastOperationRequest<RefreshRequest> {
     @Override
     public String getEndPoint() {
         return UriBuilder.newBuilder()
-                .csv(indices())
+                .csvOrDefault("_all", indices())
                 .slash("_refresh").build();
     }
 

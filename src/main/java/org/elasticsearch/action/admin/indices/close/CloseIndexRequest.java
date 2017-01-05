@@ -122,7 +122,7 @@ public class CloseIndexRequest extends AcknowledgedRequest<CloseIndexRequest> im
 
     @Override
     public String getEndPoint() {
-        return UriBuilder.newBuilder().csv(this.indices()).slash("_close").build();
+        return UriBuilder.newBuilder().csvOrDefault("_all", this.indices()).slash("_close").build();
     }
 
     @Override

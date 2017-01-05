@@ -192,7 +192,9 @@ public final class SuggestRequest extends BroadcastOperationRequest<SuggestReque
 
     @Override
     public String getEndPoint() {
-        return UriBuilder.newBuilder().csv(indices()).slash("_suggest").build();
+        return UriBuilder.newBuilder()
+                .csvOrDefault("_all", indices())
+                .slash("_suggest").build();
     }
 
     @Override

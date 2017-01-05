@@ -123,7 +123,7 @@ public class GetAliasesRequest extends MasterNodeReadOperationRequest<GetAliases
     @Override
     public String getEndPoint() {
         return UriBuilder.newBuilder()
-                .csv(indices())
+                .csvOrDefault("_all", indices())
                 .slash("_alias")
                 .csv(aliases).build();
     }

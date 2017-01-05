@@ -647,7 +647,7 @@ public class SearchRequest extends ActionRequest<SearchRequest> implements Indic
     @Override
     public String getEndPoint() {
         return UriBuilder.newBuilder()
-                .csv(this.indices())
+                .csvOrDefault("_all", this.indices())
                 .csv(this.types())
                 .slash("_search").build();
     }

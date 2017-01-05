@@ -294,7 +294,7 @@ public class PutMappingRequest extends AcknowledgedRequest<PutMappingRequest> im
     @Override
     public String getEndPoint() {
         return UriBuilder.newBuilder()
-                .csv(indices())
+                .csvOrDefault("_all", indices())
                 .slash("_mappings", type).build();
     }
 

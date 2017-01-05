@@ -307,7 +307,7 @@ public class ExistsRequest extends BroadcastOperationRequest<ExistsRequest> {
         @Override
         public String getEndPoint() {
             UriBuilder uriBuilder = UriBuilder.newBuilder()
-                    .csv(request.indices())
+                    .csvOrDefault("_all", request.indices())
                     .csv(request.types())
                     .slash("_search").slash("exists");
             return uriBuilder.build();

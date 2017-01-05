@@ -239,7 +239,7 @@ public class GetIndexRequest extends ClusterInfoRequest<GetIndexRequest> {
     @Override
     public String getEndPoint() {
         UriBuilder builder = UriBuilder.newBuilder()
-                .csv(indices())
+                .csvOrDefault("_all", indices())
                 .csv(types());
 
         if (this.features != DEFAULT_FEATURES) {
