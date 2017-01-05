@@ -80,6 +80,8 @@ public class CountRequest extends BroadcastOperationRequest<CountRequest> {
     long nowInMillis;
     private int terminateAfter = DEFAULT_TERMINATE_AFTER;
 
+    private Version targetClusterVersion = Version.CURRENT;
+
     CountRequest() {
     }
 
@@ -128,11 +130,16 @@ public class CountRequest extends BroadcastOperationRequest<CountRequest> {
         return source;
     }
 
+    public CountRequest targetClusterVersion(Version version) {
+        this.targetClusterVersion = version;
+        return this;
+    }
+
     /**
      * The source to execute.
      */
     public CountRequest source(QuerySourceBuilder sourceBuilder) {
-        this.source = sourceBuilder.buildAsBytes(Requests.CONTENT_TYPE);
+        this.source = sourceBuilder.buildAsBytes(Requests.CONTENT_TYPE, targetClusterVersion);
         this.sourceUnsafe = false;
         return this;
     }
@@ -306,8 +313,7 @@ public class CountRequest extends BroadcastOperationRequest<CountRequest> {
     public HttpEntity getEntity() throws IOException {
         if (source != null) {
             return new NStringEntity(XContentHelper.convertToJson(source, false), StandardCharsets.UTF_8);
-        }
-        else {
+        } else {
             return HttpUtils.EMPTY_ENTITY;
         }
     }

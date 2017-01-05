@@ -25,16 +25,14 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.elasticsearch.ElasticsearchGenerationException;
 import org.elasticsearch.ElasticsearchIllegalArgumentException;
+import org.elasticsearch.Version;
 import org.elasticsearch.client.Requests;
 import org.elasticsearch.common.Nullable;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.bytes.BytesArray;
 import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentFactory;
-import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.common.xcontent.*;
 import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
@@ -49,10 +47,7 @@ import org.elasticsearch.search.sort.SortOrder;
 import org.elasticsearch.search.suggest.SuggestBuilder;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * A search source builder allowing to easily build search source. Simple construction
@@ -124,6 +119,8 @@ public class SearchSourceBuilder implements ToXContent {
     private ObjectFloatOpenHashMap<String> indexBoost = null;
 
     private String[] stats;
+
+    private Version targetClusterVersion = Version.CURRENT;
 
 
     /**
@@ -649,6 +646,11 @@ public class SearchSourceBuilder implements ToXContent {
         return this;
     }
 
+    public SearchSourceBuilder targetClusterVersion(Version version){
+        this.targetClusterVersion = version;
+        return this;
+    }
+
     /**
      * Adds a partial field based on _source, with an "include" and/or "exclude" set which can include simple wildcard
      * elements.
@@ -715,7 +717,7 @@ public class SearchSourceBuilder implements ToXContent {
     public String toString() {
         try {
             XContentBuilder builder = XContentFactory.contentBuilder(XContentType.JSON).prettyPrint();
-            toXContent(builder, ToXContent.EMPTY_PARAMS);
+            toXContent(builder, ToXContentUtils.createParamsWithTargetClusterVersion(targetClusterVersion));
             return builder.string();
         } catch (Exception e) {
             return "{ \"error\" : \"" + e.getMessage() + "\"}";
@@ -729,7 +731,7 @@ public class SearchSourceBuilder implements ToXContent {
     public BytesReference buildAsBytes(XContentType contentType) throws SearchSourceBuilderException {
         try {
             XContentBuilder builder = XContentFactory.contentBuilder(contentType);
-            toXContent(builder, ToXContent.EMPTY_PARAMS);
+            toXContent(builder, ToXContentUtils.createParamsWithTargetClusterVersion(targetClusterVersion));
             return builder.bytes();
         } catch (Exception e) {
             throw new SearchSourceBuilderException("Failed to build search source", e);

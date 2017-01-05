@@ -71,6 +71,8 @@ public class ExistsRequest extends BroadcastOperationRequest<ExistsRequest> {
 
     long nowInMillis;
 
+    private Version targetClusterVersion = Version.CURRENT;
+
     ExistsRequest() {
     }
 
@@ -159,8 +161,13 @@ public class ExistsRequest extends BroadcastOperationRequest<ExistsRequest> {
      * The source to execute.
      */
     public ExistsRequest source(QuerySourceBuilder sourceBuilder) {
-        this.source = sourceBuilder.buildAsBytes(Requests.CONTENT_TYPE);
+        this.source = sourceBuilder.buildAsBytes(Requests.CONTENT_TYPE, targetClusterVersion);
         this.sourceUnsafe = false;
+        return this;
+    }
+
+    public ExistsRequest targetClusterVersion(Version version){
+        this.targetClusterVersion = version;
         return this;
     }
 

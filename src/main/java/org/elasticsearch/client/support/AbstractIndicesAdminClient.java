@@ -21,6 +21,7 @@ package org.elasticsearch.client.support;
 
 import org.elasticsearch.ElasticsearchIllegalStateException;
 import org.elasticsearch.ExceptionsHelper;
+import org.elasticsearch.Version;
 import org.elasticsearch.action.*;
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesAction;
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest;
@@ -728,5 +729,10 @@ public abstract class AbstractIndicesAdminClient implements IndicesAdminClient {
     @Override
     public void getSettings(GetSettingsRequest request, ActionListener<GetSettingsResponse> listener) {
         execute(GetSettingsAction.INSTANCE, request, listener);
+    }
+
+    @Override
+    public Version getClusterVersion() {
+        return Version.CURRENT;
     }
 }

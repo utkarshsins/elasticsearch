@@ -20,6 +20,7 @@
 package org.elasticsearch.action.admin.indices.validate.query;
 
 import org.elasticsearch.ElasticsearchGenerationException;
+import org.elasticsearch.Version;
 import org.elasticsearch.action.ActionRequestValidationException;
 import org.elasticsearch.action.support.IndicesOptions;
 import org.elasticsearch.action.support.QuerySourceBuilder;
@@ -55,6 +56,8 @@ public class ValidateQueryRequest extends BroadcastOperationRequest<ValidateQuer
 
     long nowInMillis;
 
+    private Version targetClusterVersion = Version.CURRENT;
+
     ValidateQueryRequest() {
         this(Strings.EMPTY_ARRAY);
     }
@@ -89,8 +92,13 @@ public class ValidateQueryRequest extends BroadcastOperationRequest<ValidateQuer
         return source;
     }
 
+    public ValidateQueryRequest targetClusterVersion(Version version){
+        this.targetClusterVersion = version;
+        return this;
+    }
+
     public ValidateQueryRequest source(QuerySourceBuilder sourceBuilder) {
-        this.source = sourceBuilder.buildAsBytes(Requests.CONTENT_TYPE);
+        this.source = sourceBuilder.buildAsBytes(Requests.CONTENT_TYPE, targetClusterVersion);
         this.sourceUnsafe = false;
         return this;
     }

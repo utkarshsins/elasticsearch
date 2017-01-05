@@ -26,9 +26,11 @@ import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.template.put.PutIndexTemplateResponse;
 import org.elasticsearch.action.bulk.*;
 import org.elasticsearch.action.count.CountRequest;
+import org.elasticsearch.action.count.CountRequestBuilder;
 import org.elasticsearch.action.count.CountResponse;
 import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.delete.DeleteResponse;
+import org.elasticsearch.action.deletebyquery.DeleteByQueryRequestBuilder;
 import org.elasticsearch.action.deletebyquery.DeleteByQueryResponse;
 import org.elasticsearch.action.deletebyquery.IndexDeleteByQueryResponse;
 import org.elasticsearch.action.exists.ExistsResponse;
@@ -46,14 +48,13 @@ import org.elasticsearch.action.suggest.SuggestResponse;
 import org.elasticsearch.action.support.QuerySourceBuilder;
 import org.elasticsearch.action.support.replication.ReplicationType;
 import org.elasticsearch.action.update.UpdateRequest;
-import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.common.unit.DistanceUnit;
 import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.index.engine.DocumentMissingException;
 import org.elasticsearch.index.engine.VersionConflictEngineException;
+import org.elasticsearch.index.query.ConstantScoreQueryBuilder;
 import org.elasticsearch.index.query.FilterBuilders;
 import org.elasticsearch.index.query.IdsQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -227,6 +228,70 @@ public class RestClientTest extends AbstractRestClientTest {
         client.update(updateRequest);
         GetResponse updatedDocument = getDocument(document.getId());
         assertEquals(source.get("datePretty"), updatedDocument.getSourceAsMap().get("datePretty"));
+    }
+
+
+    @Test
+    public void testSearchScriptOn1_4_1() throws ExecutionException, InterruptedException {
+        List<IndexResponse> indexResponses = indexDocument(5);
+        ConstantScoreQueryBuilder constantScoreQueryBuilder = QueryBuilders.constantScoreQuery(FilterBuilders.scriptFilter("doc['sentiment'].value>=0"));
+        SearchRequestBuilder searchRequestBuilder = new SearchRequestBuilder(this.client);
+        searchRequestBuilder.setQuery(constantScoreQueryBuilder);
+        searchRequestBuilder.setIndices(this.index);
+        SearchResponse searchResponse = searchRequestBuilder.execute().get();
+        assert searchResponse.getHits().getTotalHits() == 5;
+    }
+
+    @Test
+    public void testCountScriptOn1_4_1() throws ExecutionException, InterruptedException {
+        List<IndexResponse> indexResponses = indexDocument(5);
+        ConstantScoreQueryBuilder constantScoreQueryBuilder = QueryBuilders.constantScoreQuery(FilterBuilders.scriptFilter("doc['sentiment'].value>=0"));
+        CountRequestBuilder countRequestBuilder = new CountRequestBuilder(client);
+        countRequestBuilder.setQuery(constantScoreQueryBuilder);
+        CountResponse countResponse = countRequestBuilder.execute().get();
+        assert countResponse.getCount() == 5;
+    }
+
+    @Test
+    public void testDeleteByQueryScript1_4_1() throws ExecutionException, InterruptedException {
+        List<IndexResponse> indexResponses = indexDocument(5);
+        ConstantScoreQueryBuilder constantScoreQueryBuilder = QueryBuilders.constantScoreQuery(FilterBuilders.scriptFilter("doc['sentiment'].value>=0"));
+        DeleteByQueryRequestBuilder deleteByQueryRequestBuilder = new DeleteByQueryRequestBuilder(client);
+        deleteByQueryRequestBuilder.setQuery(constantScoreQueryBuilder);
+        DeleteByQueryResponse indexDeleteByQueryResponses = deleteByQueryRequestBuilder.execute().get();
+        assert new CountRequestBuilder(client).setQuery(constantScoreQueryBuilder).execute().get().getCount() == 0;
+    }
+
+    @Test
+    public void testSearchScriptOn5_1_1() throws ExecutionException, InterruptedException {
+        List<IndexResponse> indexResponses = indexDocument(5);
+        ConstantScoreQueryBuilder constantScoreQueryBuilder = QueryBuilders.constantScoreQuery(FilterBuilders.scriptFilter("doc['sentiment'].value>=0"));
+        SearchRequestBuilder searchRequestBuilder = new SearchRequestBuilder(this.client);
+        searchRequestBuilder.setQuery(constantScoreQueryBuilder);
+        searchRequestBuilder.setIndices(this.index);
+        SearchResponse searchResponse = searchRequestBuilder.execute().get();
+        assert searchResponse.getHits().getTotalHits() == 5;
+    }
+
+    @Test
+    public void testCountScriptOn5_1_1() throws ExecutionException, InterruptedException {
+        List<IndexResponse> indexResponses = indexDocument(5);
+        ConstantScoreQueryBuilder constantScoreQueryBuilder = QueryBuilders.constantScoreQuery(FilterBuilders.scriptFilter("doc['sentiment'].value>=0"));
+        CountRequestBuilder countRequestBuilder = new CountRequestBuilder(client);
+        countRequestBuilder.setQuery(constantScoreQueryBuilder);
+        CountResponse countResponse = countRequestBuilder.execute().get();
+        assert countResponse.getCount() == 5;
+    }
+
+    @Test
+    public void testDeleteByQueryScript5_1_1() throws ExecutionException, InterruptedException {
+        List<IndexResponse> indexResponses = indexDocument(5);
+        ConstantScoreQueryBuilder constantScoreQueryBuilder = QueryBuilders.constantScoreQuery(FilterBuilders.scriptFilter("doc['sentiment'].value>=0"));
+        DeleteByQueryRequestBuilder deleteByQueryRequestBuilder = new DeleteByQueryRequestBuilder(client);
+        deleteByQueryRequestBuilder.setQuery(constantScoreQueryBuilder);
+        deleteByQueryRequestBuilder.setIndices(index);
+        DeleteByQueryResponse indexDeleteByQueryResponses = deleteByQueryRequestBuilder.execute().get();
+        assert new CountRequestBuilder(client).setQuery(constantScoreQueryBuilder).execute().get().getCount() == 0;
     }
 
     @Test

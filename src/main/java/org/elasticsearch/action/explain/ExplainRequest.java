@@ -22,6 +22,7 @@ package org.elasticsearch.action.explain;
 import com.google.common.base.Joiner;
 import org.apache.http.HttpEntity;
 import org.apache.http.nio.entity.NStringEntity;
+import org.elasticsearch.Version;
 import org.elasticsearch.action.ActionRequestValidationException;
 import org.elasticsearch.action.ValidateActions;
 import org.elasticsearch.action.support.QuerySourceBuilder;
@@ -59,6 +60,8 @@ public class ExplainRequest extends SingleShardOperationRequest<ExplainRequest> 
     private String[] filteringAlias = Strings.EMPTY_ARRAY;
 
     long nowInMillis;
+
+    private Version targetClusterVersion = Version.CURRENT;
 
     ExplainRequest() {
     }
@@ -121,8 +124,13 @@ public class ExplainRequest extends SingleShardOperationRequest<ExplainRequest> 
         return sourceUnsafe;
     }
 
+    public ExplainRequest targetClusterVersion(Version version){
+        this.targetClusterVersion = version;
+        return this;
+    }
+
     public ExplainRequest source(QuerySourceBuilder sourceBuilder) {
-        this.source = sourceBuilder.buildAsBytes(Requests.CONTENT_TYPE);
+        this.source = sourceBuilder.buildAsBytes(Requests.CONTENT_TYPE, targetClusterVersion);
         this.sourceUnsafe = false;
         return this;
     }

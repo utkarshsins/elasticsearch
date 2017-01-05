@@ -71,6 +71,8 @@ public class DeleteByQueryRequest extends IndicesReplicationOperationRequest<Del
     @Nullable
     private String routing;
 
+    private Version targetClusterVersion = Version.CURRENT;
+
     /**
      * Constructs a new delete by query request to run against the provided indices. No indices means
      * it will run against all indices.
@@ -113,7 +115,7 @@ public class DeleteByQueryRequest extends IndicesReplicationOperationRequest<Del
      * The source to execute.
      */
     public DeleteByQueryRequest source(QuerySourceBuilder sourceBuilder) {
-        this.source = sourceBuilder.buildAsBytes(Requests.CONTENT_TYPE);
+        this.source = sourceBuilder.buildAsBytes(Requests.CONTENT_TYPE, targetClusterVersion);
         this.sourceUnsafe = false;
         return this;
     }
@@ -125,6 +127,11 @@ public class DeleteByQueryRequest extends IndicesReplicationOperationRequest<Del
     public DeleteByQueryRequest source(String query) {
         this.source = new BytesArray(query.getBytes(Charsets.UTF_8));
         this.sourceUnsafe = false;
+        return this;
+    }
+
+    public DeleteByQueryRequest targetClusterVersion(Version version){
+        this.targetClusterVersion = version;
         return this;
     }
 
