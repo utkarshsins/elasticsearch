@@ -36,6 +36,7 @@ import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.search.TransportSearchModule;
 import org.elasticsearch.threadpool.ThreadPool;
 
+import javax.net.ssl.SSLContext;
 import java.io.IOException;
 
 /**
@@ -182,6 +183,11 @@ public class RestClient extends AbstractClient implements Client {
 
         public Builder setPathPrefix(String pathPrefix) {
             internalRestClientBuilder.setPathPrefix(pathPrefix);
+            return this;
+        }
+
+        public Builder setSSLContext(SSLContext sslContext) {
+            internalRestClientBuilder.setSSLContext(sslContext);
             return this;
         }
 

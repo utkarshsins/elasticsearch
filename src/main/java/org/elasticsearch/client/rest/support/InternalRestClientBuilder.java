@@ -30,6 +30,7 @@ import org.elasticsearch.client.rest.RequestConfigCallback;
 import org.elasticsearch.common.unit.ByteSizeValue;
 import org.elasticsearch.common.unit.TimeValue;
 
+import javax.net.ssl.SSLContext;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
@@ -67,6 +68,7 @@ public class InternalRestClientBuilder {
     private HttpHost proxy;
     private Collection<String> proxyPreferredAuthSchemes;
     private Collection<String> targetPreferredAuthSchemes;
+    private SSLContext sslcontext;
 
     public InternalRestClientBuilder setProxy(HttpHost proxy) {
         this.proxy = proxy;
@@ -106,6 +108,11 @@ public class InternalRestClientBuilder {
 
     public InternalRestClientBuilder setMaxConnectionsPerRoute(int maxConnectionsPerRoute) {
         this.maxConnectionsPerRoute = maxConnectionsPerRoute;
+        return this;
+    }
+
+    public InternalRestClientBuilder setSSLContext(SSLContext sslcontext) {
+        this.sslcontext = sslcontext;
         return this;
     }
 
@@ -264,7 +271,9 @@ public class InternalRestClientBuilder {
 
         HttpAsyncClientBuilder httpClientBuilder = HttpAsyncClientBuilder.create().setDefaultRequestConfig(requestConfigBuilder.build())
                 .setMaxConnPerRoute(maxConnectionsPerRoute)
-                .setMaxConnTotal(maxConnectionsTotal);
+                .setMaxConnTotal(maxConnectionsTotal)
+                .setSSLContext(sslcontext);
+
         if (httpClientConfigCallback != null) {
             httpClientBuilder = httpClientConfigCallback.customizeHttpClient(httpClientBuilder);
         }
