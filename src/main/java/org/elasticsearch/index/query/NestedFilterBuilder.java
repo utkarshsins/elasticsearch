@@ -19,6 +19,8 @@
 
 package org.elasticsearch.index.query;
 
+import org.elasticsearch.Version;
+import org.elasticsearch.common.xcontent.ToXContentUtils;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 
 import java.io.IOException;
@@ -80,22 +82,29 @@ public class NestedFilterBuilder extends BaseFilterBuilder {
             builder.field("query");
             queryBuilder.toXContent(builder, params);
         } else {
-            builder.field("filter");
+            if (ToXContentUtils.getVersionFromParams(params).onOrAfter(Version.V_5_0_0)) {
+                builder.field("query");
+            } else {
+                builder.field("filter");
+            }
             filterBuilder.toXContent(builder, params);
         }
-        if (join != null) {
-            builder.field("join", join);
+
+        if (!ToXContentUtils.getVersionFromParams(params).onOrAfter(Version.V_5_0_0)) {
+            if (join != null) {
+                builder.field("join", join);
+            }
+            if (cache != null) {
+                builder.field("_cache", cache);
+            }
+            if (cacheKey != null) {
+                builder.field("_cache_key", cacheKey);
+            }
+            if (filterName != null) {
+                builder.field("_name", filterName);
+            }
         }
         builder.field("path", path);
-        if (filterName != null) {
-            builder.field("_name", filterName);
-        }
-        if (cache != null) {
-            builder.field("_cache", cache);
-        }
-        if (cacheKey != null) {
-            builder.field("_cache_key", cacheKey);
-        }
         builder.endObject();
     }
 }
