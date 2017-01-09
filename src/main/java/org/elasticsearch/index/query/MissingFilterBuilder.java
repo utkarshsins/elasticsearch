@@ -19,6 +19,8 @@
 
 package org.elasticsearch.index.query;
 
+import org.elasticsearch.Version;
+import org.elasticsearch.common.xcontent.ToXContentUtils;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 
 import java.io.IOException;
@@ -68,17 +70,21 @@ public class MissingFilterBuilder extends BaseFilterBuilder {
 
     @Override
     protected void doXContent(XContentBuilder builder, Params params) throws IOException {
-        builder.startObject(MissingFilterParser.NAME);
-        builder.field("field", name);
-        if (nullValue != null) {
-            builder.field("null_value", nullValue);
+        if (ToXContentUtils.getVersionFromParams(params).onOrAfter(Version.V_5_0_0)) {
+            FilterBuilders.boolFilter().mustNot(FilterBuilders.existsFilter(name).filterName(filterName)).doXContent(builder, params);
+        } else {
+            builder.startObject(MissingFilterParser.NAME);
+            builder.field("field", name);
+            if (nullValue != null) {
+                builder.field("null_value", nullValue);
+            }
+            if (existence != null) {
+                builder.field("existence", existence);
+            }
+            if (filterName != null) {
+                builder.field("_name", filterName);
+            }
+            builder.endObject();
         }
-        if (existence != null) {
-            builder.field("existence", existence);
-        }
-        if (filterName != null) {
-            builder.field("_name", filterName);
-        }
-        builder.endObject();
     }
 }

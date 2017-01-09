@@ -19,14 +19,14 @@
 
 package org.elasticsearch.index.query;
 
+import org.elasticsearch.Version;
+import org.elasticsearch.common.xcontent.ToXContentUtils;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 
 import java.io.IOException;
 
 /**
  * A filter that simply wraps a query.
- *
- *
  */
 public class QueryFilterBuilder extends BaseFilterBuilder {
 
@@ -65,6 +65,8 @@ public class QueryFilterBuilder extends BaseFilterBuilder {
     protected void doXContent(XContentBuilder builder, Params params) throws IOException {
         if (filterName == null && cache == null) {
             builder.field(QueryFilterParser.NAME);
+            queryBuilder.toXContent(builder, params);
+        } else if (ToXContentUtils.getVersionFromParams(params).onOrAfter(Version.V_5_0_0)) {
             queryBuilder.toXContent(builder, params);
         } else {
             builder.startObject(FQueryFilterParser.NAME);

@@ -19,7 +19,9 @@
 
 package org.elasticsearch.index.query;
 
+import org.elasticsearch.Version;
 import org.elasticsearch.common.Nullable;
+import org.elasticsearch.common.xcontent.ToXContentUtils;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 
 import java.io.IOException;
@@ -73,7 +75,11 @@ public class FilteredQueryBuilder extends BaseQueryBuilder implements BoostableQ
             queryBuilder.toXContent(builder, params);
         }
         if (filterBuilder != null) {
-            builder.field("filter");
+            if (ToXContentUtils.getVersionFromParams(params).onOrAfter(Version.V_5_0_0)) {
+                builder.field("query");
+            } else {
+                builder.field("filter");
+            }
             filterBuilder.toXContent(builder, params);
         }
         if (boost != -1) {

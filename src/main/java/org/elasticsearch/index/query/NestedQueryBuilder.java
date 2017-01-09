@@ -19,6 +19,8 @@
 
 package org.elasticsearch.index.query;
 
+import org.elasticsearch.Version;
+import org.elasticsearch.common.xcontent.ToXContentUtils;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 
 import java.io.IOException;
@@ -80,7 +82,11 @@ public class NestedQueryBuilder extends BaseQueryBuilder implements BoostableQue
             builder.field("query");
             queryBuilder.toXContent(builder, params);
         } else {
-            builder.field("filter");
+            if (ToXContentUtils.getVersionFromParams(params).onOrAfter(Version.V_5_0_0)) {
+                builder.field("query");
+            } else {
+                builder.field("filter");
+            }
             filterBuilder.toXContent(builder, params);
         }
         builder.field("path", path);
@@ -90,8 +96,10 @@ public class NestedQueryBuilder extends BaseQueryBuilder implements BoostableQue
         if (boost != 1.0f) {
             builder.field("boost", boost);
         }
-        if (queryName != null) {
-            builder.field("_name", queryName);
+        if (!ToXContentUtils.getVersionFromParams(params).onOrAfter(Version.V_5_0_0)) {
+            if (queryName != null) {
+                builder.field("_name", queryName);
+            }
         }
         builder.endObject();
     }
