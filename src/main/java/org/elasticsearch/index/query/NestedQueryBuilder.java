@@ -81,7 +81,7 @@ public class NestedQueryBuilder extends BaseQueryBuilder implements BoostableQue
         if (queryBuilder != null) {
             builder.field("query");
             queryBuilder.toXContent(builder, params);
-        } else {
+        } else if (filterBuilder != null) {
             if (ToXContentUtils.getVersionFromParams(params).onOrAfter(Version.V_5_0_0)) {
                 builder.field("query");
             } else {
@@ -96,10 +96,8 @@ public class NestedQueryBuilder extends BaseQueryBuilder implements BoostableQue
         if (boost != 1.0f) {
             builder.field("boost", boost);
         }
-        if (!ToXContentUtils.getVersionFromParams(params).onOrAfter(Version.V_5_0_0)) {
-            if (queryName != null) {
-                builder.field("_name", queryName);
-            }
+        if (queryName != null) {
+            builder.field("_name", queryName);
         }
         builder.endObject();
     }

@@ -19,6 +19,8 @@
 
 package org.elasticsearch.index.query;
 
+import org.elasticsearch.Version;
+import org.elasticsearch.common.xcontent.ToXContentUtils;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 
 import java.io.IOException;
@@ -71,7 +73,11 @@ public class IndicesFilterBuilder extends BaseFilterBuilder {
     protected void doXContent(XContentBuilder builder, Params params) throws IOException {
         builder.startObject(IndicesFilterParser.NAME);
         builder.field("indices", indices);
-        builder.field("filter");
+        if (ToXContentUtils.getVersionFromParams(params).onOrAfter(Version.V_5_0_0)) {
+            builder.field("query");
+        } else {
+            builder.field("filter");
+        }
         filterBuilder.toXContent(builder, params);
         if (noMatchFilter != null) {
             builder.field("no_match_filter");

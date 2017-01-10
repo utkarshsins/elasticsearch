@@ -69,17 +69,21 @@ public class FilteredQueryBuilder extends BaseQueryBuilder implements BoostableQ
 
     @Override
     protected void doXContent(XContentBuilder builder, Params params) throws IOException {
-        builder.startObject(FilteredQueryParser.NAME);
-        if (queryBuilder != null) {
-            builder.field("query");
-            queryBuilder.toXContent(builder, params);
+        if (ToXContentUtils.getVersionFromParams(params).onOrAfter(Version.V_5_0_0)) {
+            builder.startObject("bool");
+            if (queryBuilder != null) {
+                builder.field("must");
+                queryBuilder.toXContent(builder, params);
+            }
+        } else {
+            builder.startObject(FilteredQueryParser.NAME);
+            if (queryBuilder != null) {
+                builder.field("query");
+                queryBuilder.toXContent(builder, params);
+            }
         }
         if (filterBuilder != null) {
-            if (ToXContentUtils.getVersionFromParams(params).onOrAfter(Version.V_5_0_0)) {
-                builder.field("query");
-            } else {
-                builder.field("filter");
-            }
+            builder.field("filter");
             filterBuilder.toXContent(builder, params);
         }
         if (boost != -1) {
