@@ -81,7 +81,7 @@ public class NestedFilterBuilder extends BaseFilterBuilder {
         if (queryBuilder != null) {
             builder.field("query");
             queryBuilder.toXContent(builder, params);
-        } else {
+        } else if (filterBuilder != null) {
             if (ToXContentUtils.getVersionFromParams(params).onOrAfter(Version.V_5_0_0)) {
                 builder.field("query");
             } else {
@@ -100,9 +100,9 @@ public class NestedFilterBuilder extends BaseFilterBuilder {
             if (cacheKey != null) {
                 builder.field("_cache_key", cacheKey);
             }
-            if (filterName != null) {
-                builder.field("_name", filterName);
-            }
+        }
+        if (filterName != null) {
+            builder.field("_name", filterName);
         }
         builder.field("path", path);
         builder.endObject();

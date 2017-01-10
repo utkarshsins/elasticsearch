@@ -70,10 +70,10 @@ public class FilteredQueryBuilder extends BaseQueryBuilder implements BoostableQ
     @Override
     protected void doXContent(XContentBuilder builder, Params params) throws IOException {
         if (ToXContentUtils.getVersionFromParams(params).onOrAfter(Version.V_5_0_0)) {
-            if (queryBuilder != null)
-                QueryBuilders.boolQuery().must(queryBuilder).boost(boost).queryName(queryName).toXContent(builder, params);
-            if (filterBuilder != null) {
-                FilterBuilders.boolFilter().must(filterBuilder).toXContent(builder, params);
+            builder.startObject("bool");
+            if (queryBuilder != null) {
+                builder.field("must");
+                queryBuilder.toXContent(builder, params);
             }
         } else {
             builder.startObject(FilteredQueryParser.NAME);
@@ -81,17 +81,17 @@ public class FilteredQueryBuilder extends BaseQueryBuilder implements BoostableQ
                 builder.field("query");
                 queryBuilder.toXContent(builder, params);
             }
-            if (filterBuilder != null) {
-                builder.field("filter");
-                filterBuilder.toXContent(builder, params);
-            }
-            if (boost != -1) {
-                builder.field("boost", boost);
-            }
-            if (queryName != null) {
-                builder.field("_name", queryName);
-            }
-            builder.endObject();
         }
+        if (filterBuilder != null) {
+            builder.field("filter");
+            filterBuilder.toXContent(builder, params);
+        }
+        if (boost != -1) {
+            builder.field("boost", boost);
+        }
+        if (queryName != null) {
+            builder.field("_name", queryName);
+        }
+        builder.endObject();
     }
 }

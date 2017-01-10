@@ -20,7 +20,9 @@
 package org.elasticsearch.index.query.functionscore;
 
 import org.elasticsearch.ElasticsearchIllegalArgumentException;
+import org.elasticsearch.Version;
 import org.elasticsearch.common.lucene.search.function.CombineFunction;
+import org.elasticsearch.common.xcontent.ToXContentUtils;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.index.query.BaseQueryBuilder;
 import org.elasticsearch.index.query.BoostableQueryBuilder;
@@ -131,7 +133,11 @@ public class FunctionScoreQueryBuilder extends BaseQueryBuilder implements Boost
             builder.field("query");
             queryBuilder.toXContent(builder, params);
         } else if (filterBuilder != null) {
-            builder.field("filter");
+            if (ToXContentUtils.getVersionFromParams(params).onOrAfter(Version.V_5_0_0)) {
+                builder.field("query");
+            } else {
+                builder.field("filter");
+            }
             filterBuilder.toXContent(builder, params);
         }
         builder.startArray("functions");

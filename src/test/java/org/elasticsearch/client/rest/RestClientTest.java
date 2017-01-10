@@ -106,6 +106,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.omg.CORBA.PUBLIC_MEMBER;
 
 import java.io.IOException;
 import java.util.*;
@@ -292,6 +293,72 @@ public class RestClientTest extends AbstractRestClientTest {
         deleteByQueryRequestBuilder.setIndices(index);
         DeleteByQueryResponse indexDeleteByQueryResponses = deleteByQueryRequestBuilder.execute().get();
         assert new CountRequestBuilder(client).setQuery(constantScoreQueryBuilder).execute().get().getCount() == 0;
+    }
+
+    @Test
+    public void testQueryFilterBuilder5_1_1() throws ExecutionException, InterruptedException {
+        List<IndexResponse> indexResponses = indexDocument(5);
+        ConstantScoreQueryBuilder constantScoreQueryBuilder = QueryBuilders.constantScoreQuery(FilterBuilders.queryFilter(QueryBuilders.matchQuery("color", "red")));
+        SearchRequestBuilder searchRequestBuilder = new SearchRequestBuilder(this.client);
+        searchRequestBuilder.setQuery(constantScoreQueryBuilder);
+        searchRequestBuilder.setIndices(this.index);
+        SearchResponse searchResponse = searchRequestBuilder.execute().get();
+        assert searchResponse.getHits().getTotalHits() != -1;
+    }
+
+    @Test
+    public void testNestedQueryBuilder5_1_1() throws ExecutionException, InterruptedException {
+        List<IndexResponse> indexResponses = indexDocument(5);
+        ConstantScoreQueryBuilder constantScoreQueryBuilder = QueryBuilders.constantScoreQuery(QueryBuilders.nestedQuery("author.books", QueryBuilders.boolQuery().must(QueryBuilders.rangeQuery("author.books.price").from(0))));
+        SearchRequestBuilder searchRequestBuilder = new SearchRequestBuilder(this.client);
+        searchRequestBuilder.setQuery(constantScoreQueryBuilder);
+        searchRequestBuilder.setIndices(this.index);
+        SearchResponse searchResponse = searchRequestBuilder.execute().get();
+        assert searchResponse.getHits().getTotalHits() == 5;
+    }
+
+    @Test
+    public void testNestedQueryBuilderFilter5_1_1() throws ExecutionException, InterruptedException {
+        List<IndexResponse> indexResponses = indexDocument(5);
+        ConstantScoreQueryBuilder constantScoreQueryBuilder = QueryBuilders.constantScoreQuery(QueryBuilders.nestedQuery("author.books", FilterBuilders.boolFilter().must(FilterBuilders.rangeFilter("author.books.price").from(0))));
+        SearchRequestBuilder searchRequestBuilder = new SearchRequestBuilder(this.client);
+        searchRequestBuilder.setQuery(constantScoreQueryBuilder);
+        searchRequestBuilder.setIndices(this.index);
+        SearchResponse searchResponse = searchRequestBuilder.execute().get();
+        assert searchResponse.getHits().getTotalHits() == 5;
+    }
+
+    @Test
+    public void testNestedFilterBuilder5_1_1() throws ExecutionException, InterruptedException {
+        List<IndexResponse> indexResponses = indexDocument(5);
+        ConstantScoreQueryBuilder constantScoreQueryBuilder = QueryBuilders.constantScoreQuery(FilterBuilders.nestedFilter("author.books", FilterBuilders.boolFilter().must(FilterBuilders.rangeFilter("author.books.price").from(0))));
+        SearchRequestBuilder searchRequestBuilder = new SearchRequestBuilder(this.client);
+        searchRequestBuilder.setQuery(constantScoreQueryBuilder);
+        searchRequestBuilder.setIndices(this.index);
+        SearchResponse searchResponse = searchRequestBuilder.execute().get();
+        assert searchResponse.getHits().getTotalHits() == 5;
+    }
+
+    @Test
+    public void testNestedFilterBuilderQuery5_1_1() throws ExecutionException, InterruptedException {
+        List<IndexResponse> indexResponses = indexDocument(5);
+        ConstantScoreQueryBuilder constantScoreQueryBuilder = QueryBuilders.constantScoreQuery(FilterBuilders.nestedFilter("author.books", QueryBuilders.boolQuery().must(QueryBuilders.rangeQuery("author.books.price").from(0))));
+        SearchRequestBuilder searchRequestBuilder = new SearchRequestBuilder(this.client);
+        searchRequestBuilder.setQuery(constantScoreQueryBuilder);
+        searchRequestBuilder.setIndices(this.index);
+        SearchResponse searchResponse = searchRequestBuilder.execute().get();
+        assert searchResponse.getHits().getTotalHits() == 5;
+    }
+
+    @Test
+    public void testMvelPlugin() throws ExecutionException, InterruptedException {
+        List<IndexResponse> indexResponses = indexDocument(5);
+        ConstantScoreQueryBuilder constantScoreQueryBuilder = QueryBuilders.constantScoreQuery(FilterBuilders.scriptFilter("field='sentiment';if(doc[field].value!=null) return doc[field].value; else return 0").lang("mvel"));
+        SearchRequestBuilder searchRequestBuilder = new SearchRequestBuilder(this.client);
+        searchRequestBuilder.setQuery(constantScoreQueryBuilder);
+        searchRequestBuilder.setIndices(this.index);
+        SearchResponse searchResponse = searchRequestBuilder.execute().get();
+        assert searchResponse.getHits().getTotalHits() == 5;
     }
 
     @Test

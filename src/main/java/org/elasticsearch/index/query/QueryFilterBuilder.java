@@ -63,10 +63,10 @@ public class QueryFilterBuilder extends BaseFilterBuilder {
 
     @Override
     protected void doXContent(XContentBuilder builder, Params params) throws IOException {
-        if (filterName == null && cache == null) {
+        if (ToXContentUtils.getVersionFromParams(params).onOrAfter(Version.V_5_0_0)) {
+            QueryBuilders.filteredQuery(queryBuilder, null).doXContent(builder, params);
+        } else if (filterName == null && cache == null) {
             builder.field(QueryFilterParser.NAME);
-            queryBuilder.toXContent(builder, params);
-        } else if (ToXContentUtils.getVersionFromParams(params).onOrAfter(Version.V_5_0_0)) {
             queryBuilder.toXContent(builder, params);
         } else {
             builder.startObject(FQueryFilterParser.NAME);
