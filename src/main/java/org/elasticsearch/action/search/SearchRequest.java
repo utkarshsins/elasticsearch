@@ -688,7 +688,7 @@ public class SearchRequest extends ActionRequest<SearchRequest> implements Indic
                 .putIfNotNull("routing", this.routing)
                 .putIfNotNull("preference", preference);
         if (queryCache != null) {
-            builder.put("query_cache", Boolean.TRUE.toString());
+            builder.put("request_cache", Boolean.TRUE.toString());
         }
 
 

@@ -74,7 +74,12 @@ public class OrFilterBuilder extends BaseFilterBuilder {
     @Override
     protected void doXContent(XContentBuilder builder, Params params) throws IOException {
         if (ToXContentUtils.getVersionFromParams(params).onOrAfter(Version.V_5_0_0)) {
-            FilterBuilders.boolFilter().filterName(filterName).should(filters.toArray(new FilterBuilder[filters.size()])).cacheKey(cacheKey).cache(cache);
+            FilterBuilders.boolFilter()
+                    .filterName(filterName)
+                    .should(filters.toArray(new FilterBuilder[filters.size()]))
+                    .cacheKey(cacheKey)
+                    .cache(cache)
+                    .doXContent(builder, params);
         } else {
             builder.startObject(OrFilterParser.NAME);
             builder.startArray("filters");
