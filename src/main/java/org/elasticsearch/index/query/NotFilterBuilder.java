@@ -19,14 +19,14 @@
 
 package org.elasticsearch.index.query;
 
+import org.elasticsearch.Version;
+import org.elasticsearch.common.xcontent.ToXContentUtils;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 
 import java.io.IOException;
 
 /**
  * A filter that matches documents matching boolean combinations of other filters.
- *
- *
  */
 public class NotFilterBuilder extends BaseFilterBuilder {
 
@@ -55,15 +55,21 @@ public class NotFilterBuilder extends BaseFilterBuilder {
 
     @Override
     protected void doXContent(XContentBuilder builder, Params params) throws IOException {
-        builder.startObject(NotFilterParser.NAME);
-        builder.field("filter");
-        filter.toXContent(builder, params);
-        if (cache != null) {
-            builder.field("_cache", cache);
+        if (ToXContentUtils.getVersionFromParams(params).onOrAfter(Version.V_5_0_0)) {
+            FilterBuilders.boolFilter()
+                    .mustNot(filter)
+                    .filterName(filterName)
+                    .cache(cache)
+                    .doXContent(builder, params);
+        } else {
+            builder.startObject(NotFilterParser.NAME);
+            builder.field("filter");
+            filter.toXContent(builder, params);
+            addCacheToQuery(null, cache, builder, params);
+            if (filterName != null) {
+                builder.field("_name", filterName);
+            }
+            builder.endObject();
         }
-        if (filterName != null) {
-            builder.field("_name", filterName);
-        }
-        builder.endObject();
     }
 }

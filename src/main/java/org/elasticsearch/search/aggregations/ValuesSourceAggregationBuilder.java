@@ -20,6 +20,8 @@
 package org.elasticsearch.search.aggregations;
 
 import com.google.common.collect.Maps;
+import org.elasticsearch.Version;
+import org.elasticsearch.common.xcontent.ToXContentUtils;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 
 import java.io.IOException;
@@ -38,8 +40,8 @@ public abstract class ValuesSourceAggregationBuilder<B extends ValuesSourceAggre
     /**
      * Constructs a new builder.
      *
-     * @param name  The name of the aggregation.
-     * @param type  The type of the aggregation.
+     * @param name The name of the aggregation.
+     * @param type The type of the aggregation.
      */
     protected ValuesSourceAggregationBuilder(String name, String type) {
         super(name, type);
@@ -48,8 +50,8 @@ public abstract class ValuesSourceAggregationBuilder<B extends ValuesSourceAggre
     /**
      * Sets the field from which the values will be extracted.
      *
-     * @param field     The name of the field
-     * @return          This builder (fluent interface support)
+     * @param field The name of the field
+     * @return This builder (fluent interface support)
      */
     @SuppressWarnings("unchecked")
     public B field(String field) {
@@ -63,8 +65,8 @@ public abstract class ValuesSourceAggregationBuilder<B extends ValuesSourceAggre
      * the field data (you can refer to that value in the script using the {@code _value} reserved variable). If only the script is configured
      * (and the no field is configured next to it), then the script will be responsible to generate the values that will be aggregated.
      *
-     * @param script    The configured script.
-     * @return          This builder (fluent interface support)
+     * @param script The configured script.
+     * @return This builder (fluent interface support)
      */
     @SuppressWarnings("unchecked")
     public B script(String script) {
@@ -77,8 +79,8 @@ public abstract class ValuesSourceAggregationBuilder<B extends ValuesSourceAggre
      * <p/>
      * Also see {@link #script(String)}.
      *
-     * @param lang    The language of the script.
-     * @return        This builder (fluent interface support)
+     * @param lang The language of the script.
+     * @return This builder (fluent interface support)
      */
     @SuppressWarnings("unchecked")
     public B lang(String lang) {
@@ -89,9 +91,9 @@ public abstract class ValuesSourceAggregationBuilder<B extends ValuesSourceAggre
     /**
      * Sets the value of a parameter that is used in the script (if one is configured).
      *
-     * @param name      The name of the parameter.
-     * @param value     The value of the parameter.
-     * @return          This builder (fluent interface support)
+     * @param name  The name of the parameter.
+     * @param value The value of the parameter.
+     * @return This builder (fluent interface support)
      */
     @SuppressWarnings("unchecked")
     public B param(String name, Object value) {
@@ -105,8 +107,8 @@ public abstract class ValuesSourceAggregationBuilder<B extends ValuesSourceAggre
     /**
      * Sets the values of a parameters that are used in the script (if one is configured).
      *
-     * @param params    The the parameters.
-     * @return          This builder (fluent interface support)
+     * @param params The the parameters.
+     * @return This builder (fluent interface support)
      */
     @SuppressWarnings("unchecked")
     public B params(Map<String, Object> params) {
@@ -123,14 +125,31 @@ public abstract class ValuesSourceAggregationBuilder<B extends ValuesSourceAggre
         if (field != null) {
             builder.field("field", field);
         }
-        if (script != null) {
-            builder.field("script", script);
-        }
-        if (lang != null) {
-            builder.field("lang", lang);
-        }
-        if (this.params != null) {
-            builder.field("params").map(this.params);
+
+        if (ToXContentUtils.getVersionFromParams(params).onOrAfter(Version.V_5_0_0)) {
+            if (this.script != null) {
+                builder.startObject("script");
+                builder.field("inline", script);
+                if (lang != null) {
+                    builder.field("lang", lang);
+                }
+                if (this.params != null && !this.params.isEmpty()) {
+                    builder.field("params").map(this.params);
+                }
+                builder.endObject();
+            }
+        } else {
+            if (script != null) {
+                builder.field("script", script);
+            }
+
+            if (lang != null) {
+                builder.field("lang", lang);
+            }
+
+            if (this.params != null && !this.params.isEmpty()) {
+                builder.field("params").map(this.params);
+            }
         }
 
         doInternalXContent(builder, params);

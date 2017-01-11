@@ -105,10 +105,7 @@ public class ScriptFilterBuilder extends BaseFilterBuilder {
 
     @Override
     protected void doXContent(XContentBuilder builder, Params params) throws IOException {
-
-        Version version = ToXContentUtils.getVersionFromParams(params);
-
-        if (version.onOrAfter(Version.V_5_0_0)) {
+        if (ToXContentUtils.getVersionFromParams(params).onOrAfter(Version.V_5_0_0)) {
             builder.startObject(ScriptFilterParser.NAME);
             builder.startObject("script");
             builder.field(this.scriptType.name().toLowerCase(Locale.ROOT), script);
@@ -136,12 +133,7 @@ public class ScriptFilterBuilder extends BaseFilterBuilder {
             if (filterName != null) {
                 builder.field("_name", filterName);
             }
-            if (cache != null) {
-                builder.field("_cache", cache);
-            }
-            if (cacheKey != null) {
-                builder.field("_cache_key", cacheKey);
-            }
+            addCacheToQuery(cacheKey, cache, builder, params);
             builder.endObject();
         }
     }

@@ -19,7 +19,9 @@
 
 package org.elasticsearch.search.aggregations.bucket.histogram;
 
+import org.elasticsearch.Version;
 import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.common.xcontent.ToXContentUtils;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.search.aggregations.ValuesSourceAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilderException;
@@ -200,12 +202,16 @@ public class DateHistogramBuilder extends ValuesSourceAggregationBuilder<DateHis
             order.toXContent(builder, params);
         }
 
-        if (preZone != null) {
-            builder.field("pre_zone", preZone);
-        }
+        if (ToXContentUtils.getVersionFromParams(params).onOrAfter(Version.V_5_0_0)) {
+            //TODO fix this to relevant preOffset and postOffset.
+        } else {
+            if (preZone != null) {
+                builder.field("pre_zone", preZone);
+            }
 
-        if (postZone != null) {
-            builder.field("post_zone", postZone);
+            if (postZone != null) {
+                builder.field("post_zone", postZone);
+            }
         }
 
         if (preZoneAdjustLargeInterval) {

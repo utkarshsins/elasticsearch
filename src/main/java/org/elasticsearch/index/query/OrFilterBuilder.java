@@ -20,6 +20,8 @@
 package org.elasticsearch.index.query;
 
 import com.google.common.collect.Lists;
+import org.elasticsearch.Version;
+import org.elasticsearch.common.xcontent.ToXContentUtils;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 
 import java.io.IOException;
@@ -27,8 +29,6 @@ import java.util.ArrayList;
 
 /**
  * A filter that matches documents matching boolean combinations of other filters.
- *
- *
  */
 public class OrFilterBuilder extends BaseFilterBuilder {
 
@@ -73,21 +73,25 @@ public class OrFilterBuilder extends BaseFilterBuilder {
 
     @Override
     protected void doXContent(XContentBuilder builder, Params params) throws IOException {
-        builder.startObject(OrFilterParser.NAME);
-        builder.startArray("filters");
-        for (FilterBuilder filter : filters) {
-            filter.toXContent(builder, params);
+        if (ToXContentUtils.getVersionFromParams(params).onOrAfter(Version.V_5_0_0)) {
+            FilterBuilders.boolFilter()
+                    .filterName(filterName)
+                    .should(filters.toArray(new FilterBuilder[filters.size()]))
+                    .cacheKey(cacheKey)
+                    .cache(cache)
+                    .doXContent(builder, params);
+        } else {
+            builder.startObject(OrFilterParser.NAME);
+            builder.startArray("filters");
+            for (FilterBuilder filter : filters) {
+                filter.toXContent(builder, params);
+            }
+            builder.endArray();
+            addCacheToQuery(cacheKey, cache, builder, params);
+            if (filterName != null) {
+                builder.field("_name", filterName);
+            }
+            builder.endObject();
         }
-        builder.endArray();
-        if (cache != null) {
-            builder.field("_cache", cache);
-        }
-        if (cacheKey != null) {
-            builder.field("_cache_key", cacheKey);
-        }
-        if (filterName != null) {
-            builder.field("_name", filterName);
-        }
-        builder.endObject();
     }
 }
