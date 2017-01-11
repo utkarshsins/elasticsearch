@@ -204,6 +204,7 @@ public class DateHistogramBuilder extends ValuesSourceAggregationBuilder<DateHis
 
         if (ToXContentUtils.getVersionFromParams(params).onOrAfter(Version.V_5_0_0)) {
             //TODO fix this to relevant preOffset and postOffset.
+        } else {
             if (preZone != null) {
                 builder.field("pre_zone", preZone);
             }

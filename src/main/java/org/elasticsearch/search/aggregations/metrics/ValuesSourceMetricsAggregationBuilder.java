@@ -85,18 +85,17 @@ public abstract class ValuesSourceMetricsAggregationBuilder<B extends ValuesSour
         }
 
         if (ToXContentUtils.getVersionFromParams(params).onOrAfter(Version.V_5_0_0)) {
-
-            builder.startObject("script");
-            if (script != null) {
+            if (this.script != null) {
+                builder.startObject("script");
                 builder.field("inline", script);
+                if (lang != null) {
+                    builder.field("lang", lang);
+                }
+                if (this.params != null && !this.params.isEmpty()) {
+                    builder.field("params").map(this.params);
+                }
+                builder.endObject();
             }
-            if (lang != null) {
-                builder.field("lang", lang);
-            }
-            if (params != null && !this.params.isEmpty()) {
-                builder.field("params").map(this.params);
-            }
-            builder.endObject();
 
         } else {
             if (script != null) {
