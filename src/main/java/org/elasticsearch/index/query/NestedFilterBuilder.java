@@ -94,13 +94,8 @@ public class NestedFilterBuilder extends BaseFilterBuilder {
             if (join != null) {
                 builder.field("join", join);
             }
-            if (cache != null) {
-                builder.field("_cache", cache);
-            }
-            if (cacheKey != null) {
-                builder.field("_cache_key", cacheKey);
-            }
         }
+        addCacheToQuery(cacheKey, cache, builder, params);
         if (filterName != null) {
             builder.field("_name", filterName);
         }

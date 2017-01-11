@@ -136,12 +136,7 @@ public class ScriptFilterBuilder extends BaseFilterBuilder {
             if (filterName != null) {
                 builder.field("_name", filterName);
             }
-            if (cache != null) {
-                builder.field("_cache", cache);
-            }
-            if (cacheKey != null) {
-                builder.field("_cache_key", cacheKey);
-            }
+            addCacheToQuery(cacheKey, cache, builder, params);
             builder.endObject();
         }
     }

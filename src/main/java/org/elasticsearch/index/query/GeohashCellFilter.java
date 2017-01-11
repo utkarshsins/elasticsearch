@@ -183,12 +183,7 @@ public class GeohashCellFilter {
             if(levels > 0) {
                 builder.field(PRECISION, levels);
             }
-            if (cache != null) {
-                builder.field(CACHE, cache);
-            }
-            if (cacheKey != null) {
-                builder.field(CACHE_KEY, cacheKey);
-            }
+            addCacheToQuery(cacheKey, cache, builder, params);
             builder.field(field, geohash);
 
             builder.endObject();
