@@ -19,10 +19,18 @@
 package org.elasticsearch.common.util;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
+import org.elasticsearch.common.Strings;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.util.List;
 
 /**
  */
 public class UriBuilder {
+
+
     private final StringBuilder url;
     public static UriBuilder newBuilder() {
         return new UriBuilder();
@@ -36,13 +44,13 @@ public class UriBuilder {
         if (pathParams == null || pathParams.length == 0) {
             return this;
         }
-        url.append('/').append(Joiner.on(',').skipNulls().join(pathParams));
+        url.append('/').append(Joiner.on(',').skipNulls().join(encodeParams(pathParams)));
         return this;
     }
 
     public UriBuilder csvOrDefault(String defaultValue, String... pathParams) {
         if (pathParams == null || pathParams.length == 0) {
-            url.append('/').append(defaultValue);
+            url.append('/').append(urlEncode(defaultValue));
             return this;
         }
         return csv(pathParams);
@@ -53,8 +61,23 @@ public class UriBuilder {
     }
 
     public UriBuilder slash(String... pathParams) {
-        url.append('/').append(Joiner.on('/').skipNulls().join(pathParams));
+        url.append('/').append(Joiner.on('/').skipNulls().join(encodeParams(pathParams)));
         return this;
+    }
+
+    private List<String> encodeParams(String[] pathParams) {
+        List<String> encodedParams = Lists.newArrayListWithCapacity(pathParams.length);
+        for (String pathParam : pathParams) {
+            encodedParams.add(urlEncode(pathParam));
+        }
+        return encodedParams;
+    }
+    private String urlEncode(String value)  {
+        try {
+            return URLEncoder.encode(value, Strings.UTF8);
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalArgumentException(e.getMessage(), e);
+        }
     }
 
     @Override
