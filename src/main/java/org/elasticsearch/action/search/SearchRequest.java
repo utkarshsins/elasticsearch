@@ -52,6 +52,7 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
@@ -663,8 +664,7 @@ public class SearchRequest extends ActionRequest<SearchRequest> implements Indic
             String json = XContentHelper.convertToJson(source, false);
 
             return new NStringEntity(json, StandardCharsets.UTF_8);
-        }
-        else {
+        } else {
             return HttpUtils.EMPTY_ENTITY;
         }
     }
@@ -688,7 +688,7 @@ public class SearchRequest extends ActionRequest<SearchRequest> implements Indic
                 .putIfNotNull("routing", this.routing)
                 .putIfNotNull("preference", preference);
         if (queryCache != null) {
-            builder.put("request_cache", Boolean.TRUE.toString());
+            builder.put("query_cache", Boolean.TRUE.toString());
         }
 
 
@@ -704,13 +704,12 @@ public class SearchRequest extends ActionRequest<SearchRequest> implements Indic
         ActionRestRequest actionRestRequest = super.getActionRestRequest(version);
         if (version.id >= Version.V_5_0_0_ID) {
             return new SearchRequestV5(actionRestRequest);
-        }
-        else {
+        } else {
             return actionRestRequest;
         }
     }
 
-    private static class SearchRequestV5 implements ActionRestRequest{
+    private static class SearchRequestV5 implements ActionRestRequest {
         ActionRestRequest actionRestRequest;
 
         public SearchRequestV5(ActionRestRequest actionRestRequest) {
@@ -731,7 +730,7 @@ public class SearchRequest extends ActionRequest<SearchRequest> implements Indic
             Map<String, Object> map = XContentHelper.fromJson(json);
             // fields has been deprecated in 5.0 and renamed to stored_fields
             if (map.containsKey("fields")) {
-                map.put("stored_fields", map.get("fields"));
+                map.put("_source", map.get("fields"));
                 map.remove("fields");
                 return new NStringEntity(XContentHelper.convertToJson(map, false), StandardCharsets.UTF_8);
             }
@@ -739,7 +738,14 @@ public class SearchRequest extends ActionRequest<SearchRequest> implements Indic
         }
 
         public Map<String, String> getParams() {
-            return actionRestRequest.getParams();
+            Map<String, String> params = actionRestRequest.getParams();
+            if (params != null && !params.isEmpty()) {
+                params = new HashMap<>(params);
+                if (params.containsKey("query_cache")) {
+                    params.put("request_cache", params.remove("query_cache"));
+                }
+            }
+            return params;
         }
 
         public HttpEntity getBulkEntity() throws IOException {
