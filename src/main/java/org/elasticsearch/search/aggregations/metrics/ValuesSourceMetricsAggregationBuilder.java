@@ -20,6 +20,8 @@
 package org.elasticsearch.search.aggregations.metrics;
 
 import com.google.common.collect.Maps;
+import org.elasticsearch.Version;
+import org.elasticsearch.common.xcontent.ToXContentUtils;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 
 import java.io.IOException;
@@ -82,16 +84,32 @@ public abstract class ValuesSourceMetricsAggregationBuilder<B extends ValuesSour
             builder.field("field", field);
         }
 
-        if (script != null) {
-            builder.field("script", script);
-        }
+        if (ToXContentUtils.getVersionFromParams(params).onOrAfter(Version.V_5_0_0)) {
 
-        if (lang != null) {
-            builder.field("lang", lang);
-        }
+            builder.startObject("script");
+            if (script != null) {
+                builder.field("inline", script);
+            }
+            if (lang != null) {
+                builder.field("lang", lang);
+            }
+            if (params != null && !this.params.isEmpty()) {
+                builder.field("params").map(this.params);
+            }
+            builder.endObject();
 
-        if (this.params != null && !this.params.isEmpty()) {
-            builder.field("params").map(this.params);
+        } else {
+            if (script != null) {
+                builder.field("script", script);
+            }
+
+            if (lang != null) {
+                builder.field("lang", lang);
+            }
+
+            if (this.params != null && !this.params.isEmpty()) {
+                builder.field("params").map(this.params);
+            }
         }
     }
 }
