@@ -24,6 +24,7 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.search.aggregations.AggregationStreams;
+import org.elasticsearch.search.aggregations.CommonJsonField;
 import org.elasticsearch.search.aggregations.InternalAggregation;
 
 import java.io.IOException;
@@ -58,7 +59,10 @@ public class UnmappedTerms extends InternalTerms {
     };
 
     public void readFrom(XContentObject in) {
-        throw new UnsupportedOperationException();
+        this.name = in.get(CommonJsonField._name);
+        this.docCountError = 0;
+        this.buckets = BUCKETS;
+        this.bucketMap = BUCKETS_MAP;
     }
 
     public static void registerStreams() {
@@ -81,7 +85,6 @@ public class UnmappedTerms extends InternalTerms {
         this.name = in.readString();
         this.docCountError = 0;
         this.order = InternalOrder.Streams.readOrder(in);
-        this.requiredSize = readSize(in);
         this.minDocCount = in.readVLong();
         this.buckets = BUCKETS;
         this.bucketMap = BUCKETS_MAP;
