@@ -225,6 +225,28 @@ public class TimeValue implements Serializable, Streamable {
         return Strings.format1Decimals(value, suffix);
     }
 
+    public String getStringRep() {
+        String duration = Long.toString(this.duration);
+        switch (timeUnit) {
+            case NANOSECONDS:
+                return duration + "nanos";
+            case MICROSECONDS:
+                return duration + "micros";
+            case MILLISECONDS:
+                return duration + "ms";
+            case SECONDS:
+                return duration + "s";
+            case MINUTES:
+                return duration + "m";
+            case HOURS:
+                return duration + "h";
+            case DAYS:
+                return duration + "d";
+            default:
+                throw new IllegalArgumentException("unknown time unit: " + timeUnit.name());
+        }
+    }
+
     public static TimeValue parseTimeValue(String sValue, TimeValue defaultValue) {
         if (sValue == null) {
             return defaultValue;
