@@ -18,6 +18,7 @@
  */
 package org.elasticsearch.search.aggregations.bucket.terms;
 
+import com.google.common.collect.Lists;
 import org.elasticsearch.Version;
 import org.elasticsearch.common.Nullable;
 import org.elasticsearch.common.io.stream.StreamInput;
@@ -28,6 +29,7 @@ import org.elasticsearch.common.text.Text;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.search.aggregations.AggregationStreams;
+import org.elasticsearch.search.aggregations.CommonJsonField;
 import org.elasticsearch.search.aggregations.InternalAggregation;
 import org.elasticsearch.search.aggregations.InternalAggregations;
 import org.elasticsearch.search.aggregations.support.format.ValueFormatter;
@@ -63,6 +65,20 @@ public class DoubleTerms extends InternalTerms {
 
     public static void registerStreams() {
         AggregationStreams.registerStream(STREAM, TYPE.stream());
+    }
+
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        this.name = in.get(CommonJsonField._name);
+        List<XContentObject> bucketsXContent = in.getAsXContentObjectsOrEmpty(CommonJsonField.buckets);
+        List<InternalTerms.Bucket> buckets = Lists.newArrayListWithCapacity(bucketsXContent.size());
+        for (XContentObject xBucket : bucketsXContent) {
+            InternalAggregations aggregations = InternalAggregations.readAggregations(xBucket);
+            long bucketDocCountError = xBucket.getAsLong(InternalTerms.DOC_COUNT_ERROR_UPPER_BOUND_FIELD_NAME, 0L);
+            buckets.add(new DoubleTerms.Bucket(xBucket.getAsDouble(CommonJsonField.key), xBucket.getAsLong(CommonJsonField.doc_count), aggregations, showTermDocCountError, bucketDocCountError));
+        }
+        this.buckets = buckets;
+        this.bucketMap = null;
     }
 
     static class Bucket extends InternalTerms.Bucket {
