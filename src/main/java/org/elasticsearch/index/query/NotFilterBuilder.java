@@ -56,11 +56,13 @@ public class NotFilterBuilder extends BaseFilterBuilder {
     @Override
     protected void doXContent(XContentBuilder builder, Params params) throws IOException {
         if (ToXContentUtils.getVersionFromParams(params).onOrAfter(Version.V_5_0_0)) {
-            FilterBuilders.boolFilter()
+            BoolFilterBuilder boolFilterBuilder = FilterBuilders.boolFilter()
                     .mustNot(filter)
-                    .filterName(filterName)
-                    .cache(cache)
-                    .doXContent(builder, params);
+                    .filterName(filterName);
+            if (this.cache != null) {
+                boolFilterBuilder.cache(this.cache);
+            }
+            boolFilterBuilder.doXContent(builder, params);
         } else {
             builder.startObject(NotFilterParser.NAME);
             builder.field("filter");
