@@ -49,7 +49,7 @@ public class SearchResponse extends ActionResponse implements StatusToXContent {
 
     private int successfulShards;
 
-    private ShardSearchFailure[] shardFailures;
+    private ShardSearchFailure[] shardFailures = ShardSearchFailure.EMPTY_ARRAY;
 
     private long tookInMillis;
 
