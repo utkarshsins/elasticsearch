@@ -48,6 +48,7 @@ import org.elasticsearch.action.suggest.SuggestResponse;
 import org.elasticsearch.action.support.QuerySourceBuilder;
 import org.elasticsearch.action.support.replication.ReplicationType;
 import org.elasticsearch.action.update.UpdateRequest;
+import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.common.unit.DistanceUnit;
@@ -106,7 +107,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.omg.CORBA.PUBLIC_MEMBER;
 
 import java.io.IOException;
 import java.util.*;
@@ -372,6 +372,99 @@ public class RestClientTest extends AbstractRestClientTest {
         assertEquals(count, bulkItemResponse.getItems().length);
         for (BulkItemResponse itemResponse : bulkItemResponse.getItems()) {
             assertFalse("Item failed to index", itemResponse.isFailed());
+        }
+    }
+
+    @Test
+    public void testDateHistogram() throws ExecutionException, InterruptedException {
+        TransportClient transportClient = createTransportClient();
+        try {
+            for (int i = 0; i < 5; i++) {
+                indexDocument(client, transportClient);
+            }
+            ConstantScoreQueryBuilder constantScoreQuery = QueryBuilders.constantScoreQuery(QueryBuilders.matchAllQuery());
+            DateHistogramBuilder dateHistogramBuilder = AggregationBuilders.dateHistogram("rahul")
+                    .interval(DateHistogram.Interval.MONTH)
+                    .field("datePretty")
+                    .preZone("Asia/Kolkata")
+                    .postZone("Asia/Kolkata");
+            SearchRequestBuilder restSearchRequest = new SearchRequestBuilder(client).setIndices(index);
+            restSearchRequest.setQuery(constantScoreQuery);
+            restSearchRequest.addAggregation(dateHistogramBuilder);
+            restSearchRequest.setSize(0);
+            SearchResponse restSearchResponse = restSearchRequest.execute().get();
+            SearchRequestBuilder transportSearchRequest = new SearchRequestBuilder(transportClient).setIndices(index);
+            transportSearchRequest.setQuery(constantScoreQuery);
+            transportSearchRequest.addAggregation(dateHistogramBuilder);
+            transportSearchRequest.setSize(0);
+            SearchResponse transportSearchResponse = transportSearchRequest.execute().get();
+            Aggregations aggregations = transportSearchResponse.getAggregations();
+            DateHistogram rahul = aggregations.get("rahul");
+            DateHistogram rest_rahul = restSearchResponse.getAggregations().get("rahul");
+            Set<String> keys = new HashSet<>();
+            for (DateHistogram.Bucket bucket : rahul.getBuckets()) {
+                keys.add(bucket.getKey());
+                assert bucket.getDocCount() == rest_rahul.getBucketByKey(bucket.getKey()).getDocCount();
+            }
+            for (DateHistogram.Bucket bucket : rest_rahul.getBuckets()) {
+                if (keys.contains(bucket.getKey())) {
+                    continue;
+                }
+                assert bucket.getDocCount() == 0;
+            }
+        } finally {
+            try {
+                deleteIndex(index, transportClient.admin().indices());
+                transportClient.close();
+            } catch (Exception e) {
+
+            }
+        }
+    }
+
+
+    @Test
+    public void testDateHistogramWithOffset() throws ExecutionException, InterruptedException {
+        TransportClient transportClient = createTransportClient();
+        try {
+            for (int i = 0; i < 5; i++) {
+                indexDocument(client, transportClient);
+            }
+            ConstantScoreQueryBuilder constantScoreQuery = QueryBuilders.constantScoreQuery(QueryBuilders.matchAllQuery());
+            DateHistogramBuilder dateHistogramBuilder = AggregationBuilders.dateHistogram("rahul")
+                    .interval(DateHistogram.Interval.MONTH)
+                    .field("datePretty").preOffset("5h").postOffset("5h");
+            SearchRequestBuilder restSearchRequest = new SearchRequestBuilder(client).setIndices(index);
+            restSearchRequest.setQuery(constantScoreQuery);
+            restSearchRequest.addAggregation(dateHistogramBuilder);
+            restSearchRequest.setSize(0);
+            SearchResponse restSearchResponse = restSearchRequest.execute().get();
+            SearchRequestBuilder transportSearchRequest = new SearchRequestBuilder(transportClient).setIndices(index);
+            transportSearchRequest.setQuery(constantScoreQuery);
+            transportSearchRequest.addAggregation(dateHistogramBuilder);
+            transportSearchRequest.setSize(0);
+            SearchResponse transportSearchResponse = transportSearchRequest.execute().get();
+            Aggregations aggregations = transportSearchResponse.getAggregations();
+            DateHistogram rahul = aggregations.get("rahul");
+            DateHistogram rest_rahul = restSearchResponse.getAggregations().get("rahul");
+            Set<String> keys = new HashSet<>();
+            for (DateHistogram.Bucket bucket : rahul.getBuckets()) {
+                keys.add(bucket.getKey());
+                assert bucket.getDocCount() == rest_rahul.getBucketByKey(bucket.getKey()).getDocCount();
+            }
+            for (DateHistogram.Bucket bucket : rest_rahul.getBuckets()) {
+                if (keys.contains(bucket.getKey())) {
+                    continue;
+                }
+                assert bucket.getDocCount() == 0;
+            }
+        } finally {
+            try {
+                deleteIndex(index, transportClient.admin().indices());
+                transportClient.close();
+            } catch (Exception e) {
+
+            }
         }
     }
 

@@ -33,6 +33,7 @@ import org.elasticsearch.client.ClusterAdminClient;
 import org.elasticsearch.client.IndicesAdminClient;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.Strings;
+import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.unit.ByteSizeUnit;
 import org.elasticsearch.common.unit.ByteSizeValue;
@@ -61,7 +62,7 @@ public abstract class AbstractRestClientTest {
     protected IndicesAdminClient indicesAdminClient;
     protected ClusterAdminClient clusterAdminClient;
     protected String index;
-    protected String type="stats";
+    protected String type = "stats";
     protected Client client;
 
     public static final String POSTS_INDEX = "posts";
@@ -95,16 +96,9 @@ public abstract class AbstractRestClientTest {
     @Before
     public void setUp() {
         if (USE_REST) {
-            client = RestClient.builder("localhost")
-                    .setMaxRetryTimeout(new TimeValue(60, TimeUnit.SECONDS))
-                    .setMaxResponseSize(new ByteSizeValue(1, ByteSizeUnit.GB))
-                    .setSocketTimeout(new TimeValue(60, TimeUnit.SECONDS))
-                    .build();
-        }
-        else {
-            TransportClient transportClient = new TransportClient();
-            transportClient.addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
-            client = transportClient;
+            client = createRestClient();
+        } else {
+            client = createTransportClient();
         }
 
         this.indicesAdminClient = client.admin().indices();
@@ -112,9 +106,23 @@ public abstract class AbstractRestClientTest {
         this.index = createIndex();
     }
 
+    protected TransportClient createTransportClient() {
+        TransportClient transportClient = new TransportClient();
+        transportClient.addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
+        return transportClient;
+    }
+
+    protected RestClient createRestClient() {
+        return RestClient.builder("localhost")
+                .setMaxRetryTimeout(new TimeValue(60, TimeUnit.SECONDS))
+                .setMaxResponseSize(new ByteSizeValue(1, ByteSizeUnit.GB))
+                .setSocketTimeout(new TimeValue(60, TimeUnit.SECONDS))
+                .build();
+    }
+
     protected List<IndexResponse> indexDocument(int numberOfDocs) throws InterruptedException, ExecutionException {
         List<IndexResponse> responses = Lists.newArrayList();
-        for (int i =0; i < numberOfDocs; i++) {
+        for (int i = 0; i < numberOfDocs; i++) {
             responses.add(indexDocument());
         }
         return responses;
@@ -126,6 +134,14 @@ public abstract class AbstractRestClientTest {
         assertTrue(indexResponse.isCreated());
 
         return indexResponse;
+    }
+
+    protected void indexDocument(Client... clients) throws InterruptedException, ExecutionException {
+        IndexRequest request = newIndexRequest();
+        for (Client client : clients) {
+            IndexResponse indexResponse = client.index(request).get();
+            assertTrue(indexResponse.isCreated());
+        }
     }
 
     protected IndexRequest newPost() {
@@ -191,6 +207,7 @@ public abstract class AbstractRestClientTest {
     }
 
     protected List<String> names;
+
     protected String randomName() {
         if (names == null) {
             names = Lists.newArrayList();
@@ -198,13 +215,12 @@ public abstract class AbstractRestClientTest {
             BufferedReader reader = new BufferedReader(new InputStreamReader(in, Charsets.UTF_8));
             String name;
             try {
-                while( (name=reader.readLine()) != null) {
+                while ((name = reader.readLine()) != null) {
                     names.add(name);
                 }
             } catch (IOException e) {
                 throw new RuntimeException(e.getMessage(), e);
-            }
-            finally {
+            } finally {
                 try {
                     reader.close();
                 } catch (IOException e) {
@@ -250,6 +266,11 @@ public abstract class AbstractRestClientTest {
 
     protected void deleteIndex(String index) {
         DeleteIndexResponse response = indicesAdminClient.prepareDelete(index).get();
+        assertAcknowledged(response);
+    }
+
+    protected void deleteIndex(String index, IndicesAdminClient client) {
+        DeleteIndexResponse response = client.prepareDelete(index).get();
         assertAcknowledged(response);
     }
 
