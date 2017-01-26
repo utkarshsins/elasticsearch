@@ -148,7 +148,7 @@ public abstract class ValuesSourceAggregationBuilder<B extends ValuesSourceAggre
                     builder.field("params").map(this.params);
                 }
                 if (this.requestCache != null) {
-                    builder.field("_cache", this.requestCache);
+                    builder.field("cacheable", this.requestCache);
                 }
                 builder.endObject();
             }
