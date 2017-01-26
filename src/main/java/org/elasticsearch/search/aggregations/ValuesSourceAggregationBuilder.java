@@ -38,6 +38,11 @@ public abstract class ValuesSourceAggregationBuilder<B extends ValuesSourceAggre
     private Map<String, Object> params;
 
     /**
+     * request cache for script
+     */
+    private Boolean requestCache;
+
+    /**
      * Constructs a new builder.
      *
      * @param name The name of the aggregation.
@@ -119,6 +124,12 @@ public abstract class ValuesSourceAggregationBuilder<B extends ValuesSourceAggre
         return (B) this;
     }
 
+    @SuppressWarnings("unchecked")
+    public B requestCache(boolean requestCache) {
+        this.requestCache = requestCache;
+        return (B) this;
+    }
+
     @Override
     protected final XContentBuilder internalXContent(XContentBuilder builder, Params params) throws IOException {
         builder.startObject();
@@ -135,6 +146,9 @@ public abstract class ValuesSourceAggregationBuilder<B extends ValuesSourceAggre
                 }
                 if (this.params != null && !this.params.isEmpty()) {
                     builder.field("params").map(this.params);
+                }
+                if (this.requestCache != null) {
+                    builder.field("_cache", this.requestCache);
                 }
                 builder.endObject();
             }

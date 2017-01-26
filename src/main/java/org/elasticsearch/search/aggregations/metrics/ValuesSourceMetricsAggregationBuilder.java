@@ -37,6 +37,11 @@ public abstract class ValuesSourceMetricsAggregationBuilder<B extends ValuesSour
     private String lang;
     private Map<String, Object> params;
 
+    /**
+     * request cache for script
+     */
+    private Boolean requestCache;
+
     protected ValuesSourceMetricsAggregationBuilder(String name, String type) {
         super(name, type);
     }
@@ -78,6 +83,11 @@ public abstract class ValuesSourceMetricsAggregationBuilder<B extends ValuesSour
         return (B) this;
     }
 
+    public B requestCache(boolean requestCache){
+        this.requestCache = requestCache;
+        return (B) this;
+    }
+
     @Override
     protected void internalXContent(XContentBuilder builder, Params params) throws IOException {
         if (field != null) {
@@ -93,6 +103,9 @@ public abstract class ValuesSourceMetricsAggregationBuilder<B extends ValuesSour
                 }
                 if (this.params != null && !this.params.isEmpty()) {
                     builder.field("params").map(this.params);
+                }
+                if (this.requestCache != null) {
+                    builder.field("_cache", this.requestCache);
                 }
                 builder.endObject();
             }
