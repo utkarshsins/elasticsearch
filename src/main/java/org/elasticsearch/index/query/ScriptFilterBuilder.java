@@ -118,6 +118,10 @@ public class ScriptFilterBuilder extends BaseFilterBuilder {
                 builder.field("params", this.params);
             }
 
+            if (this.cache != null) {
+                builder.field("_cache", this.cache);
+            }
+
             builder.endObject();
 
             builder.endObject();
