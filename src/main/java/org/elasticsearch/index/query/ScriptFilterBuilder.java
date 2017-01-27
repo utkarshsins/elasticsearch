@@ -119,7 +119,7 @@ public class ScriptFilterBuilder extends BaseFilterBuilder {
             }
 
             if (this.cache != null) {
-                builder.field("cacheable", this.cache);
+                builder.field("_cache", this.cache);
             }
 
             builder.endObject();
