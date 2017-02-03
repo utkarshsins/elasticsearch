@@ -19,8 +19,14 @@
 
 package org.elasticsearch.index.query;
 
+import org.apache.commons.codec.digest.DigestUtils;
+import org.elasticsearch.Version;
+import org.elasticsearch.common.xcontent.ToXContentUtils;
 import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.common.xcontent.XContentType;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -130,6 +136,12 @@ public class BoolFilterBuilder extends BaseFilterBuilder {
     @Override
     protected void doXContent(XContentBuilder builder, Params params) throws IOException {
         builder.startObject("bool");
+        doXContentInternal(builder, params);
+        addCacheToQuery(cacheKey, cache, builder, params);
+        builder.endObject();
+    }
+
+    private void doXContentInternal(XContentBuilder builder, Params params) throws IOException {
         doXArrayContent("must", mustClauses, builder, params);
         doXArrayContent("must_not", mustNotClauses, builder, params);
         doXArrayContent("should", shouldClauses, builder, params);
@@ -137,8 +149,6 @@ public class BoolFilterBuilder extends BaseFilterBuilder {
         if (filterName != null) {
             builder.field("_name", filterName);
         }
-        addCacheToQuery(cacheKey, cache, builder, params);
-        builder.endObject();
     }
 
     private void doXArrayContent(String field, List<FilterBuilder> clauses, XContentBuilder builder, Params params) throws IOException {
@@ -154,6 +164,29 @@ public class BoolFilterBuilder extends BaseFilterBuilder {
                 clause.toXContent(builder, params);
             }
             builder.endArray();
+        }
+    }
+
+    private String generateCacheKey() throws IOException {
+        XContentBuilder builder = XContentFactory.contentBuilder(XContentType.SMILE);
+        builder.startObject("bool");
+        doXContentInternal(builder, EMPTY_PARAMS);
+        builder.endObject();
+        return DigestUtils.sha512Hex(builder.bytes().streamInput());
+    }
+
+    @Override
+    protected void addCacheToQuery(String cacheKey, Boolean cache, XContentBuilder builder, Params params) throws IOException {
+        if (ToXContentUtils.getVersionFromParams(params).onOrAfter(Version.V_5_0_0)) {
+            builder.field("cache_key", generateCacheKey());
+            return;
+        }
+
+        if (cache != null) {
+            builder.field("_cache", cache);
+        }
+        if (cacheKey != null) {
+            builder.field("_cache_key", cacheKey);
         }
     }
 }
