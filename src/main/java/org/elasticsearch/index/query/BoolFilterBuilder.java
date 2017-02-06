@@ -20,6 +20,7 @@
 package org.elasticsearch.index.query;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.elasticsearch.Version;
 import org.elasticsearch.common.xcontent.ToXContentUtils;
 import org.elasticsearch.common.xcontent.XContentBuilder;
@@ -178,7 +179,16 @@ public class BoolFilterBuilder extends BaseFilterBuilder {
     @Override
     protected void addCacheToQuery(String cacheKey, Boolean cache, XContentBuilder builder, Params params) throws IOException {
         if (ToXContentUtils.getVersionFromParams(params).onOrAfter(Version.V_5_0_0)) {
-            builder.field("cache_key", generateCacheKey());
+            if (BooleanUtils.isTrue(cache)) {
+                if (cacheKey != null) {
+                    builder.field("_cache_key", cacheKey);
+                    builder.field("_cache_any", cacheKey);
+                } else {
+                    builder.field("_cache_any", generateCacheKey());
+                }
+            }
+
+            builder.field("_cache_sha", generateCacheKey());
             return;
         }
 
