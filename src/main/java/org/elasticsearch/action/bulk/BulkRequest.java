@@ -24,6 +24,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.nio.entity.NStringEntity;
 import org.elasticsearch.ElasticsearchIllegalArgumentException;
+import org.elasticsearch.Version;
 import org.elasticsearch.action.*;
 import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.index.IndexRequest;
@@ -539,6 +540,16 @@ public class BulkRequest extends ActionRequest<BulkRequest> implements Composite
     }
 
     @Override
+    public ActionRestRequest getActionRestRequest(Version version) {
+        ActionRestRequest actionRestRequest = super.getActionRestRequest(version);
+        if (version.id >= Version.V_5_0_0_ID) {
+            return new BulkRequestV5();
+        } else {
+            return actionRestRequest;
+        }
+    }
+
+    @Override
     public HttpEntity getEntity() throws IOException {
         //todo add support for streaming version of getRestEntity()
         StringBuilder builder = new StringBuilder();
@@ -547,6 +558,41 @@ public class BulkRequest extends ActionRequest<BulkRequest> implements Composite
             builder.append(payload);
         }
         return new NStringEntity(builder.toString(), "UTF-8");
+    }
+
+    private class BulkRequestV5 implements ActionRestRequest {
+
+        @Override
+        public RestRequest.Method getMethod() {
+            return BulkRequest.this.getMethod();
+        }
+
+        @Override
+        public String getEndPoint() {
+            return BulkRequest.this.getEndPoint();
+        }
+
+        @Override
+        public HttpEntity getEntity() throws IOException {
+            //todo add support for streaming version of getRestEntity()
+            StringBuilder builder = new StringBuilder();
+            for (ActionRequest request : requests) {
+                ActionRestRequest restRequest = request.getActionRestRequest(Version.V_5_0_0);
+                String payload = HttpUtils.readUtf8(restRequest.getBulkEntity());
+                builder.append(payload);
+            }
+            return new NStringEntity(builder.toString(), "UTF-8");
+        }
+
+        @Override
+        public Map<String, String> getParams() {
+            return BulkRequest.this.getParams();
+        }
+
+        @Override
+        public HttpEntity getBulkEntity() throws IOException {
+            return BulkRequest.this.getBulkEntity();
+        }
     }
 
 }
