@@ -25,9 +25,11 @@ import org.apache.http.HttpEntity;
 import org.apache.http.nio.entity.NStringEntity;
 import org.elasticsearch.Version;
 import org.elasticsearch.action.ActionRequestValidationException;
+import org.elasticsearch.action.ActionRestRequest;
 import org.elasticsearch.action.DocumentRequest;
 import org.elasticsearch.action.WriteConsistencyLevel;
 import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.support.replication.ReplicationType;
 import org.elasticsearch.action.support.single.instance.InstanceShardOperationRequest;
 import org.elasticsearch.common.Nullable;
@@ -41,12 +43,14 @@ import org.elasticsearch.common.lucene.uid.Versions;
 import org.elasticsearch.common.util.UriBuilder;
 import org.elasticsearch.common.xcontent.*;
 import org.elasticsearch.index.VersionType;
+import org.elasticsearch.index.query.ScriptFilterParser;
 import org.elasticsearch.rest.RestRequest;
 import org.elasticsearch.script.ScriptService;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 
@@ -206,7 +210,9 @@ public class UpdateRequest extends InstanceShardOperationRequest<UpdateRequest> 
         return this.script;
     }
 
-    public ScriptService.ScriptType scriptType() { return this.scriptType; }
+    public ScriptService.ScriptType scriptType() {
+        return this.scriptType;
+    }
 
     public Map<String, Object> scriptParams() {
         return this.scriptParams;
@@ -573,6 +579,7 @@ public class UpdateRequest extends InstanceShardOperationRequest<UpdateRequest> 
 
     /**
      * Should this update attempt to detect if it is a noop?
+     *
      * @return this for chaining
      */
     public UpdateRequest detectNoop(boolean detectNoop) {
@@ -632,15 +639,15 @@ public class UpdateRequest extends InstanceShardOperationRequest<UpdateRequest> 
     public void docAsUpsert(boolean shouldUpsertDoc) {
         this.docAsUpsert = shouldUpsertDoc;
     }
-    
-    public boolean scriptedUpsert(){
+
+    public boolean scriptedUpsert() {
         return this.scriptedUpsert;
     }
-    
+
     public void scriptedUpsert(boolean scriptedUpsert) {
         this.scriptedUpsert = scriptedUpsert;
     }
-    
+
 
     @Override
     public void readFrom(StreamInput in) throws IOException {
@@ -651,7 +658,7 @@ public class UpdateRequest extends InstanceShardOperationRequest<UpdateRequest> 
         id = in.readString();
         routing = in.readOptionalString();
         script = in.readOptionalString();
-        if(Strings.hasLength(script)) {
+        if (Strings.hasLength(script)) {
             if (in.getVersion().onOrAfter(Version.V_1_3_0)) {
                 scriptType = ScriptService.ScriptType.readFrom(in);
             } else {
@@ -746,6 +753,16 @@ public class UpdateRequest extends InstanceShardOperationRequest<UpdateRequest> 
     }
 
     @Override
+    public ActionRestRequest getActionRestRequest(Version version) {
+        ActionRestRequest actionRestRequest = super.getActionRestRequest(version);
+        if (version.id >= Version.V_5_0_0_ID) {
+            return new UpdateRequestV5();
+        } else {
+            return actionRestRequest;
+        }
+    }
+
+    @Override
     public RestRequest.Method getMethod() {
         return RestRequest.Method.POST;
     }
@@ -783,8 +800,7 @@ public class UpdateRequest extends InstanceShardOperationRequest<UpdateRequest> 
             if (this.detectNoop) {
                 payload.put("detect_noop", Boolean.TRUE);
             }
-        }
-        else if (Strings.hasLength(script)) {
+        } else if (Strings.hasLength(script)) {
             payload.putIfNotNull("lang", this.scriptLang);
             payload.putIf("scripted_upsert", Boolean.TRUE, this.scriptedUpsert);
             payload.put("script", this.script);
@@ -798,5 +814,70 @@ public class UpdateRequest extends InstanceShardOperationRequest<UpdateRequest> 
             throw new IllegalStateException("Nothing to update. No doc, script or upsert provided");
         }
         return payload.map();
+    }
+
+    private class UpdateRequestV5 implements ActionRestRequest {
+
+        public RestRequest.Method getMethod() {
+            return UpdateRequest.this.getMethod();
+        }
+
+        public String getEndPoint() {
+            return UpdateRequest.this.getEndPoint();
+        }
+
+        @Override
+        public Map<String, String> getParams() {
+            return UpdateRequest.this.getParams();
+        }
+
+        @Override
+        public HttpEntity getEntity() throws IOException {
+            Map<String, Object> payload = getPayload();
+            String json = XContentHelper.convertToJson(payload, false);
+            return new NStringEntity(json, StandardCharsets.UTF_8);
+
+        }
+
+        private Map<String, Object> getPayload() {
+            MapBuilder<String, Object> payload = MapBuilder.newMapBuilder();
+            if (UpdateRequest.this.doc != null) {
+                payload.put("doc", UpdateRequest.this.doc.sourceAsMap());
+                if (UpdateRequest.this.docAsUpsert) {
+                    payload.put("doc_as_upsert", Boolean.TRUE);
+                }
+                if (UpdateRequest.this.detectNoop) {
+                    payload.put("detect_noop", Boolean.TRUE);
+                }
+            } else if (Strings.hasLength(script)) {
+                Map<String, Object> scriptObj = new LinkedHashMap<>();
+                scriptObj.put(UpdateRequest.this.scriptType.name().toLowerCase(Locale.ROOT), script);
+                scriptObj.put("lang", scriptLang);
+                scriptObj.put("params", scriptParams);
+                payload.put("script", scriptObj);
+            }
+            if (UpdateRequest.this.upsertRequest != null) {
+                payload.put("upsert", UpdateRequest.this.upsertRequest.sourceAsMap());
+            }
+
+            if (payload.isEmpty()) {
+                throw new IllegalStateException("Nothing to update. No doc, script or upsert provided");
+            }
+            return payload.map();
+        }
+
+        public HttpEntity getBulkEntity() throws IOException {
+            Map<String, Object> payload = Maps.newLinkedHashMap();
+            Map<String, Object> actionMetadata = Maps.newLinkedHashMap();
+            actionMetadata.put("_index", index);
+            actionMetadata.put("_type", type);
+            actionMetadata.put("_id", id);
+            payload.put(BULK_TYPE, actionMetadata);
+            String json = XContentHelper.convertToJson(payload, false);
+
+            String payloadJson = XContentHelper.convertToJson(getPayload(), false);
+            String fullPayload = Strings.join(json, "\n", payloadJson, "\n");
+            return new NStringEntity(fullPayload, StandardCharsets.UTF_8);
+        }
     }
 }
