@@ -182,13 +182,10 @@ public class BoolFilterBuilder extends BaseFilterBuilder {
             if (BooleanUtils.isTrue(cache)) {
                 if (cacheKey != null) {
                     builder.field("_cache_key", cacheKey);
-                    builder.field("_cache_any", cacheKey);
                 } else {
-                    builder.field("_cache_any", generateCacheKey());
+                    builder.field("_cache_key", generateCacheKey());
                 }
             }
-
-            builder.field("_cache_sha", generateCacheKey());
             return;
         }
 
