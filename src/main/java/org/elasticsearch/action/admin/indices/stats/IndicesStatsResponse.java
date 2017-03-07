@@ -26,18 +26,14 @@ import com.google.common.collect.Sets;
 import org.elasticsearch.action.ShardOperationFailedException;
 import org.elasticsearch.action.support.broadcast.BroadcastOperationResponse;
 import org.elasticsearch.cluster.ClusterState;
+import org.elasticsearch.cluster.routing.ImmutableShardRouting;
 import org.elasticsearch.cluster.routing.ShardRouting;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
-import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentBuilderString;
-import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.common.xcontent.*;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  */
@@ -151,6 +147,55 @@ public class IndicesStatsResponse extends BroadcastOperationResponse implements 
         out.writeVInt(shards.length);
         for (ShardStats shard : shards) {
             shard.writeTo(out);
+        }
+    }
+
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        super.readFrom(in);
+        XContentObject indices = in.getAsXContentObject("indices");
+        if (indices != null) {
+            for (String index : indices.keySet()) {
+                XContentObject indexStats = indices.getAsXContentObject(index);
+                XContentObject primaries = indexStats.getAsXContentObject("primaries");
+                CommonStats primaryStats = null;
+                CommonStats totalStats = null;
+                if (primaries != null) {
+                    primaryStats = new CommonStats();
+                    primaryStats.readFrom(primaries);
+                    if (this.primary == null) {
+                        primary = new CommonStats();
+                    }
+                    primary.add(primaryStats);
+                }
+                XContentObject total = indexStats.getAsXContentObject("total");
+                if (total != null) {
+                    totalStats = new CommonStats();
+                    totalStats.readFrom(total);
+                    if(this.total == null){
+                        this.total = new CommonStats();
+                        this.total.add(totalStats);
+                    }
+                }
+
+                if (this.indicesStats == null) {
+                    this.indicesStats = new LinkedHashMap<>();
+                }
+                List<ShardStats> shardStatss = new ArrayList<>(2);
+                if (primaryStats != null) {
+                    ShardStats shardStats = new ShardStats();
+                    shardStats.stats = primaryStats;
+                    shardStats.shardRouting = new ImmutableShardRouting(index, 0, null, true, null, 0);
+                    shardStatss.add(shardStats);
+                }
+                if (totalStats != null) {
+                    ShardStats shardStats = new ShardStats();
+                    shardStats.stats = totalStats;
+                    shardStats.shardRouting = new ImmutableShardRouting(index, 0, null, false, null, 0);
+                    shardStatss.add(shardStats);
+                }
+                this.indicesStats.put(index, new IndexStats(index, shardStatss.toArray(new ShardStats[shardStatss.size()])));
+            }
         }
     }
 

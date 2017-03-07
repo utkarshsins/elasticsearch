@@ -24,8 +24,7 @@ import org.elasticsearch.common.Nullable;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Streamable;
-import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.common.xcontent.*;
 import org.elasticsearch.index.cache.filter.FilterCacheStats;
 import org.elasticsearch.index.cache.id.IdCacheStats;
 import org.elasticsearch.index.cache.query.QueryCacheStats;
@@ -50,7 +49,7 @@ import java.io.IOException;
 
 /**
  */
-public class CommonStats implements Streamable, ToXContent {
+public class CommonStats implements Streamable, ToXContent, FromXContentObject {
 
     public CommonStats() {
         this(CommonStatsFlags.NONE);
@@ -701,5 +700,171 @@ public class CommonStats implements Streamable, ToXContent {
             queryCache.toXContent(builder, params);
         }
         return builder;
+    }
+
+    enum JsonField implements XContentObjectParseable<CommonStats> {
+        docs {
+            @Override
+            public void apply(XContentObject in, CommonStats response) throws IOException {
+                XContentObject docStats = in.getAsXContentObject(this);
+                response.docs = new DocsStats();
+                response.docs.readFrom(docStats);
+            }
+        },
+        store {
+            @Override
+            public void apply(XContentObject in, CommonStats response) throws IOException {
+                XContentObject storeStats = in.getAsXContentObject(this);
+                response.store = new StoreStats();
+                response.store.readFrom(storeStats);
+            }
+        },
+        indexing {
+            @Override
+            public void apply(XContentObject in, CommonStats response) throws IOException {
+                XContentObject shardInfo = in.getAsXContentObject(this);
+                response.indexing = new IndexingStats();
+                response.indexing.readFrom(shardInfo);
+            }
+        },
+        get {
+            @Override
+            public void apply(XContentObject in, CommonStats response) throws IOException {
+                XContentObject shardInfo = in.getAsXContentObject(this);
+                response.get = new GetStats();
+                response.get.readFrom(shardInfo);
+            }
+        },
+        search {
+            @Override
+            public void apply(XContentObject in, CommonStats response) throws IOException {
+                XContentObject shardInfo = in.getAsXContentObject(this);
+                response.search = new SearchStats();
+                response.search.readFrom(shardInfo);
+            }
+        },
+        merge {
+            @Override
+            public void apply(XContentObject in, CommonStats response) throws IOException {
+                XContentObject shardInfo = in.getAsXContentObject(this);
+                response.merge = new MergeStats();
+                response.merge.readFrom(shardInfo);
+            }
+        },
+        refresh {
+            @Override
+            public void apply(XContentObject in, CommonStats response) throws IOException {
+                XContentObject shardInfo = in.getAsXContentObject(this);
+                response.refresh = new RefreshStats();
+                response.refresh.readFrom(shardInfo);
+            }
+        },
+        flush {
+            @Override
+            public void apply(XContentObject in, CommonStats response) throws IOException {
+                XContentObject shardInfo = in.getAsXContentObject(this);
+                response.flush = new FlushStats();
+                response.flush.readFrom(shardInfo);
+            }
+        },
+        warmer {
+            @Override
+            public void apply(XContentObject in, CommonStats response) throws IOException {
+                XContentObject shardInfo = in.getAsXContentObject(this);
+                response.warmer = new WarmerStats();
+                response.warmer.readFrom(shardInfo);
+            }
+        },
+        filterCache {
+            @Override
+            public void apply(XContentObject in, CommonStats response) throws IOException {
+                XContentObject shardInfo = in.getAsXContentObject(this);
+                response.filterCache = new FilterCacheStats();
+                response.filterCache.readFrom(shardInfo);
+            }
+        },
+        idCache {
+            @Override
+            public void apply(XContentObject in, CommonStats response) throws IOException {
+                XContentObject shardInfo = in.getAsXContentObject(this);
+                response.idCache = new IdCacheStats();
+                response.idCache.readFrom(shardInfo);
+            }
+        },
+        fieldData {
+            @Override
+            public void apply(XContentObject in, CommonStats response) throws IOException {
+                XContentObject shardInfo = in.getAsXContentObject(this);
+                response.fieldData = new FieldDataStats();
+                response.fieldData.readFrom(shardInfo);
+            }
+        },
+        percolate {
+            @Override
+            public void apply(XContentObject in, CommonStats response) throws IOException {
+                XContentObject shardInfo = in.getAsXContentObject(this);
+                response.percolate = new PercolateStats();
+                response.percolate.readFrom(shardInfo);
+            }
+        },
+        completion {
+            @Override
+            public void apply(XContentObject in, CommonStats response) throws IOException {
+                XContentObject shardInfo = in.getAsXContentObject(this);
+                response.completion = new CompletionStats();
+                response.completion.readFrom(shardInfo);
+            }
+        },
+        segments {
+            @Override
+            public void apply(XContentObject in, CommonStats response) throws IOException {
+                XContentObject shardInfo = in.getAsXContentObject(this);
+                response.segments = new SegmentsStats();
+                response.segments.readFrom(shardInfo);
+            }
+        },
+        translog {
+            @Override
+            public void apply(XContentObject in, CommonStats response) throws IOException {
+                XContentObject shardInfo = in.getAsXContentObject(this);
+                response.translog = new TranslogStats();
+                response.translog.readFrom(shardInfo);
+            }
+        },
+        suggest {
+            @Override
+            public void apply(XContentObject in, CommonStats response) throws IOException {
+                XContentObject shardInfo = in.getAsXContentObject(this);
+                response.suggest = new SuggestStats();
+                response.suggest.readFrom(shardInfo);
+            }
+        },
+        queryCache {
+            @Override
+            public void apply(XContentObject in, CommonStats response) throws IOException {
+                XContentObject shardInfo = in.getAsXContentObject(this);
+                if (in.getVersion().onOrAfter(Version.V_5_0_0)) {
+                    response.filterCache = new FilterCacheStats();
+                    response.filterCache.readFrom(shardInfo);
+                } else {
+                    response.queryCache = new QueryCacheStats();
+                    response.queryCache.readFrom(shardInfo);
+                }
+            }
+        },
+        request_cache {
+            @Override
+            public void apply(XContentObject in, CommonStats response) throws IOException {
+                XContentObject shardInfo = in.getAsXContentObject(this);
+                response.queryCache = new QueryCacheStats();
+                response.queryCache.readFrom(shardInfo);
+            }
+        }
+
+    }
+
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        XContentHelper.populate(in, JsonField.values(), this);
     }
 }

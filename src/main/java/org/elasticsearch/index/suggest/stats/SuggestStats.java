@@ -23,16 +23,14 @@ import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Streamable;
 import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentBuilderString;
+import org.elasticsearch.common.xcontent.*;
 
 import java.io.IOException;
 
 /**
  * Exposes suggest related statistics.
  */
-public class SuggestStats implements Streamable, ToXContent {
+public class SuggestStats implements Streamable, ToXContent, FromXContentObject {
 
     private long suggestCount;
     private long suggestTimeInMillis;
@@ -120,5 +118,12 @@ public class SuggestStats implements Streamable, ToXContent {
         builder.field(Fields.CURRENT, current);
         builder.endObject();
         return builder;
+    }
+
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        this.suggestCount = in.getAsLong(Fields.TOTAL.underscore().getValue());
+        this.suggestTimeInMillis = in.getAsLong(Fields.TIME_IN_MILLIS.underscore().getValue());
+        this.current = in.getAsLong(Fields.CURRENT.underscore().getValue());
     }
 }

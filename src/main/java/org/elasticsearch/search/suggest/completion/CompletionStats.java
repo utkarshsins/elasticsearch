@@ -24,16 +24,14 @@ import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Streamable;
 import org.elasticsearch.common.unit.ByteSizeValue;
-import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentBuilderString;
+import org.elasticsearch.common.xcontent.*;
 
 import java.io.IOException;
 
 /**
  *
  */
-public class CompletionStats implements Streamable, ToXContent {
+public class CompletionStats implements Streamable, ToXContent, FromXContentObject {
 
     private long sizeInBytes;
 
@@ -112,6 +110,11 @@ public class CompletionStats implements Streamable, ToXContent {
         }
         builder.endObject();
         return builder;
+    }
+
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        this.sizeInBytes = in.getAsLong(Fields.SIZE_IN_BYTES.underscore().getValue());
     }
 
     public static CompletionStats readCompletionStats(StreamInput in) throws IOException {

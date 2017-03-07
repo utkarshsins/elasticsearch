@@ -24,16 +24,14 @@ import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Streamable;
 import org.elasticsearch.common.unit.ByteSizeValue;
 import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentBuilderString;
+import org.elasticsearch.common.xcontent.*;
 
 import java.io.IOException;
 
 /**
  *
  */
-public class MergeStats implements Streamable, ToXContent {
+public class MergeStats implements Streamable, ToXContent, FromXContentObject {
 
     private long total;
     private long totalTimeInMillis;
@@ -140,6 +138,17 @@ public class MergeStats implements Streamable, ToXContent {
         builder.byteSizeField(Fields.TOTAL_SIZE_IN_BYTES, Fields.TOTAL_SIZE, totalSizeInBytes);
         builder.endObject();
         return builder;
+    }
+
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        this.current = in.getAsLong(Fields.CURRENT.underscore().getValue());
+        this.currentNumDocs = in.getAsLong(Fields.CURRENT_DOCS.underscore().getValue());
+        this.currentSizeInBytes = in.getAsLong(Fields.CURRENT_SIZE_IN_BYTES.underscore().getValue());
+        this.total = in.getAsLong(Fields.TOTAL.underscore().getValue());
+        this.totalTimeInMillis = in.getAsLong(Fields.TOTAL_TIME_IN_MILLIS.underscore().getValue());
+        this.totalNumDocs = in.getAsLong(Fields.TOTAL_DOCS.underscore().getValue());
+        this.totalSizeInBytes = in.getAsLong(Fields.TOTAL_SIZE_IN_BYTES.underscore().getValue());
     }
 
     static final class Fields {

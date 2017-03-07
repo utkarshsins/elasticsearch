@@ -23,6 +23,8 @@ import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.ActionFuture;
 import org.elasticsearch.action.ActionResponse;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
+import org.elasticsearch.action.admin.indices.stats.IndicesStatsRequest;
+import org.elasticsearch.action.admin.indices.stats.IndicesStatsResponse;
 import org.elasticsearch.action.admin.indices.template.put.PutIndexTemplateResponse;
 import org.elasticsearch.action.bulk.*;
 import org.elasticsearch.action.count.CountRequest;
@@ -48,6 +50,7 @@ import org.elasticsearch.action.suggest.SuggestResponse;
 import org.elasticsearch.action.support.QuerySourceBuilder;
 import org.elasticsearch.action.support.replication.ReplicationType;
 import org.elasticsearch.action.update.UpdateRequest;
+import org.elasticsearch.client.IndicesAdminClient;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.geo.GeoPoint;
@@ -126,6 +129,13 @@ public class RestClientTest extends AbstractRestClientTest {
     @After
     public void tearDown() {
         super.tearDown();
+    }
+
+    @Test
+    public void testIndexStats() {
+        IndicesAdminClient indices = client.admin().indices();
+        IndicesStatsResponse indicesStatsResponse = indices.stats(new IndicesStatsRequest()).actionGet();
+        System.out.println(indicesStatsResponse);
     }
 
     @Test

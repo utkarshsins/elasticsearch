@@ -19,12 +19,24 @@
 
 package org.elasticsearch.action.admin.indices.stats;
 
+import org.elasticsearch.Version;
+import org.elasticsearch.action.ActionRestRequest;
 import org.elasticsearch.action.admin.indices.stats.CommonStatsFlags.Flag;
 import org.elasticsearch.action.support.broadcast.BroadcastOperationRequest;
+import org.elasticsearch.common.Strings;
+import org.elasticsearch.common.collect.MapBuilder;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
+import org.elasticsearch.common.util.CollectionUtils;
+import org.elasticsearch.common.util.UriBuilder;
+import org.elasticsearch.rest.RestRequest;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static org.elasticsearch.action.admin.indices.stats.CommonStatsFlags.Flag.QueryCache;
 
 /**
  * A request to get indices level stats. Allow to enable different stats to be returned.
@@ -257,12 +269,52 @@ public class IndicesStatsRequest extends BroadcastOperationRequest<IndicesStatsR
     }
 
     public IndicesStatsRequest queryCache(boolean queryCache) {
-        flags.set(Flag.QueryCache, queryCache);
+        flags.set(QueryCache, queryCache);
         return this;
     }
 
     public boolean queryCache() {
-        return flags.isSet(Flag.QueryCache);
+        return flags.isSet(QueryCache);
+    }
+
+    @Override
+    public RestRequest.Method getMethod() {
+        return RestRequest.Method.GET;
+    }
+
+    @Override
+    public String getEndPoint() {
+        List<String> flagsRestName = null;
+        if (flags != null) {
+            Flag[] flags = this.flags.getFlags();
+            if (!CollectionUtils.isEmpty(flags)) {
+                flagsRestName = new ArrayList<>(flags.length);
+                for (Flag flag : flags) {
+                    flagsRestName.add(flag.getRestName());
+                }
+
+            }
+        }
+        return UriBuilder.newBuilder()
+                .csvOrDefault("_all", this.indices())
+                .slash("_stats")
+                .csv(Strings.collectionToCommaDelimitedString(flagsRestName))
+                .build();
+    }
+
+    @Override
+    public Map<String, String> getParams() {
+        return MapBuilder.<String, String>newMapBuilder()
+                .putIfNotNull("types", Strings.arrayToCommaDelimitedString(this.types()))
+                .map();
+    }
+
+    @Override
+    public ActionRestRequest getActionRestRequest(Version version) {
+        if(version.onOrAfter(Version.V_5_0_0)){
+            return new IndicesStatsV5Request();
+        }
+        return super.getActionRestRequest(version);
     }
 
     @Override
@@ -275,5 +327,52 @@ public class IndicesStatsRequest extends BroadcastOperationRequest<IndicesStatsR
     public void readFrom(StreamInput in) throws IOException {
         super.readFrom(in);
         flags = CommonStatsFlags.readCommonStatsFlags(in);
+    }
+
+
+    private class IndicesStatsV5Request extends IndicesStatsRequest {
+
+        @Override
+        public RestRequest.Method getMethod() {
+            return RestRequest.Method.GET;
+        }
+
+        @Override
+        public String getEndPoint() {
+            List<String> flagsRestName = null;
+            if (flags != null) {
+                Flag[] flags = IndicesStatsRequest.this.flags.getFlags();
+                if (!CollectionUtils.isEmpty(flags)) {
+                    flagsRestName = new ArrayList<>(flags.length);
+                    for (Flag flag : flags) {
+                        switch (flag) {
+                            case FilterCache:
+                                flagsRestName.add(QueryCache.getRestName());
+                                break;
+                            case QueryCache:
+                                flagsRestName.add("request_cache");
+                                break;
+                            case IdCache:
+                                break;
+                            default:
+                                flagsRestName.add(flag.getRestName());
+                        }
+                    }
+
+                }
+            }
+            return UriBuilder.newBuilder()
+                    .csv(this.indices())
+                    .slash("_stats")
+                    .csv(Strings.collectionToCommaDelimitedString(flagsRestName))
+                    .build();
+        }
+
+        @Override
+        public Map<String, String> getParams() {
+            return MapBuilder.<String, String>newMapBuilder()
+                    .putIfNotNull("types", Strings.arrayToCommaDelimitedString(this.types()))
+                    .map();
+        }
     }
 }

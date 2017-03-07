@@ -24,16 +24,14 @@ import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Streamable;
 import org.elasticsearch.common.unit.ByteSizeValue;
-import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentBuilderString;
+import org.elasticsearch.common.xcontent.*;
 
 import java.io.IOException;
 
 /**
  *
  */
-public class SegmentsStats implements Streamable, ToXContent {
+public class SegmentsStats implements Streamable, ToXContent, FromXContentObject {
 
     private long count;
     private long memoryInBytes;
@@ -157,6 +155,18 @@ public class SegmentsStats implements Streamable, ToXContent {
         builder.byteSizeField(Fields.FIXED_BIT_SET_MEMORY_IN_BYTES, Fields.FIXED_BIT_SET, fixedBitSetMemoryInBytes);
         builder.endObject();
         return builder;
+    }
+
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        this.count = in.getAsLong(Fields.COUNT.underscore().getValue());
+        this.memoryInBytes = in.getAsLong(Fields.MEMORY_IN_BYTES.underscore().getValue());
+        this.memoryInBytes = in.getAsLong(Fields.MEMORY_IN_BYTES.underscore().getValue());
+        this.indexWriterMemoryInBytes = in.getAsLong(Fields.INDEX_WRITER_MEMORY_IN_BYTES.underscore().getValue());
+        if (!in.getVersion().onOrAfter(Version.V_5_0_0))
+            this.indexWriterMaxMemoryInBytes = in.getAsLong(Fields.INDEX_WRITER_MAX_MEMORY_IN_BYTES.underscore().getValue());
+        this.versionMapMemoryInBytes = in.getAsLong(Fields.VERSION_MAP_MEMORY_IN_BYTES.underscore().getValue());
+        this.fixedBitSetMemoryInBytes = in.getAsLong(Fields.FIXED_BIT_SET_MEMORY_IN_BYTES.underscore().getValue());
     }
 
     static final class Fields {

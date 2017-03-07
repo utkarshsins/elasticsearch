@@ -24,10 +24,7 @@ import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Streamable;
 import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentBuilderString;
-import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.common.xcontent.*;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -35,9 +32,9 @@ import java.util.Map;
 
 /**
  */
-public class SearchStats implements Streamable, ToXContent {
+public class SearchStats implements Streamable, ToXContent, FromXContentObject {
 
-    public static class Stats implements Streamable, ToXContent {
+    public static class Stats implements Streamable, ToXContent, FromXContentObject {
 
         private long queryCount;
         private long queryTimeInMillis;
@@ -143,6 +140,17 @@ public class SearchStats implements Streamable, ToXContent {
 
             return builder;
         }
+
+        @Override
+        public void readFrom(XContentObject in) throws IOException {
+            this.queryCount = in.getAsLong(Fields.QUERY_TOTAL.underscore().getValue());
+            this.queryTimeInMillis = in.getAsLong(Fields.QUERY_TIME_IN_MILLIS.underscore().getValue());
+            this.queryCurrent = in.getAsLong(Fields.QUERY_CURRENT.underscore().getValue());
+
+            this.fetchCount = in.getAsLong(Fields.FETCH_TOTAL.underscore().getValue());
+            this.fetchTimeInMillis = in.getAsLong(Fields.FETCH_TIME_IN_MILLIS.underscore().getValue());
+            this.fetchCurrent = in.getAsLong(Fields.FETCH_CURRENT.underscore().getValue());
+        }
     }
 
     Stats totalStats;
@@ -215,6 +223,12 @@ public class SearchStats implements Streamable, ToXContent {
         }
         builder.endObject();
         return builder;
+    }
+
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        this.totalStats = new Stats();
+        this.totalStats.readFrom(in);
     }
 
     static final class Fields {

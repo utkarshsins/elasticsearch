@@ -22,15 +22,13 @@ package org.elasticsearch.index.shard;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Streamable;
-import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentBuilderString;
+import org.elasticsearch.common.xcontent.*;
 
 import java.io.IOException;
 
 /**
  */
-public class DocsStats implements Streamable, ToXContent {
+public class DocsStats implements Streamable, ToXContent, FromXContentObject {
 
     long count = 0;
     long deleted = 0;
@@ -50,6 +48,12 @@ public class DocsStats implements Streamable, ToXContent {
         }
         count += docsStats.count;
         deleted += docsStats.deleted;
+    }
+
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        this.count = in.getAsLong("count");
+        this.deleted = in.getAsLong("deleted");
     }
 
     public long getCount() {

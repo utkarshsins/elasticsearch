@@ -23,15 +23,13 @@ import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Streamable;
 import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentBuilderString;
+import org.elasticsearch.common.xcontent.*;
 
 import java.io.IOException;
 
 /**
  */
-public class GetStats implements Streamable, ToXContent {
+public class GetStats implements Streamable, ToXContent, FromXContentObject {
 
     private long existsCount;
     private long existsTimeInMillis;
@@ -113,6 +111,15 @@ public class GetStats implements Streamable, ToXContent {
         builder.field(Fields.CURRENT, current);
         builder.endObject();
         return builder;
+    }
+
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        existsCount = in.getAsLong(Fields.EXISTS_TOTAL.underscore().getValue());
+        existsTimeInMillis = in.getAsLong(Fields.EXISTS_TIME_IN_MILLIS.underscore().getValue());
+        missingCount = in.getAsLong(Fields.MISSING_TOTAL.underscore().getValue());
+        missingTimeInMillis= in.getAsLong(Fields.MISSING_TIME_IN_MILLIS.underscore().getValue());
+        current = in.getAsLong(Fields.CURRENT.underscore().getValue());
     }
 
     static final class Fields {

@@ -19,6 +19,8 @@
 
 package org.elasticsearch.search.aggregations.bucket.terms;
 
+import org.elasticsearch.Version;
+import org.elasticsearch.common.xcontent.ToXContentUtils;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.search.aggregations.Aggregator;
 import org.elasticsearch.search.aggregations.Aggregator.SubAggCollectionMode;
@@ -194,9 +196,9 @@ public class TermsBuilder extends ValuesSourceAggregationBuilder<TermsBuilder> {
                 builder.field("include", includePattern);
             } else {
                 builder.startObject("include")
-                        .field("pattern", includePattern)
-                        .field("flags", includeFlags)
-                        .endObject();
+                        .field("pattern", includePattern);
+                writeFlags(params, builder, includeFlags);
+                builder.endObject();
             }
         }
         if (excludePattern != null) {
@@ -204,11 +206,17 @@ public class TermsBuilder extends ValuesSourceAggregationBuilder<TermsBuilder> {
                 builder.field("exclude", excludePattern);
             } else {
                 builder.startObject("exclude")
-                        .field("pattern", excludePattern)
-                        .field("flags", excludeFlags)
-                        .endObject();
+                        .field("pattern", excludePattern);
+                writeFlags(params, builder, excludeFlags);
+                builder.endObject();
             }
         }
         return builder;
+    }
+
+    private void writeFlags(Params params, XContentBuilder xContentBuilder, int flags) throws IOException {
+        if (!ToXContentUtils.getVersionFromParams(params).onOrAfter(Version.V_5_0_0)) {
+            xContentBuilder.field("flags", flags);
+        }
     }
 }

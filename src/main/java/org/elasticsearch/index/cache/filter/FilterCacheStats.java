@@ -23,15 +23,13 @@ import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Streamable;
 import org.elasticsearch.common.unit.ByteSizeValue;
-import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentBuilderString;
+import org.elasticsearch.common.xcontent.*;
 
 import java.io.IOException;
 
 /**
  */
-public class FilterCacheStats implements Streamable, ToXContent {
+public class FilterCacheStats implements Streamable, ToXContent, FromXContentObject {
 
     long memorySize;
     long evictions;
@@ -86,6 +84,12 @@ public class FilterCacheStats implements Streamable, ToXContent {
         builder.field(Fields.EVICTIONS, getEvictions());
         builder.endObject();
         return builder;
+    }
+
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        this.memorySize = in.getAsLong(Fields.MEMORY_SIZE_IN_BYTES.underscore().getValue());
+        this.evictions = in.getAsLong(Fields.EVICTIONS.underscore().getValue());
     }
 
     static final class Fields {

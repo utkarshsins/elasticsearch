@@ -23,9 +23,7 @@ import org.elasticsearch.action.support.broadcast.BroadcastShardOperationRespons
 import org.elasticsearch.cluster.routing.ShardRouting;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
-import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentBuilderString;
+import org.elasticsearch.common.xcontent.*;
 import org.elasticsearch.index.shard.service.IndexShard;
 
 import java.io.IOException;
@@ -34,9 +32,9 @@ import static org.elasticsearch.cluster.routing.ImmutableShardRouting.readShardR
 
 /**
  */
-public class ShardStats extends BroadcastShardOperationResponse implements ToXContent {
+public class ShardStats extends BroadcastShardOperationResponse implements ToXContent, FromXContentObject {
 
-    private ShardRouting shardRouting;
+    ShardRouting shardRouting;
 
     CommonStats stats;
 
@@ -91,6 +89,12 @@ public class ShardStats extends BroadcastShardOperationResponse implements ToXCo
 
         stats.toXContent(builder, params);
         return builder;
+    }
+
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        this.stats = new CommonStats();
+        stats.readFrom(in);
     }
 
     static final class Fields {

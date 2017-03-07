@@ -23,9 +23,7 @@ import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Streamable;
 import org.elasticsearch.common.unit.ByteSizeValue;
-import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentBuilderString;
+import org.elasticsearch.common.xcontent.*;
 
 import java.io.IOException;
 
@@ -34,7 +32,7 @@ import java.io.IOException;
  * this class now reports field data memory usage for _parent field.
  */
 @Deprecated
-public class IdCacheStats implements Streamable, ToXContent {
+public class IdCacheStats implements Streamable, ToXContent, FromXContentObject {
 
     long memorySize;
 
@@ -79,6 +77,11 @@ public class IdCacheStats implements Streamable, ToXContent {
         builder.byteSizeField(Fields.MEMORY_SIZE_IN_BYTES, Fields.MEMORY_SIZE, memorySize);
         builder.endObject();
         return builder;
+    }
+
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        this.memorySize = in.getAsLong(Fields.MEMORY_SIZE_IN_BYTES.underscore().getValue());
     }
 
     static final class Fields {

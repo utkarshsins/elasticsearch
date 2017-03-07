@@ -23,13 +23,11 @@ import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Streamable;
 import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentBuilderString;
+import org.elasticsearch.common.xcontent.*;
 
 import java.io.IOException;
 
-public class WarmerStats implements Streamable, ToXContent {
+public class WarmerStats implements Streamable, ToXContent, FromXContentObject {
 
     private long current;
 
@@ -101,6 +99,13 @@ public class WarmerStats implements Streamable, ToXContent {
         builder.timeValueField(Fields.TOTAL_TIME_IN_MILLIS, Fields.TOTAL_TIME, totalTimeInMillis);
         builder.endObject();
         return builder;
+    }
+
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        this.current = in.getAsLong(Fields.CURRENT.underscore().getValue());
+        this.total = in.getAsLong(Fields.TOTAL.underscore().getValue());
+        this.totalTimeInMillis = in.getAsLong(Fields.TOTAL_TIME_IN_MILLIS.underscore().getValue());
     }
 
     static final class Fields {

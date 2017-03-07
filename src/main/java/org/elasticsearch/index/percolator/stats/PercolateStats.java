@@ -24,16 +24,14 @@ import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Streamable;
 import org.elasticsearch.common.unit.ByteSizeValue;
 import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentBuilderString;
+import org.elasticsearch.common.xcontent.*;
 
 import java.io.IOException;
 
 /**
  * Exposes percolator related statistics.
  */
-public class PercolateStats implements Streamable, ToXContent {
+public class PercolateStats implements Streamable, ToXContent, FromXContentObject {
 
     private long percolateCount;
     private long percolateTimeInMillis;
@@ -117,6 +115,15 @@ public class PercolateStats implements Streamable, ToXContent {
         builder.field(Fields.QUERIES, getNumQueries());
         builder.endObject();
         return builder;
+    }
+
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        this.percolateCount = in.getAsLong(Fields.TOTAL.underscore().getValue());
+        this.percolateTimeInMillis = in.getAsLong(Fields.TIME_IN_MILLIS.underscore().getValue());
+        this.current = in.getAsLong(Fields.CURRENT.underscore().getValue());
+        this.memorySizeInBytes = in.getAsLong(Fields.MEMORY_SIZE_IN_BYTES.underscore().getValue());
+        this.numQueries = in.getAsLong(Fields.QUERIES.underscore().getValue());
     }
 
     public void add(PercolateStats percolate) {

@@ -21,16 +21,14 @@ package org.elasticsearch.index.translog;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Streamable;
-import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentBuilderString;
+import org.elasticsearch.common.xcontent.*;
 
 import java.io.IOException;
 
 /**
  *
  */
-public class TranslogStats implements ToXContent, Streamable {
+public class TranslogStats implements ToXContent, Streamable, FromXContentObject {
 
     private long translogSizeInBytes = 0;
     private int estimatedNumberOfOperations = 0;
@@ -58,6 +56,12 @@ public class TranslogStats implements ToXContent, Streamable {
         builder.byteSizeField(Fields.SIZE_IN_BYTES, Fields.SIZE, translogSizeInBytes);
         builder.endObject();
         return builder;
+    }
+
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        this.estimatedNumberOfOperations = in.getAsInt(Fields.OPERATIONS.underscore().getValue());
+        this.translogSizeInBytes = in.getAsLong(Fields.SIZE_IN_BYTES.underscore().getValue());
     }
 
     static final class Fields {

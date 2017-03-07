@@ -19,6 +19,8 @@
 
 package org.elasticsearch.search.aggregations.bucket.significant;
 
+import org.elasticsearch.Version;
+import org.elasticsearch.common.xcontent.ToXContentUtils;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
@@ -86,7 +88,7 @@ public class SignificantTermsBuilder extends AggregationBuilder<SignificantTerms
         bucketCountThresholds.setMinDocCount(minDocCount);
         return this;
     }
-    
+
     /**
      * Set the background filter to compare to. Defaults to the whole index.
      */
@@ -94,7 +96,7 @@ public class SignificantTermsBuilder extends AggregationBuilder<SignificantTerms
         this.filterBuilder = filter;
         return this;
     }
-    
+
     /**
      * Expert: set the minimum number of documents that a term should match to
      * be retrieved from a shard.
@@ -171,9 +173,9 @@ public class SignificantTermsBuilder extends AggregationBuilder<SignificantTerms
                 builder.field("include", includePattern);
             } else {
                 builder.startObject("include")
-                        .field("pattern", includePattern)
-                        .field("flags", includeFlags)
-                        .endObject();
+                        .field("pattern", includePattern);
+                writeFlags(params, builder, includeFlags);
+                builder.endObject();
             }
         }
         if (excludePattern != null) {
@@ -181,15 +183,15 @@ public class SignificantTermsBuilder extends AggregationBuilder<SignificantTerms
                 builder.field("exclude", excludePattern);
             } else {
                 builder.startObject("exclude")
-                        .field("pattern", excludePattern)
-                        .field("flags", excludeFlags)
-                        .endObject();
+                        .field("pattern", excludePattern);
+                writeFlags(params, builder, excludeFlags);
+                builder.endObject();
             }
         }
-        
+
         if (filterBuilder != null) {
             builder.field(SignificantTermsParametersParser.BACKGROUND_FILTER.getPreferredName());
-            filterBuilder.toXContent(builder, params); 
+            filterBuilder.toXContent(builder, params);
         }
         if (significanceHeuristicBuilder != null) {
             significanceHeuristicBuilder.toXContent(builder);
@@ -204,5 +206,11 @@ public class SignificantTermsBuilder extends AggregationBuilder<SignificantTerms
     public SignificantTermsBuilder significanceHeuristic(SignificanceHeuristicBuilder significanceHeuristicBuilder) {
         this.significanceHeuristicBuilder = significanceHeuristicBuilder;
         return this;
+    }
+
+    private void writeFlags(Params params, XContentBuilder xContentBuilder, int flags) throws IOException {
+        if (!ToXContentUtils.getVersionFromParams(params).onOrAfter(Version.V_5_0_0)) {
+            xContentBuilder.field("flags", flags);
+        }
     }
 }

@@ -25,9 +25,7 @@ import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Streamable;
 import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentBuilderString;
+import org.elasticsearch.common.xcontent.*;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -35,9 +33,9 @@ import java.util.Map;
 
 /**
  */
-public class IndexingStats implements Streamable, ToXContent {
+public class IndexingStats implements Streamable, ToXContent, FromXContentObject {
 
-    public static class Stats implements Streamable, ToXContent {
+    public static class Stats implements Streamable, ToXContent, FromXContentObject {
 
         private long indexCount;
         private long indexTimeInMillis;
@@ -207,6 +205,20 @@ public class IndexingStats implements Streamable, ToXContent {
             builder.timeValueField(Fields.THROTTLED_TIME_IN_MILLIS, Fields.THROTTLED_TIME, throttleTimeInMillis);
             return builder;
         }
+
+        @Override
+        public void readFrom(XContentObject in) throws IOException {
+            this.indexCount = in.getAsLong(Fields.INDEX_TOTAL.underscore().getValue());
+            this.indexTimeInMillis = in.getAsLong(Fields.INDEX_TIME_IN_MILLIS.underscore().getValue());
+            this.indexCurrent = in.getAsLong(Fields.INDEX_CURRENT.underscore().getValue());
+            this.deleteCount = in.getAsLong(Fields.DELETE_TOTAL.underscore().getValue());
+            this.deleteTimeInMillis = in.getAsLong(Fields.DELETE_TIME_IN_MILLIS.underscore().getValue());
+            this.deleteCurrent = in.getAsLong(Fields.DELETE_CURRENT.underscore().getValue());
+            this.noopUpdateCount = in.getAsLong(Fields.NOOP_UPDATE_TOTAL.underscore().getValue());
+            this.isThrottled = in.getAsBoolean(Fields.IS_THROTTLED.underscore().getValue());
+            this.throttleTimeInMillis = in.getAsLong(Fields.THROTTLED_TIME_IN_MILLIS.underscore().getValue());
+        }
+
     }
 
     private Stats totalStats;
@@ -271,6 +283,12 @@ public class IndexingStats implements Streamable, ToXContent {
         }
         builder.endObject();
         return builder;
+    }
+
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        this.totalStats = new Stats();
+        this.totalStats.readFrom(in);
     }
 
     static final class Fields {

@@ -24,15 +24,13 @@ import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Streamable;
 import org.elasticsearch.common.unit.ByteSizeValue;
 import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentBuilderString;
+import org.elasticsearch.common.xcontent.*;
 
 import java.io.IOException;
 
 /**
  */
-public class StoreStats implements Streamable, ToXContent {
+public class StoreStats implements Streamable, ToXContent, FromXContentObject {
 
     private long sizeInBytes;
 
@@ -40,6 +38,12 @@ public class StoreStats implements Streamable, ToXContent {
 
     public StoreStats() {
 
+    }
+
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        this.sizeInBytes = in.getAsLong("size_in_bytes");
+        this.throttleTimeInNanos = in.getAsLong("throttle_time_in_millis");
     }
 
     public StoreStats(long sizeInBytes, long throttleTimeInNanos) {
