@@ -362,7 +362,7 @@ public class IndicesStatsRequest extends BroadcastOperationRequest<IndicesStatsR
                 }
             }
             return UriBuilder.newBuilder()
-                    .csv(this.indices())
+                    .csvOrDefault("_all", IndicesStatsRequest.this.indices())
                     .slash("_stats")
                     .csv(Strings.collectionToCommaDelimitedString(flagsRestName))
                     .build();
@@ -372,6 +372,7 @@ public class IndicesStatsRequest extends BroadcastOperationRequest<IndicesStatsR
         public Map<String, String> getParams() {
             return MapBuilder.<String, String>newMapBuilder()
                     .putIfNotNull("types", Strings.arrayToCommaDelimitedString(this.types()))
+                    .put("level", "shards")
                     .map();
         }
     }

@@ -26,7 +26,6 @@ import com.google.common.collect.Sets;
 import org.elasticsearch.action.ShardOperationFailedException;
 import org.elasticsearch.action.support.broadcast.BroadcastOperationResponse;
 import org.elasticsearch.cluster.ClusterState;
-import org.elasticsearch.cluster.routing.ImmutableShardRouting;
 import org.elasticsearch.cluster.routing.ShardRouting;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
@@ -153,50 +152,48 @@ public class IndicesStatsResponse extends BroadcastOperationResponse implements 
     @Override
     public void readFrom(XContentObject in) throws IOException {
         super.readFrom(in);
-        XContentObject indices = in.getAsXContentObject("indices");
-        if (indices != null) {
-            for (String index : indices.keySet()) {
-                XContentObject indexStats = indices.getAsXContentObject(index);
-                XContentObject primaries = indexStats.getAsXContentObject("primaries");
-                CommonStats primaryStats = null;
-                CommonStats totalStats = null;
-                if (primaries != null) {
-                    primaryStats = new CommonStats();
-                    primaryStats.readFrom(primaries);
-                    if (this.primary == null) {
-                        primary = new CommonStats();
-                    }
-                    primary.add(primaryStats);
+        XContentHelper.populate(in, JsonField.values(), this);
+        if (this.indicesStats != null) {
+            List<ShardStats> shardStatss = new ArrayList<>();
+            for (Map.Entry<String, IndexStats> entry : indicesStats.entrySet()) {
+                ShardStats[] shards = entry.getValue().getShards();
+                if (shards != null) {
+                    shardStatss.addAll(Arrays.asList(shards));
                 }
-                XContentObject total = indexStats.getAsXContentObject("total");
-                if (total != null) {
-                    totalStats = new CommonStats();
-                    totalStats.readFrom(total);
-                    if(this.total == null){
-                        this.total = new CommonStats();
-                        this.total.add(totalStats);
-                    }
-                }
+            }
+            this.shards = shardStatss.toArray(new ShardStats[shardStatss.size()]);
+        }
+    }
 
-                if (this.indicesStats == null) {
-                    this.indicesStats = new LinkedHashMap<>();
+
+    enum JsonField implements XContentObjectParseable<IndicesStatsResponse> {
+
+        _all {
+            @Override
+            public void apply(XContentObject in, IndicesStatsResponse response) throws IOException {
+                XContentObject all = in.getAsXContentObject(this);
+                response.primary = new CommonStats();
+                response.primary.readFrom(all.getAsXContentObject("primaries"));
+
+                response.total = new CommonStats();
+                response.total.readFrom(all.getAsXContentObject("total"));
+            }
+        },
+        indices {
+            @Override
+            public void apply(XContentObject in, IndicesStatsResponse response) throws IOException {
+                XContentObject indicesObject = in.getAsXContentObject(this);
+                for (String index : indicesObject.keySet()) {
+                    XContentObject indexDetails = indicesObject.getAsXContentObject(index);
+                    IndexStats indexShard = new IndexStats(index, indexDetails);
+                    if (response.indicesStats == null) {
+                        response.indicesStats = new LinkedHashMap<>();
+                    }
+                    response.indicesStats.put(index, indexShard);
                 }
-                List<ShardStats> shardStatss = new ArrayList<>(2);
-                if (primaryStats != null) {
-                    ShardStats shardStats = new ShardStats();
-                    shardStats.stats = primaryStats;
-                    shardStats.shardRouting = new ImmutableShardRouting(index, 0, null, true, null, 0);
-                    shardStatss.add(shardStats);
-                }
-                if (totalStats != null) {
-                    ShardStats shardStats = new ShardStats();
-                    shardStats.stats = totalStats;
-                    shardStats.shardRouting = new ImmutableShardRouting(index, 0, null, false, null, 0);
-                    shardStatss.add(shardStats);
-                }
-                this.indicesStats.put(index, new IndexStats(index, shardStatss.toArray(new ShardStats[shardStatss.size()])));
             }
         }
+
     }
 
     @Override

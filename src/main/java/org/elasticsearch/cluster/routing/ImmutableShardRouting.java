@@ -23,7 +23,9 @@ import com.google.common.collect.ImmutableList;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Streamable;
+import org.elasticsearch.common.xcontent.FromXContentObject;
 import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.common.xcontent.XContentObject;
 import org.elasticsearch.index.shard.ShardId;
 
 import java.io.IOException;
@@ -33,7 +35,7 @@ import java.io.Serializable;
  * {@link ImmutableShardRouting} immutably encapsulates information about shard
  * routings like id, state, version, etc.
  */
-public class ImmutableShardRouting implements Streamable, Serializable, ShardRouting {
+public class ImmutableShardRouting implements Streamable, Serializable, ShardRouting, FromXContentObject {
 
     protected String index;
 
@@ -96,6 +98,14 @@ public class ImmutableShardRouting implements Streamable, Serializable, ShardRou
         this.currentNodeId = currentNodeId;
         this.primary = primary;
         this.state = state;
+        this.asList = ImmutableList.of((ShardRouting) this);
+        this.version = version;
+    }
+
+    public ImmutableShardRouting(String index, int shardId, XContentObject in, long version) throws IOException {
+        this.index = index;
+        this.shardId = shardId;
+        this.readFrom(in);
         this.asList = ImmutableList.of((ShardRouting) this);
         this.version = version;
     }
@@ -240,6 +250,14 @@ public class ImmutableShardRouting implements Streamable, Serializable, ShardRou
     @Override
     public void readFrom(StreamInput in) throws IOException {
         readFrom(in, in.readString(), in.readVInt());
+    }
+
+    @Override
+    public void readFrom(XContentObject in) throws IOException {
+        this.state = ShardRoutingState.valueOf(in.get("state"));
+        this.primary = in.getAsBoolean("primary");
+        this.currentNodeId = in.get("node");
+        this.relocatingNodeId = in.get("relocating_node");
     }
 
     /**

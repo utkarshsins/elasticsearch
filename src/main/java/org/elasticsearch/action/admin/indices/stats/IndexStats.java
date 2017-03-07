@@ -21,7 +21,10 @@ package org.elasticsearch.action.admin.indices.stats;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.elasticsearch.cluster.routing.ImmutableShardRouting;
+import org.elasticsearch.common.xcontent.XContentObject;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +40,34 @@ public class IndexStats implements Iterable<IndexShardStats> {
     public IndexStats(String index, ShardStats[] shards) {
         this.index = index;
         this.shards = shards;
+    }
+
+
+    public IndexStats(String index, XContentObject in) throws IOException {
+        this.index = index;
+        XContentObject shards = in.getAsXContentObject("shards");
+        if (shards != null) {
+            this.shards = new ShardStats[shards.size()];
+            for (String shardIdStr : shards.keySet()) {
+                int shardId = Integer.parseInt(shardIdStr);
+                List<XContentObject> shardStatsXContents = shards.getAsXContentObjectsOrEmpty(shardIdStr);
+                if(!shardStatsXContents.isEmpty()) {
+                    ShardStats shardStats = new ShardStats();
+                    XContentObject shardStatsXContent = shardStatsXContents.get(0);
+                    shardStats.shardRouting = new ImmutableShardRouting(index, shardId, shardStatsXContent.getAsXContentObject("routing"), 0);
+                    shardStats.stats = new CommonStats();
+                    shardStats.stats.readFrom(shardStatsXContent);
+                    this.shards[shardId] = shardStats;
+                }
+            }
+        } else {
+            this.shards = new ShardStats[0];
+        }
+        this.primary = new CommonStats();
+        this.primary.readFrom(in.getAsXContentObject("primaries"));
+
+        this.total = new CommonStats();
+        this.total.readFrom(in.getAsXContentObject("total"));
     }
 
     public String getIndex() {

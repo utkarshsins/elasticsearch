@@ -107,7 +107,7 @@ public abstract class AbstractRestClientTest {
     }
 
     protected TransportClient createTransportClient() {
-        TransportClient transportClient = new TransportClient();
+        TransportClient transportClient = new TransportClient(ImmutableSettings.settingsBuilder().put("cluster.name", "elasticsearch-1.4.1"));
         transportClient.addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
         return transportClient;
     }
