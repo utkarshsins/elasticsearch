@@ -41,6 +41,7 @@ public abstract class ValuesSourceAggregationBuilder<B extends ValuesSourceAggre
      * request cache for script
      */
     private Boolean requestCache;
+    private Object missing;
 
     /**
      * Constructs a new builder.
@@ -130,6 +131,24 @@ public abstract class ValuesSourceAggregationBuilder<B extends ValuesSourceAggre
         return (B) this;
     }
 
+    /**
+     * Sets the value to use when the aggregation finds a missing value in a
+     * document
+     */
+    @SuppressWarnings("unchecked")
+    public B missing(Object missing) {
+        this.missing = missing;
+        return (B) this;
+    }
+
+    /**
+     * Gets the value to use when the aggregation finds a missing value in a
+     * document
+     */
+    public Object missing() {
+        return missing;
+    }
+
     @Override
     protected final XContentBuilder internalXContent(XContentBuilder builder, Params params) throws IOException {
         builder.startObject();
@@ -138,6 +157,9 @@ public abstract class ValuesSourceAggregationBuilder<B extends ValuesSourceAggre
         }
 
         if (ToXContentUtils.getVersionFromParams(params).onOrAfter(Version.V_5_0_0)) {
+            if (this.missing != null) {
+                builder.field("missing", missing);
+            }
             if (this.script != null) {
                 builder.startObject("script");
                 builder.field("inline", script);
@@ -153,6 +175,11 @@ public abstract class ValuesSourceAggregationBuilder<B extends ValuesSourceAggre
                 builder.endObject();
             }
         } else {
+
+            if (missing != null) {
+                throw new IllegalArgumentException("missing is supported only for elasticsearch version 5+");
+            }
+
             if (script != null) {
                 builder.field("script", script);
             }

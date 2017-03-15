@@ -41,6 +41,7 @@ public abstract class ValuesSourceMetricsAggregationBuilder<B extends ValuesSour
      * request cache for script
      */
     private Boolean requestCache;
+    private Object missing;
 
     protected ValuesSourceMetricsAggregationBuilder(String name, String type) {
         super(name, type);
@@ -83,9 +84,27 @@ public abstract class ValuesSourceMetricsAggregationBuilder<B extends ValuesSour
         return (B) this;
     }
 
-    public B requestCache(boolean requestCache){
+    public B requestCache(boolean requestCache) {
         this.requestCache = requestCache;
         return (B) this;
+    }
+
+    /**
+     * Sets the value to use when the aggregation finds a missing value in a
+     * document
+     */
+    @SuppressWarnings("unchecked")
+    public B missing(Object missing) {
+        this.missing = missing;
+        return (B) this;
+    }
+
+    /**
+     * Gets the value to use when the aggregation finds a missing value in a
+     * document
+     */
+    public Object missing() {
+        return missing;
     }
 
     @Override
@@ -95,6 +114,9 @@ public abstract class ValuesSourceMetricsAggregationBuilder<B extends ValuesSour
         }
 
         if (ToXContentUtils.getVersionFromParams(params).onOrAfter(Version.V_5_0_0)) {
+            if (this.missing != null) {
+                builder.field("missing", missing);
+            }
             if (this.script != null) {
                 builder.startObject("script");
                 builder.field("inline", script);
@@ -111,6 +133,11 @@ public abstract class ValuesSourceMetricsAggregationBuilder<B extends ValuesSour
             }
 
         } else {
+
+            if (missing != null) {
+                throw new IllegalArgumentException("missing is supported only for elasticsearch version 5+");
+            }
+
             if (script != null) {
                 builder.field("script", script);
             }

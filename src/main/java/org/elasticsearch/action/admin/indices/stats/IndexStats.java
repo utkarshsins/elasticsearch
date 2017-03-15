@@ -48,16 +48,18 @@ public class IndexStats implements Iterable<IndexShardStats> {
         XContentObject shards = in.getAsXContentObject("shards");
         if (shards != null) {
             this.shards = new ShardStats[shards.size()];
+            int i = 0;
             for (String shardIdStr : shards.keySet()) {
                 int shardId = Integer.parseInt(shardIdStr);
                 List<XContentObject> shardStatsXContents = shards.getAsXContentObjectsOrEmpty(shardIdStr);
-                if(!shardStatsXContents.isEmpty()) {
+                if (!shardStatsXContents.isEmpty()) {
                     ShardStats shardStats = new ShardStats();
                     XContentObject shardStatsXContent = shardStatsXContents.get(0);
                     shardStats.shardRouting = new ImmutableShardRouting(index, shardId, shardStatsXContent.getAsXContentObject("routing"), 0);
                     shardStats.stats = new CommonStats();
                     shardStats.stats.readFrom(shardStatsXContent);
-                    this.shards[shardId] = shardStats;
+                    this.shards[i] = shardStats;
+                    i++;
                 }
             }
         } else {
